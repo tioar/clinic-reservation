@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>診所預約</title>
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; background: #f5f5f5; }
+    input, select, button { display: block; width: 100%; margin-bottom: 15px; padding: 10px; font-size: 16px; }
+    button { background-color: #007bff; color: white; border: none; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <h2>診所預約</h2>
+  <form id="reservation-form">
+    <label>預約日期：</label>
+    <input type="date" id="date" required min="" max="">
+
+    <label>診別：</label>
+    <select id="session" required>
+      <option value="早上診">早上診</option>
+      <option value="下午診">下午診</option>
+      <option value="晚上診">晚上診</option>
+    </select>
+
+    <label>初診或複診：</label>
+    <select id="visitType" required>
+      <option value="初診">初診</option>
+      <option value="複診">複診</option>
+    </select>
+
+    <label>姓名：</label>
+    <input type="text" id="name" required>
+
+    <label>出生年月日：</label>
+    <input type="date" id="birthday" required>
+
+    <label>身分證字號（初診需填）：</label>
+    <input type="text" id="idNumber">
+
+    <label>連絡電話或手機：</label>
+    <input type="tel" id="phone" required>
+
+    <button type="submit">送出預約</button>
+  </form>
+
+  <script>
+    const GAS_URL = 'https://script.google.com/macros/s/AKfycbxjz77W3jVOF4q1M4R2Fpz_ufsg0z_VP30q56V9r_zFHk-oQWfd7nP0-UoPw3HFACEa/exec';
+
+    // 限定日期區間：今天 + 一週內
+    const dateInput = document.getElementById("date");
+    const today = new Date();
+    const nextWeek = new Date();
+    nextWeek.setDate(today.getDate() + 7);
+    dateInput.min = today.toISOString().split('T')[0];
+    dateInput.max = nextWeek.toISOString().split('T')[0];
+
+    // 預約限制（每診別每日上限）
+    const limitPerSession = {
+      '早上診': 20,
+      '下午診': 20,
+      '晚上診': 20,
+      '星期六': {
+        '早上診': 10,
+        '下午診': 10,
+        '晚上診': 10
+      }
+    };
+
+    document.getElementById("reservation-form").addEventListener("submit", function(e) {
+      e.preventDefault();
+
+      const form = e.target;
+      const data = {
+        date: form.date.value,
+        session: form.session.value,
+        visitType: form.visitType.value,
+        name: form.name.value,
+        birthday: form.birthday.value,
+        idNumber: form.visitType.value === "初診" ? form.idNumber.value : "",
+        phone: form.phone.value
+      };
+
+      // 檢查是否已滿額
+      fetch(GAS_URL + '?check=1&date=' + data.date + '&session=' + data.session)
+        .then(res => res.json())
+        .then(json => {
+          const weekDay = new Date(data.date).getDay();
+          const dayName = ["星期日","星期一","星期二","星期三","星期四","星期五","星期六"][weekDay];
+          let limit = limitPerSession[data.session];
+          if (limitPerSession[dayName] && limitPerSession[dayName][data.session]) {
+            limit = limitPerSession[dayName][data.session];
+          }
+
+          if (json.count >= limit) {
+            alert("此診別已額滿，請選擇其他時間。\n目前已預約人數：「" + json.count + "」上限：「" + limit + "」");
+            return;
+          }
+
+          // 提交資料
+          fetch(GAS_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+          })
+          .then(res => res.json())
+          .then(res => {
+            if (res.success) {
+              alert("預約成功！");
+              location.href = "https://line.me/R/oaMessage/@213jdxim/?預約成功";
+            } else {
+              alert("預約失敗：" + res.message);
+            }
+          })
+          .catch(err => {
+            alert("傳送失敗，請稍後再試");
+            console.error(err);
+          });
+        });
+    });
+  </script>
+</body>
+</html>
