@@ -32,10 +32,7 @@
   </form>
 
   <script>
-    // ✅ 替換成你自己的 LIFF ID
     const LIFF_ID = "2007654985-NZKyvL7k";
-
-    // ✅ 替換成你自己的 GAS 部署網址
     const GAS_URL = "https://script.google.com/macros/s/AKfycbxiOSGBPkpIerDhWn6ZCR0h-xXgo6ohCu5Ze5gfiwW_Efe02yUX_JRVGj5aKvBpxWU/exec";
 
     // 初始化 LIFF
@@ -51,7 +48,7 @@
     const visitType = document.getElementById("visitType");
     const idContainer = document.getElementById("idNumberContainer");
 
-    // 限制日期區間：明天～兩週內
+    // 限制日期：明天～兩週內
     const today = new Date();
     const minDate = new Date();
     minDate.setDate(today.getDate() + 1);
@@ -60,7 +57,7 @@
     dateInput.min = minDate.toISOString().split("T")[0];
     dateInput.max = maxDate.toISOString().split("T")[0];
 
-    // 根據日期更新診別選項
+    // 根據日期顯示診別
     dateInput.addEventListener('change', () => {
       const day = new Date(dateInput.value).getDay();
       sessionSelect.innerHTML = "";
@@ -77,18 +74,19 @@
       });
     });
 
-    // 顯示身分證欄位（僅初診）
+    // 顯示身分證欄位（初診才需要）
     visitType.addEventListener('change', () => {
       idContainer.style.display = visitType.value === "初診" ? "block" : "none";
     });
 
+    // 表單送出
     document.getElementById("reservation-form").addEventListener("submit", async (e) => {
       e.preventDefault();
 
       const data = {
         date: document.getElementById("date").value,
         session: document.getElementById("session").value,
-        visitType: document.getElementById("visitType").value,
+        visitType: visitType.value,
         name: document.getElementById("name").value,
         birthday: document.getElementById("birthday").value,
         idNumber: visitType.value === "初診" ? document.getElementById("idNumber").value : "",
@@ -96,7 +94,7 @@
       };
 
       try {
-        const res = await fetch("https://script.google.com/macros/s/AKfycbxiOSGBPkpIerDhWn6ZCR0h-xXgo6ohCu5Ze5gfiwW_Efe02yUX_JRVGj5aKvBpxWU/exec", {
+        const res = await fetch(GAS_URL, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(data)
