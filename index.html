@@ -7,51 +7,45 @@
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
-      background-color: #f7fafd;
-      margin: 0;
-      padding: 2rem;
+      background-color: #f4f8fc;
       display: flex;
       justify-content: center;
+      padding: 2rem;
     }
     .form-container {
       background: white;
-      border-radius: 10px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
       padding: 2rem;
+      border-radius: 8px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
       width: 100%;
-      max-width: 500px;
+      max-width: 400px;
     }
     h2 {
       text-align: center;
-      color: #2a6db0;
-    }
-    .form-group {
-      margin-bottom: 1rem;
+      color: #1e88e5;
     }
     label {
       display: block;
-      margin-bottom: 0.3rem;
+      margin-top: 1rem;
       font-weight: bold;
     }
-    input, select {
+    input, select, button {
       width: 100%;
       padding: 0.5rem;
-      font-size: 1rem;
+      margin-top: 0.5rem;
       border: 1px solid #ccc;
-      border-radius: 5px;
+      border-radius: 4px;
     }
     button {
-      width: 100%;
-      padding: 0.7rem;
-      background-color: #2a6db0;
+      background-color: #1976d2;
       color: white;
-      font-size: 1rem;
       border: none;
-      border-radius: 5px;
+      margin-top: 2rem;
+      font-weight: bold;
       cursor: pointer;
     }
     button:hover {
-      background-color: #1e5a96;
+      background-color: #1565c0;
     }
   </style>
 </head>
@@ -59,71 +53,83 @@
   <div class="form-container">
     <h2>診所預約表單</h2>
     <form id="reservationForm">
-      <div class="form-group">
-        <label for="date">預約日期：</label>
-        <input type="date" id="date" name="date" required />
-      </div>
+      <label for="appointmentDate">預約日期：</label>
+      <input type="date" id="appointmentDate" name="appointmentDate" required />
 
-      <div class="form-group">
-        <label for="session">診別：</label>
-        <select id="session" name="session" required>
-          <option value="早上診">早上診</option>
-          <option value="下午診">下午診</option>
-          <option value="晚上診">晚上診</option>
-        </select>
-      </div>
+      <label for="session">診別：</label>
+      <select id="session" name="session" required>
+        <option value="">請先選擇日期</option>
+      </select>
 
-      <div class="form-group">
-        <label for="visitType">初診或複診：</label>
-        <select id="visitType" name="visitType" onchange="toggleIDField()" required>
-          <option value="初診">初診</option>
-          <option value="複診" selected>複診</option>
-        </select>
-      </div>
+      <label for="type">初診或複診：</label>
+      <select id="type" name="type" required>
+        <option value="初診">初診</option>
+        <option value="複診">複診</option>
+      </select>
 
-      <div class="form-group">
-        <label for="name">姓名：</label>
-        <input type="text" id="name" name="name" required />
-      </div>
+      <label for="name">姓名：</label>
+      <input type="text" id="name" name="name" required />
 
-      <div class="form-group">
-        <label for="birth">出生年月日：</label>
-        <input type="date" id="birth" name="birth" required />
-      </div>
+      <label for="birth">出生年月日：</label>
+      <input type="date" id="birth" name="birth" required />
 
-      <div class="form-group" id="idGroup" style="display: none;">
-        <label for="idNumber">身分證字號：</label>
-        <input type="text" id="idNumber" name="idNumber" placeholder="限初診填寫" />
-      </div>
+      <label for="idNumber" id="idLabel">身分證字號：</label>
+      <input type="text" id="idNumber" name="idNumber" />
 
-      <div class="form-group">
-        <label for="phone">電話：</label>
-        <input type="tel" id="phone" name="phone" required />
-      </div>
+      <label for="phone">電話：</label>
+      <input type="tel" id="phone" name="phone" required />
 
       <button type="submit">送出預約</button>
     </form>
   </div>
 
   <script>
-    function toggleIDField() {
-      const visitType = document.getElementById("visitType").value;
-      const idGroup = document.getElementById("idGroup");
-      if (visitType === "初診") {
-        idGroup.style.display = "block";
-        document.getElementById("idNumber").required = true;
-      } else {
-        idGroup.style.display = "none";
-        document.getElementById("idNumber").required = false;
-      }
-    }
+    document.addEventListener("DOMContentLoaded", function () {
+      const dateInput = document.getElementById("appointmentDate");
+      const sessionSelect = document.getElementById("session");
+      const typeSelect = document.getElementById("type");
+      const idInput = document.getElementById("idNumber");
+      const idLabel = document.getElementById("idLabel");
 
-    window.onload = toggleIDField;
+      dateInput.addEventListener("change", function () {
+        const selectedDate = new Date(dateInput.value);
+        const dayOfWeek = selectedDate.getDay();
 
-    document.getElementById("reservationForm").addEventListener("submit", function (e) {
-      e.preventDefault();
-      alert("預約已送出，我們會與您聯絡。\n點擊下方按鈕返回 LINE！");
-      window.location.href = "https://line.me/R/ti/p/@你的官方帳號ID"; // 換成你自己的 LINE OA ID
+        const sessionOptions = {
+          0: [], // Sunday
+          1: ["早上診", "下午診"],
+          2: ["早上診", "晚上診"],
+          3: ["早上診", "下午診"],
+          4: ["早上診", "晚上診"],
+          5: ["早上診", "下午診"],
+          6: ["早上診"],
+        };
+
+        sessionSelect.innerHTML = "";
+
+        if (!sessionOptions[dayOfWeek] || sessionOptions[dayOfWeek].length === 0) {
+          alert("星期日不開診，請選擇其他日期。");
+          dateInput.value = "";
+          return;
+        }
+
+        sessionOptions[dayOfWeek].forEach(function (optionText) {
+          const option = document.createElement("option");
+          option.value = optionText;
+          option.textContent = optionText;
+          sessionSelect.appendChild(option);
+        });
+      });
+
+      typeSelect.addEventListener("change", function () {
+        const isFirstVisit = typeSelect.value === "初診";
+        idInput.required = isFirstVisit;
+        idLabel.style.display = isFirstVisit ? "block" : "none";
+        idInput.style.display = isFirstVisit ? "block" : "none";
+      });
+
+      // 預設載入時也檢查一次
+      typeSelect.dispatchEvent(new Event("change"));
     });
   </script>
 </body>
