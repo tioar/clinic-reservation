@@ -86,67 +86,28 @@
     </form>
   </div>
 
-  <script>
-    const form = document.getElementById('clinicForm');
-    const visitType = document.getElementById('visitType');
-    const idGroup = document.getElementById('id-number-group');
-    const sessionSelect = document.getElementById('session');
-    const dateInput = document.getElementById('date');
-    const birthInput = document.getElementById('birthdate');
+<script>
+form.addEventListener('submit', async (e) => {
+  e.preventDefault();
 
-    // 限制預約日：明天至兩週內
-    const today = new Date();
-    const tomorrow = new Date();
-    tomorrow.setDate(today.getDate() + 1);
-    const maxDate = new Date();
-    maxDate.setDate(today.getDate() + 14);
-    dateInput.min = tomorrow.toISOString().split('T')[0];
-    dateInput.max = maxDate.toISOString().split('T')[0];
+  const id = document.getElementById('id');
+  if (visitType.value === '初診' && !/^[A-Za-z][0-9]{9}$/.test(id.value)) {
+    alert('請輸入正確的身分證字號（1個英文字母 + 9位數字）');
+    return;
+  }
 
-    // 限制出生年月日：最大150歲、不可未來
-    const minBirth = new Date();
-    minBirth.setFullYear(minBirth.getFullYear() - 150);
-    birthInput.min = minBirth.toISOString().split('T')[0];
-    birthInput.max = today.toISOString().split('T')[0];
+  const formData = new FormData(form);
+  const data = Object.fromEntries(formData);
 
-    // 根據選擇的日期動態顯示診別
-    dateInput.addEventListener('change', () => {
-      const day = new Date(dateInput.value).getDay();
-      sessionSelect.innerHTML = '';
-      if (day === 0) return; // 星期日不能預約
-      const options = [];
-      if ([1,2,3,4,5,6].includes(day)) options.push('早上診');
-      if ([1,3,5].includes(day)) options.push('下午診');
-      if ([2,4].includes(day)) options.push('晚上診');
-      options.forEach(s => {
-        const opt = document.createElement('option');
-        opt.value = s;
-        opt.textContent = s;
-        sessionSelect.appendChild(opt);
-      });
+  try {
+    const response = await fetch('https://script.google.com/macros/s/你的URL/exec', {
+      method: 'POST',
+      body: JSON.stringify(data),
+      headers: { 'Content-Type': 'application/json' }
     });
 
-    // 初診時顯示身份證欄位
-    visitType.addEventListener('change', () => {
-      idGroup.style.display = visitType.value === '初診' ? 'block' : 'none';
-    });
-
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-
-      const id = document.getElementById('id');
-      if (visitType.value === '初診' && !/^\w{1}[0-9]{9}$/.test(id.value)) {
-        alert('請輸入正確的身分證字號（1個英文字母 + 9位數字）');
-        return;
-      }
-
-      const formData = new FormData(form);
-      const data = Object.fromEntries(formData);
-
-      // TODO: 傳送到 GAS
-      console.log(data);
-
-      // 成功畫面
+    const res = await response.json();
+    if (res.success) {
       document.body.innerHTML = `
         <div style="text-align:center;padding:40px">
           <h2 style="color:#2563eb">✅ 預約成功！！</h2>
@@ -154,7 +115,14 @@
           <p><a href="https://page.line.me/213jdxim" style="color:#2563eb;text-decoration:underline">點此返回 LINE 官方帳號</a></p>
         </div>
       `;
-    });
-  </script>
+    } else {
+      alert('發生錯誤，請稍後再試！');
+    }
+  } catch (err) {
+    alert('提交失敗，請確認網路或重試');
+    console.error(err);
+  }
+});
+</script>
 </body>
 </html>
