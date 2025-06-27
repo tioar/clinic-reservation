@@ -32,10 +32,9 @@
   </form>
 
   <script>
-    const LIFF_ID = "2007654985-NZKyvL7k";
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbxiOSGBPkpIerDhWn6ZCR0h-xXgo6ohCu5Ze5gfiwW_Efe02yUX_JRVGj5aKvBpxWU/exec";
+    const LIFF_ID = "2007654985-NZKyvL7k";  // 你的 LIFF ID
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbxiOSGBPkpIerDhWn6ZCR0h-xXgo6ohCu5Ze5gfiwW_Efe02yUX_JRVGj5aKvBpxWU/exec";  // 你的 GAS URL
 
-    // 初始化 LIFF
     liff.init({ liffId: LIFF_ID })
       .then(() => console.log("✅ LIFF 初始化成功"))
       .catch(err => {
@@ -48,7 +47,7 @@
     const visitType = document.getElementById("visitType");
     const idContainer = document.getElementById("idNumberContainer");
 
-    // 限制日期：明天～兩週內
+    // 限制可選日期：明天～14天內
     const today = new Date();
     const minDate = new Date();
     minDate.setDate(today.getDate() + 1);
@@ -57,15 +56,15 @@
     dateInput.min = minDate.toISOString().split("T")[0];
     dateInput.max = maxDate.toISOString().split("T")[0];
 
-    // 根據日期顯示診別
+    // 診別選單根據星期自動切換
     dateInput.addEventListener('change', () => {
       const day = new Date(dateInput.value).getDay();
       sessionSelect.innerHTML = "";
       if (day === 0) return; // 星期日不開診
       const options = [];
-      if ([1,2,3,4,5,6].includes(day)) options.push("早上診");
-      if ([1,3,5].includes(day)) options.push("下午診");
-      if ([2,4].includes(day)) options.push("晚上診");
+      if ([1, 2, 3, 4, 5, 6].includes(day)) options.push("早上診");
+      if ([1, 3, 5].includes(day)) options.push("下午診");
+      if ([2, 4].includes(day)) options.push("晚上診");
       options.forEach(opt => {
         const o = document.createElement("option");
         o.value = opt;
@@ -74,22 +73,22 @@
       });
     });
 
-    // 顯示身分證欄位（初診才需要）
+    // 顯示或隱藏身分證欄位
     visitType.addEventListener('change', () => {
       idContainer.style.display = visitType.value === "初診" ? "block" : "none";
     });
 
-    // 表單送出
+    // 表單提交
     document.getElementById("reservation-form").addEventListener("submit", async (e) => {
       e.preventDefault();
 
       const data = {
         date: document.getElementById("date").value,
         session: document.getElementById("session").value,
-        visitType: visitType.value,
+        visitType: document.getElementById("visitType").value,
         name: document.getElementById("name").value,
         birthday: document.getElementById("birthday").value,
-        idNumber: visitType.value === "初診" ? document.getElementById("idNumber").value : "",
+        idNumber: document.getElementById("visitType").value === "初診" ? document.getElementById("idNumber").value : "",
         phone: document.getElementById("phone").value
       };
 
