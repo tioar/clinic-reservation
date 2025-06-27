@@ -4,8 +4,8 @@
   <meta charset="UTF-8">
   <title>診所預約</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   <style>
-    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     body { font-family: 'Microsoft JhengHei'; background: #f4f8fb; padding: 20px; text-align: center; }
     form { background: white; padding: 20px; border-radius: 8px; max-width: 500px; margin: auto; }
     input, select, button { width: 100%; padding: 10px; margin-top: 10px; }
@@ -32,21 +32,26 @@
   </form>
 
   <script>
+    // ✅ 替換成你自己的 LIFF ID
     const LIFF_ID = "2007654985-NZKyvL7k";
+
+    // ✅ 替換成你自己的 GAS 部署網址
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbxiOSGBPkpIerDhWn6ZCR0h-xXgo6ohCu5Ze5gfiwW_Efe02yUX_JRVGj5aKvBpxWU/exec";
+
+    // 初始化 LIFF
     liff.init({ liffId: LIFF_ID })
-      .then(() => console.log("✅ LIFF init 成功"))
+      .then(() => console.log("✅ LIFF 初始化成功"))
       .catch(err => {
-        alert("請從 LINE 開啟");
-        console.error(err);
+        alert("請從 LINE 開啟本頁");
+        console.error("❌ LIFF 初始化失敗", err);
       });
-    const GAS_URL = 'https://script.google.com/macros/s/AKfycbxjz77W3jVOF4q1M4R2Fpz_ufsg0z_VP30q56V9r_zFHk-oQWfd7nP0-UoPw3HFACEa/exec';
 
     const dateInput = document.getElementById("date");
     const sessionSelect = document.getElementById("session");
     const visitType = document.getElementById("visitType");
     const idContainer = document.getElementById("idNumberContainer");
 
-    // 限制日期
+    // 限制日期區間：明天～兩週內
     const today = new Date();
     const minDate = new Date();
     minDate.setDate(today.getDate() + 1);
@@ -55,11 +60,11 @@
     dateInput.min = minDate.toISOString().split("T")[0];
     dateInput.max = maxDate.toISOString().split("T")[0];
 
-    // 顯示對應診別
+    // 根據日期更新診別選項
     dateInput.addEventListener('change', () => {
       const day = new Date(dateInput.value).getDay();
       sessionSelect.innerHTML = "";
-      if (day === 0) return;
+      if (day === 0) return; // 星期日不開診
       const options = [];
       if ([1,2,3,4,5,6].includes(day)) options.push("早上診");
       if ([1,3,5].includes(day)) options.push("下午診");
@@ -72,6 +77,7 @@
       });
     });
 
+    // 顯示身分證欄位（僅初診）
     visitType.addEventListener('change', () => {
       idContainer.style.display = visitType.value === "初診" ? "block" : "none";
     });
@@ -89,24 +95,27 @@
         phone: document.getElementById("phone").value
       };
 
-      const res = await fetch("https://script.google.com/macros/s/AKfycbxiOSGBPkpIerDhWn6ZCR0h-xXgo6ohCu5Ze5gfiwW_Efe02yUX_JRVGj5aKvBpxWU/exec", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data)
-      });
-
-
-      const result = await res.json();
-      if (result.success) {
-        document.body.innerHTML = `
-          <div style="padding: 40px">
-            <h2 style="color:#2563eb">✅ 預約成功！</h2>
-            <img src="success.png" style="max-width:100px">
-            <p><a href="https://page.line.me/213jdxim" style="color:#2563eb">返回LINE官方帳號</a></p>
-          </div>
-        `;
-      } else {
-        alert(result.message || "提交失敗，請稍後再試");
+      try {
+        const res = await fetch(GAS_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data)
+        });
+        const result = await res.json();
+        if (result.success) {
+          document.body.innerHTML = `
+            <div style="padding: 40px">
+              <h2 style="color:#2563eb">✅ 預約成功！</h2>
+              <img src="success.png" style="max-width:100px">
+              <p><a href="https://page.line.me/213jdxim" style="color:#2563eb">返回 LINE 官方帳號</a></p>
+            </div>
+          `;
+        } else {
+          alert(result.message || "提交失敗，請稍後再試");
+        }
+      } catch (err) {
+        alert("資料傳送失敗，請稍後再試");
+        console.error(err);
       }
     });
   </script>
