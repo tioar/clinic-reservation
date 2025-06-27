@@ -1,82 +1,127 @@
-
 <!DOCTYPE html>
-<html lang="zh-Hant">
+<html lang="zh-TW">
 <head>
   <meta charset="UTF-8">
-  <title>診所預約表單</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <title>診所預約表單</title>
   <style>
-    body { font-family: sans-serif; margin: 2em; }
-    label { display: block; margin: 1em 0 0.3em; }
-    input, select, button { width: 100%; padding: 0.5em; font-size: 1em; }
-    .hidden { display: none; }
+    body {
+      font-family: "Segoe UI", sans-serif;
+      background-color: #f6f9fc;
+      margin: 0;
+      padding: 2rem;
+      color: #333;
+    }
+    h1 {
+      color: #2a6ebb;
+      text-align: center;
+    }
+    form {
+      max-width: 500px;
+      margin: auto;
+      background-color: white;
+      padding: 2rem;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+    label {
+      display: block;
+      margin-top: 1rem;
+      margin-bottom: 0.3rem;
+      font-weight: bold;
+    }
+    input, select, button {
+      width: 100%;
+      padding: 0.6rem;
+      font-size: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      box-sizing: border-box;
+    }
+    button {
+      background-color: #2a6ebb;
+      color: white;
+      margin-top: 1.5rem;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    button:hover {
+      background-color: #1f5da0;
+    }
   </style>
 </head>
 <body>
-  <h2>診所預約表單</h2>
-  <form id="reserveForm">
-    <label>預約日期：
-      <input type="date" name="date" required>
-    </label>
-    <label>診別：
-      <select name="session" required>
-        <option value="早上診">早上診</option>
-        <option value="下午診">下午診</option>
-        <option value="晚上診">晚上診</option>
-      </select>
-    </label>
-    <label>初診或複診：
-      <select name="visitType" id="visitType" required onchange="toggleIdField()">
-        <option value="初診">初診</option>
-        <option value="複診">複診</option>
-      </select>
-    </label>
-    <label id="idField">
-      身分證字號：
-      <input type="text" name="id" maxlength="10">
-    </label>
-    <label>姓名：
-      <input type="text" name="name" required>
-    </label>
-    <label>電話：
-      <input type="tel" name="phone" required>
-    </label>
-    <label>出生年月日：
-      <input type="date" name="birth" required>
-    </label>
+  <h1>診所預約表單</h1>
+  <form id="reservationForm">
+    <label for="date">預約日期：</label>
+    <input type="date" id="date" name="date" required>
+
+    <label for="session">診別：</label>
+    <select id="session" name="session">
+      <option value="早上診">早上診</option>
+      <option value="下午診">下午診</option>
+      <option value="晚上診">晚上診</option>
+    </select>
+
+    <label for="visitType">初診或複診：</label>
+    <select id="visitType" name="visitType">
+      <option value="初診">初診</option>
+      <option value="複診">複診</option>
+    </select>
+
+    <label for="name">姓名：</label>
+    <input type="text" id="name" name="name" required>
+
+    <label for="birth">出生年月日：</label>
+    <input type="date" id="birth" name="birth" required>
+
+    <label for="id">身分證字號：</label>
+    <input type="text" id="id" name="id">
+
+    <label for="phone">電話：</label>
+    <input type="tel" id="phone" name="phone" required>
+
     <button type="submit">送出預約</button>
   </form>
-  <div id="result"></div>
+
   <script>
-    function toggleIdField() {
-      const type = document.getElementById("visitType").value;
-      const idField = document.getElementById("idField");
-      if (type === "初診") {
-        idField.classList.remove("hidden");
-      } else {
-        idField.classList.add("hidden");
-      }
-    }
-
-    document.getElementById("reserveForm").addEventListener("submit", async (e) => {
+    document.getElementById('reservationForm').addEventListener('submit', function (e) {
       e.preventDefault();
-      const form = e.target;
-      const formData = new FormData(form);
-      const json = {};
-      formData.forEach((v, k) => json[k] = v);
 
-      try {
-        const res = await fetch("https://script.google.com/macros/s/你的AppsScript網址/exec", {
-          method: "POST",
-          body: JSON.stringify(json),
-          headers: { "Content-Type": "application/json" }
-        });
-        const result = await res.text();
-        document.getElementById("result").innerHTML = `<p>${result}</p>`;
-      } catch (err) {
-        document.getElementById("result").innerHTML = "<p>⚠️ 發生錯誤，請稍後再試。</p>";
+      const formData = {
+        date: document.getElementById('date').value,
+        session: document.getElementById('session').value,
+        visitType: document.getElementById('visitType').value,
+        name: document.getElementById('name').value,
+        birth: document.getElementById('birth').value,
+        id: document.getElementById('id').value,
+        phone: document.getElementById('phone').value,
+      };
+
+      if (formData.visitType === '初診' && formData.id.trim() === '') {
+        alert('初診需填寫身分證字號');
+        return;
       }
+
+      fetch('https://script.google.com/macros/s/YOUR_GAS_DEPLOY_URL/exec', {
+        method: 'POST',
+        body: JSON.stringify(formData),
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          window.location.href = 'success.html';
+        } else {
+          alert(data.message || '預約失敗，請稍後再試');
+        }
+      })
+      .catch(err => {
+        console.error(err);
+        alert('送出失敗，請檢查網路或稍後再試。');
+      });
     });
   </script>
 </body>
