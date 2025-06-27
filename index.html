@@ -33,8 +33,7 @@
 
 <script>
   const LIFF_ID = "2007654985-NZKyvL7k";  // 你的 LIFF ID
- const GAS_URL = "https://clinic-reservation-pi.vercel.app/";  // ✅ 新的 GAS URL
-
+  const GAS_URL = "/api/submit";
   liff.init({ liffId: LIFF_ID })
     .then(() => console.log("✅ LIFF 初始化成功"))
     .catch(err => {
