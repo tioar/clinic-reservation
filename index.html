@@ -1,127 +1,129 @@
 <!DOCTYPE html>
-<html lang="zh-TW">
+<html lang="zh-Hant">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>診所預約表單</title>
   <style>
     body {
-      font-family: "Segoe UI", sans-serif;
-      background-color: #f6f9fc;
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f7fafd;
       margin: 0;
       padding: 2rem;
-      color: #333;
+      display: flex;
+      justify-content: center;
     }
-    h1 {
-      color: #2a6ebb;
-      text-align: center;
-    }
-    form {
-      max-width: 500px;
-      margin: auto;
-      background-color: white;
+    .form-container {
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
       padding: 2rem;
-      border-radius: 8px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      width: 100%;
+      max-width: 500px;
+    }
+    h2 {
+      text-align: center;
+      color: #2a6db0;
+    }
+    .form-group {
+      margin-bottom: 1rem;
     }
     label {
       display: block;
-      margin-top: 1rem;
       margin-bottom: 0.3rem;
       font-weight: bold;
     }
-    input, select, button {
+    input, select {
       width: 100%;
-      padding: 0.6rem;
+      padding: 0.5rem;
       font-size: 1rem;
       border: 1px solid #ccc;
-      border-radius: 4px;
-      box-sizing: border-box;
+      border-radius: 5px;
     }
     button {
-      background-color: #2a6ebb;
+      width: 100%;
+      padding: 0.7rem;
+      background-color: #2a6db0;
       color: white;
-      margin-top: 1.5rem;
+      font-size: 1rem;
+      border: none;
+      border-radius: 5px;
       cursor: pointer;
-      transition: background-color 0.3s ease;
     }
     button:hover {
-      background-color: #1f5da0;
+      background-color: #1e5a96;
     }
   </style>
 </head>
 <body>
-  <h1>診所預約表單</h1>
-  <form id="reservationForm">
-    <label for="date">預約日期：</label>
-    <input type="date" id="date" name="date" required>
+  <div class="form-container">
+    <h2>診所預約表單</h2>
+    <form id="reservationForm">
+      <div class="form-group">
+        <label for="date">預約日期：</label>
+        <input type="date" id="date" name="date" required />
+      </div>
 
-    <label for="session">診別：</label>
-    <select id="session" name="session">
-      <option value="早上診">早上診</option>
-      <option value="下午診">下午診</option>
-      <option value="晚上診">晚上診</option>
-    </select>
+      <div class="form-group">
+        <label for="session">診別：</label>
+        <select id="session" name="session" required>
+          <option value="早上診">早上診</option>
+          <option value="下午診">下午診</option>
+          <option value="晚上診">晚上診</option>
+        </select>
+      </div>
 
-    <label for="visitType">初診或複診：</label>
-    <select id="visitType" name="visitType">
-      <option value="初診">初診</option>
-      <option value="複診">複診</option>
-    </select>
+      <div class="form-group">
+        <label for="visitType">初診或複診：</label>
+        <select id="visitType" name="visitType" onchange="toggleIDField()" required>
+          <option value="初診">初診</option>
+          <option value="複診" selected>複診</option>
+        </select>
+      </div>
 
-    <label for="name">姓名：</label>
-    <input type="text" id="name" name="name" required>
+      <div class="form-group">
+        <label for="name">姓名：</label>
+        <input type="text" id="name" name="name" required />
+      </div>
 
-    <label for="birth">出生年月日：</label>
-    <input type="date" id="birth" name="birth" required>
+      <div class="form-group">
+        <label for="birth">出生年月日：</label>
+        <input type="date" id="birth" name="birth" required />
+      </div>
 
-    <label for="id">身分證字號：</label>
-    <input type="text" id="id" name="id">
+      <div class="form-group" id="idGroup" style="display: none;">
+        <label for="idNumber">身分證字號：</label>
+        <input type="text" id="idNumber" name="idNumber" placeholder="限初診填寫" />
+      </div>
 
-    <label for="phone">電話：</label>
-    <input type="tel" id="phone" name="phone" required>
+      <div class="form-group">
+        <label for="phone">電話：</label>
+        <input type="tel" id="phone" name="phone" required />
+      </div>
 
-    <button type="submit">送出預約</button>
-  </form>
+      <button type="submit">送出預約</button>
+    </form>
+  </div>
 
   <script>
-    document.getElementById('reservationForm').addEventListener('submit', function (e) {
-      e.preventDefault();
-
-      const formData = {
-        date: document.getElementById('date').value,
-        session: document.getElementById('session').value,
-        visitType: document.getElementById('visitType').value,
-        name: document.getElementById('name').value,
-        birth: document.getElementById('birth').value,
-        id: document.getElementById('id').value,
-        phone: document.getElementById('phone').value,
-      };
-
-      if (formData.visitType === '初診' && formData.id.trim() === '') {
-        alert('初診需填寫身分證字號');
-        return;
+    function toggleIDField() {
+      const visitType = document.getElementById("visitType").value;
+      const idGroup = document.getElementById("idGroup");
+      if (visitType === "初診") {
+        idGroup.style.display = "block";
+        document.getElementById("idNumber").required = true;
+      } else {
+        idGroup.style.display = "none";
+        document.getElementById("idNumber").required = false;
       }
+    }
 
-      fetch('https://script.google.com/macros/s/YOUR_GAS_DEPLOY_URL/exec', {
-        method: 'POST',
-        body: JSON.stringify(formData),
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      })
-      .then(response => response.json())
-      .then(data => {
-        if (data.success) {
-          window.location.href = 'success.html';
-        } else {
-          alert(data.message || '預約失敗，請稍後再試');
-        }
-      })
-      .catch(err => {
-        console.error(err);
-        alert('送出失敗，請檢查網路或稍後再試。');
-      });
+    window.onload = toggleIDField;
+
+    document.getElementById("reservationForm").addEventListener("submit", function (e) {
+      e.preventDefault();
+      alert("預約已送出，我們會與您聯絡。\n點擊下方按鈕返回 LINE！");
+      window.location.href = "https://line.me/R/ti/p/@你的官方帳號ID"; // 換成你自己的 LINE OA ID
     });
   </script>
 </body>
