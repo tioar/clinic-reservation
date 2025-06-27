@@ -5,6 +5,7 @@
   <title>診所預約</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
+    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     body { font-family: 'Microsoft JhengHei'; background: #f4f8fb; padding: 20px; text-align: center; }
     form { background: white; padding: 20px; border-radius: 8px; max-width: 500px; margin: auto; }
     input, select, button { width: 100%; padding: 10px; margin-top: 10px; }
@@ -31,6 +32,13 @@
   </form>
 
   <script>
+    const LIFF_ID = "2007654985-NZKyvL7k";
+    liff.init({ liffId: LIFF_ID })
+      .then(() => console.log("✅ LIFF init 成功"))
+      .catch(err => {
+        alert("請從 LINE 開啟");
+        console.error(err);
+      });
     const GAS_URL = 'https://script.google.com/macros/s/AKfycbxjz77W3jVOF4q1M4R2Fpz_ufsg0z_VP30q56V9r_zFHk-oQWfd7nP0-UoPw3HFACEa/exec';
 
     const dateInput = document.getElementById("date");
