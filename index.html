@@ -6,130 +6,147 @@
   <title>診所預約表單</title>
   <style>
     body {
-      font-family: 'Segoe UI', sans-serif;
-      background-color: #f4f8fc;
+      font-family: "Noto Sans TC", sans-serif;
+      background-color: #f8fbff;
       display: flex;
       justify-content: center;
-      padding: 2rem;
+      padding-top: 40px;
     }
     .form-container {
-      background: white;
-      padding: 2rem;
-      border-radius: 8px;
+      background-color: white;
+      padding: 30px;
+      border-radius: 10px;
       box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
       width: 100%;
       max-width: 400px;
     }
     h2 {
       text-align: center;
-      color: #1e88e5;
+      color: #1e6bb8;
+      margin-bottom: 30px;
     }
     label {
       display: block;
-      margin-top: 1rem;
+      margin-top: 15px;
       font-weight: bold;
     }
-    input, select, button {
+    input,
+    select,
+    button {
       width: 100%;
-      padding: 0.5rem;
-      margin-top: 0.5rem;
+      padding: 10px;
+      margin-top: 5px;
+      border-radius: 6px;
       border: 1px solid #ccc;
-      border-radius: 4px;
+      font-size: 16px;
     }
     button {
-      background-color: #1976d2;
+      background-color: #1e6bb8;
       color: white;
       border: none;
-      margin-top: 2rem;
-      font-weight: bold;
-      cursor: pointer;
-    }
-    button:hover {
-      background-color: #1565c0;
+      margin-top: 20px;
     }
   </style>
 </head>
 <body>
-  <div class="form-container">
+  <form class="form-container" id="reservation-form">
     <h2>診所預約表單</h2>
-    <form id="reservationForm">
-      <label for="appointmentDate">預約日期：</label>
-      <input type="date" id="appointmentDate" name="appointmentDate" required />
 
-      <label for="session">診別：</label>
-      <select id="session" name="session" required>
-        <option value="">請先選擇日期</option>
-      </select>
+    <label for="date">預約日期：</label>
+    <input type="date" id="date" name="date" required />
 
-      <label for="type">初診或複診：</label>
-      <select id="type" name="type" required>
-        <option value="初診">初診</option>
-        <option value="複診">複診</option>
-      </select>
+    <label for="session">診別：</label>
+    <select id="session" name="session" required></select>
 
-      <label for="name">姓名：</label>
-      <input type="text" id="name" name="name" required />
+    <label for="type">初診或複診：</label>
+    <select id="type" name="type" required>
+      <option value="初診">初診</option>
+      <option value="複診">複診</option>
+    </select>
 
-      <label for="birth">出生年月日：</label>
-      <input type="date" id="birth" name="birth" required />
+    <label for="name">姓名：</label>
+    <input type="text" id="name" name="name" required />
 
-      <label for="idNumber" id="idLabel">身分證字號：</label>
-      <input type="text" id="idNumber" name="idNumber" />
+    <label for="birth">出生年月日：</label>
+    <input type="date" id="birth" name="birth" required />
 
-      <label for="phone">電話：</label>
-      <input type="tel" id="phone" name="phone" required />
+    <div id="id-block" style="display:none">
+      <label for="id">身分證字號：</label>
+      <input type="text" id="id" name="id" pattern="^[A-Za-z][0-9]{9}$" maxlength="10" />
+    </div>
 
-      <button type="submit">送出預約</button>
-    </form>
-  </div>
+    <label for="phone">連絡電話或手機：</label>
+    <input type="tel" id="phone" name="phone" required />
+
+    <button type="submit">送出預約</button>
+  </form>
 
   <script>
-    document.addEventListener("DOMContentLoaded", function () {
-      const dateInput = document.getElementById("appointmentDate");
-      const sessionSelect = document.getElementById("session");
-      const typeSelect = document.getElementById("type");
-      const idInput = document.getElementById("idNumber");
-      const idLabel = document.getElementById("idLabel");
+    // 限制可選日期為明天到兩週內
+    const dateInput = document.getElementById("date");
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const maxDate = new Date(today);
+    maxDate.setDate(maxDate.getDate() + 14);
 
-      dateInput.addEventListener("change", function () {
-        const selectedDate = new Date(dateInput.value);
-        const dayOfWeek = selectedDate.getDay();
+    const formatDate = (d) => d.toISOString().split("T")[0];
+    dateInput.min = formatDate(tomorrow);
+    dateInput.max = formatDate(maxDate);
 
-        const sessionOptions = {
-          0: [], // Sunday
-          1: ["早上診", "下午診"],
-          2: ["早上診", "晚上診"],
-          3: ["早上診", "下午診"],
-          4: ["早上診", "晚上診"],
-          5: ["早上診", "下午診"],
-          6: ["早上診"],
-        };
+    // 日期變更後更新診別
+    const sessionSelect = document.getElementById("session");
+    const getSessionOptions = (weekday) => {
+      switch (weekday) {
+        case 0:
+          return []; // Sunday 禁用
+        case 6:
+          return ["早上診"];
+        case 1:
+        case 3:
+        case 5:
+          return ["早上診", "下午診"];
+        case 2:
+        case 4:
+          return ["早上診", "晚上診"];
+        default:
+          return [];
+      }
+    };
 
-        sessionSelect.innerHTML = "";
-
-        if (!sessionOptions[dayOfWeek] || sessionOptions[dayOfWeek].length === 0) {
-          alert("星期日不開診，請選擇其他日期。");
-          dateInput.value = "";
-          return;
-        }
-
-        sessionOptions[dayOfWeek].forEach(function (optionText) {
-          const option = document.createElement("option");
-          option.value = optionText;
-          option.textContent = optionText;
-          sessionSelect.appendChild(option);
-        });
+    dateInput.addEventListener("change", () => {
+      const selectedDate = new Date(dateInput.value);
+      const weekday = selectedDate.getDay();
+      const sessions = getSessionOptions(weekday);
+      sessionSelect.innerHTML = "";
+      sessions.forEach((s) => {
+        const option = document.createElement("option");
+        option.value = s;
+        option.textContent = s;
+        sessionSelect.appendChild(option);
       });
+    });
 
-      typeSelect.addEventListener("change", function () {
-        const isFirstVisit = typeSelect.value === "初診";
-        idInput.required = isFirstVisit;
-        idLabel.style.display = isFirstVisit ? "block" : "none";
-        idInput.style.display = isFirstVisit ? "block" : "none";
-      });
+    // 初診才顯示身分證欄位
+    const typeSelect = document.getElementById("type");
+    const idBlock = document.getElementById("id-block");
+    typeSelect.addEventListener("change", () => {
+      if (typeSelect.value === "初診") {
+        idBlock.style.display = "block";
+        document.getElementById("id").required = true;
+      } else {
+        idBlock.style.display = "none";
+        document.getElementById("id").required = false;
+      }
+    });
 
-      // 預設載入時也檢查一次
-      typeSelect.dispatchEvent(new Event("change"));
+    // 表單送出驗證
+    document.getElementById("reservation-form").addEventListener("submit", (e) => {
+      const idInput = document.getElementById("id");
+      if (idInput.required && !/^\w\d{9}$/i.test(idInput.value)) {
+        alert("請輸入正確的身分證字號（英文1碼＋數字9碼）");
+        e.preventDefault();
+      }
     });
   </script>
 </body>
