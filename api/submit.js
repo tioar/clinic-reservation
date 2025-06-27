@@ -6,20 +6,18 @@ export default async function handler(req, res) {
   try {
     const data = req.body;
 
-    // 改成你自己的 GAS 部署網址（可從 Apps Script 取得）
     const gasUrl = "https://script.google.com/macros/s/AKfycbxKZhPYvQG8MXiu7BhlbJJql6fYYSPe1jtK4cQdjSfvEHX42cUgAtVHcMuadrEcHo-E/exec";
 
     const response = await fetch(gasUrl, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ contents: data })
+      body: JSON.stringify({ contents: data }) // ✅ 注意這層 key
     });
 
     const result = await response.json();
     return res.status(200).json(result);
-
-  } catch (error) {
-    console.error("GAS 轉送錯誤：", error);
-    return res.status(500).json({ message: "伺服器錯誤，請稍後再試" });
+  } catch (err) {
+    console.error("伺服器錯誤", err);
+    return res.status(500).json({ success: false, message: "伺服器錯誤" });
   }
 }
