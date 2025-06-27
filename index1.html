@@ -1,1 +1,123 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>診所預約</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <style>
+    body { font-family: 'Microsoft JhengHei'; background: #f4f8fb; padding: 20px; text-align: center; }
+    form { background: white; padding: 20px; border-radius: 8px; max-width: 500px; margin: auto; }
+    input, select, button { width: 100%; padding: 10px; margin-top: 10px; }
+    button { background-color: #2563eb; color: white; border: none; cursor: pointer; }
+    #idNumberContainer { display: none; }
+  </style>
+</head>
+<body>
+  <h2>診所預約表單</h2>
+  <form id="reservation-form">
+    <input type="date" id="date" required>
+    <select id="session" required></select>
+    <select id="visitType" required>
+      <option value="初診">初診</option>
+      <option value="複診">複診</option>
+    </select>
+    <input type="text" id="name" placeholder="姓名" required>
+    <input type="date" id="birthday" required>
+    <div id="idNumberContainer">
+      <input type="text" id="idNumber" placeholder="身分證字號（初診必填）" pattern="[A-Za-z][0-9]{9}" maxlength="10">
+    </div>
+    <input type="tel" id="phone" placeholder="連絡電話或手機" required>
+    <button type="submit">送出預約</button>
+  </form>
 
+  <script>
+    // ✅ 替換成你自己的 LIFF ID
+    const LIFF_ID = "2007654985-NZKyvL7k";
+
+    // ✅ 替換成你自己的 GAS 部署網址
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbxiOSGBPkpIerDhWn6ZCR0h-xXgo6ohCu5Ze5gfiwW_Efe02yUX_JRVGj5aKvBpxWU/exec";
+
+    // 初始化 LIFF
+    liff.init({ liffId: LIFF_ID })
+      .then(() => console.log("✅ LIFF 初始化成功"))
+      .catch(err => {
+        alert("請從 LINE 開啟本頁");
+        console.error("❌ LIFF 初始化失敗", err);
+      });
+
+    const dateInput = document.getElementById("date");
+    const sessionSelect = document.getElementById("session");
+    const visitType = document.getElementById("visitType");
+    const idContainer = document.getElementById("idNumberContainer");
+
+    // 限制日期區間：明天～兩週內
+    const today = new Date();
+    const minDate = new Date();
+    minDate.setDate(today.getDate() + 1);
+    const maxDate = new Date();
+    maxDate.setDate(today.getDate() + 14);
+    dateInput.min = minDate.toISOString().split("T")[0];
+    dateInput.max = maxDate.toISOString().split("T")[0];
+
+    // 根據日期更新診別選項
+    dateInput.addEventListener('change', () => {
+      const day = new Date(dateInput.value).getDay();
+      sessionSelect.innerHTML = "";
+      if (day === 0) return; // 星期日不開診
+      const options = [];
+      if ([1,2,3,4,5,6].includes(day)) options.push("早上診");
+      if ([1,3,5].includes(day)) options.push("下午診");
+      if ([2,4].includes(day)) options.push("晚上診");
+      options.forEach(opt => {
+        const o = document.createElement("option");
+        o.value = opt;
+        o.textContent = opt;
+        sessionSelect.appendChild(o);
+      });
+    });
+
+    // 顯示身分證欄位（僅初診）
+    visitType.addEventListener('change', () => {
+      idContainer.style.display = visitType.value === "初診" ? "block" : "none";
+    });
+
+    document.getElementById("reservation-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const data = {
+        date: document.getElementById("date").value,
+        session: document.getElementById("session").value,
+        visitType: document.getElementById("visitType").value,
+        name: document.getElementById("name").value,
+        birthday: document.getElementById("birthday").value,
+        idNumber: document.getElementById("visitType").value === "初診" ? document.getElementById("idNumber").value : "",
+        phone: document.getElementById("phone").value
+      };
+
+      try {
+        const res = await fetch(GAS_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data)
+        });
+        const result = await res.json();
+        if (result.success) {
+          document.body.innerHTML = `
+            <div style="padding: 40px">
+              <h2 style="color:#2563eb">✅ 預約成功！</h2>
+              <img src="success.png" style="max-width:100px">
+              <p><a href="https://page.line.me/213jdxim" style="color:#2563eb">返回 LINE 官方帳號</a></p>
+            </div>
+          `;
+        } else {
+          alert(result.message || "提交失敗，請稍後再試");
+        }
+      } catch (err) {
+        alert("資料傳送失敗，請稍後再試");
+        console.error(err);
+      }
+    });
+  </script>
+</body>
+</html>
