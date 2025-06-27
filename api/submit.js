@@ -7,7 +7,7 @@ export default async function handler(req, res) {
     const data = req.body;
 
     // ✅ 這邊填上你部署好的 Google Apps Script Web App URL（要是 /exec 結尾的）
-    const gasUrl = "https://script.google.com/macros/s/AKfycbxKZhPYvQG8MXiu7BhlbJJql6fYYSPe1jtK4cQdjSfVfHD42CUtgAtVMcMuadrEcHo-E/exec";
+    const gasUrl = "https://script.google.com/macros/s/AKfycbxKZhPYvQG8MXiu7BhlbJJql6fYYSPe1jtK4cQdjSfvEHX42cUgAtVHcMuadrEcHo-E/exec";
 
     // ✅ 發送 POST 給 GAS
     const response = await fetch(gasUrl, {
