@@ -1,36 +1,29 @@
-// ===========================
-// Vercel /api/submit.js 後端
-// ===========================
-
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({ message: "只接受 POST 方法" });
   }
 
-  try {
-    const data = req.body;
-    const gasUrl = "https://script.google.com/macros/s/AKfycbxKZhPYvQG8MXiu7BhlbJJql6fYYSPe1jtK4cQdjSfvEHX42cUgAtVHcMuadrEcHo-E/exec";
+  const gasUrl = "https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec";
+  const data = req.body;
 
+  try {
     const response = await fetch(gasUrl, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data)
+      body: JSON.stringify(data),
     });
 
     const text = await response.text();
     try {
-      const result = JSON.parse(text);
-      return res.status(200).json(result);
-    } catch (jsonErr) {
-      console.error("GAS 返回非 JSON：", text);
-      return res.status(500).json({
-        success: false,
-        message: "GAS 回傳非 JSON，可能部署網址錯誤或語法錯誤",
-        raw: text
-      });
+      const json = JSON.parse(text);
+      return res.status(200).json(json);
+    } catch (e) {
+      console.error("GAS 回傳不是 JSON：", text);
+      return res.status(500).json({ success: false, message: "GAS 回傳格式錯誤", detail: text });
     }
   } catch (err) {
-    console.error("伺服器錯誤：", err);
-    return res.status(500).json({ success: false, message: "伺服器錯誤" });
+    console.error("GAS 請求失敗：", err);
+    return res.status(500).json({ success: false, message: "伺服器錯誤", error: err.message });
   }
 }
+
