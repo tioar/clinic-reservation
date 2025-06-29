@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>診所預約表單</title>
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+  <div class="container">
+    <h2>診所預約表單</h2>
+    <form id="reserveForm">
+      <label>日期<input type="date" name="date" required /></label>
+      <label>診別
+        <select name="session" required>
+          <option value="早上診">早上診</option>
+          <option value="下午診">下午診</option>
+          <option value="晚上診">晚上診</option>
+        </select>
+      </label>
+      <label>初診或複診
+        <select name="visitType" required>
+          <option value="初診">初診</option>
+          <option value="複診">複診</option>
+        </select>
+      </label>
+      <label>姓名<input type="text" name="name" required /></label>
+      <label>出生年月日<input type="date" name="birth" required /></label>
+      <label>身分證字號<input type="text" name="id" /></label>
+      <label>連絡電話或手機<input type="tel" name="phone" required /></label>
+      <button type="submit">送出</button>
+    </form>
+    <div id="message"></div>
+  </div>
+  <script src="script.js"></script>
+</body>
+</html>
