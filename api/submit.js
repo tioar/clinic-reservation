@@ -3,7 +3,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ message: "只接受 POST 方法" });
   }
 
-  const gasUrl = "https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec";
+  const gasUrl = "https://script.google.com/macros/s/AKfycbxKZhPYvQG8MXiu7BhlbJJql6fYYSPe1jtK4cQdjSfvEHX42cUgAtVHcMuadrEcHo-E/exec";
   const data = req.body;
 
   try {
