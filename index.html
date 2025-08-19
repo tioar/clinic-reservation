@@ -51,6 +51,7 @@
     <input type="text" id="phone" class="form-control" maxlength="10" placeholder="0958xxxxxx">
   </div>
 
+  <!-- 預約須知 -->
   <div class="form-check mb-4">
     <input type="checkbox" id="agree" class="form-check-input">
     <label for="agree" class="form-check-label">
@@ -59,7 +60,7 @@
   </div>
 
   <button id="submitBtn" class="btn-main">送出預約</button>
-  <a href="query.html" class="d-block mt-3 text-center text-decoration-underline" style="color:#3b7096;">查詢／取消預約</a>
+  <a href="query.html" class="d-block mt-3 text-center" style="color:#3b7096;">查詢／取消預約</a>
 </div>
 
 <!-- 預約須知 Modal -->
@@ -85,8 +86,8 @@
 </div>
 
 <script>
-// === 換成你的 GAS Web App url ===
-const API = "https://script.google.com/macros/s/AKfycbw9XQ-ZRzaLSto5pV4OoemPpNLISkxJlylgf4SWIcZeBIbcYqWGJiaSB2sLEZWGLKHu/exec";
+// 👉 GAS API
+const API="https://script.google.com/macros/s/AKfycbw9XQ-ZRzaLSto5pV4OoemPpNLISkxJlylgf4SWIcZeBIbcYqWGJiaSB2sLEZWGLKHu/exec";
 
 // 日期限制
 const dateInput=document.getElementById("date");
@@ -94,25 +95,22 @@ const today=new Date(),min=new Date(today.getTime()+86400000),max=new Date(today
 dateInput.min=min.toISOString().split("T")[0];
 dateInput.max=max.toISOString().split("T")[0];
 
-// 選日期→顯示星期與診別
+// 變動日期>載入診別
 dateInput.addEventListener("change", async()=>{
   const d=dateInput.value;
-  const ch=["日","一","二","三","四","五","六"];
-  document.getElementById("weekday").innerText=`（星期${ch[new Date(d).getDay()]}）`;
-
-  slot.innerHTML='<option>載入中...</option>';
+  const wtxt=['日','一','二','三','四','五','六'];
+  const wd=new Date(d).getDay();
+  document.getElementById("weekday").innerText=`（星期${wtxt[wd]}）`;
   try{
-    const r=await axios.get(API,{params:{action:"getSlots",date:d}});
-    let opt='<option value="">請選診別</option>';
-    r.data.forEach(x=>{
-      if(x.limit> x.used){
-        opt+=`<option value="${x.label}" data-time="${x.time}">${x.label}</option>`;
+    const r=await axios.get(API,{params:{action:'getSlots',date:d}});
+    let html=`<option value="">請選診別</option>`;
+    r.data.forEach(o=>{
+      if(o.limit>o.used){
+        html+=`<option value="${o.label}" data-time="${o.time}">${o.label}</option>`;
       }
     });
-    slot.innerHTML=opt;
-  }catch(e){
-    slot.innerHTML='<option>讀取失敗</option>';
-  }
+    slot.innerHTML=html;
+  }catch(e){slot.innerHTML="<option>讀取失敗</option>"}
 });
 
 // 限制輸入
@@ -123,40 +121,32 @@ phone.addEventListener("input",e=>{
   e.target.value=e.target.value.replace(/\D/g,'').slice(0,10);
 });
 
-// 彈出注意事項
-document.getElementById("showNotice").onclick=function(e){
+// 彈窗
+showNotice.onclick=e=>{
   e.preventDefault();
-  new bootstrap.Modal(document.getElementById('noticeModal')).show();
+  new bootstrap.Modal(noticeModal).show();
 };
 
-// 送出
+// 提交
 submitBtn.onclick=async()=>{
-  const d=date.value,s=slot.value,
-        t=slot.options[slot.selectedIndex]?.dataset.time||"",
-        n=name.value.trim(),b=birthday.value,
-        id=idnum.value.trim().toUpperCase(), ph=phone.value.trim(),
-        ag=agree.checked;
-  if(!d||!s||!n||!b||!id||!ph||!ag)return alert("資料未填完整");
-  if(!/^[A-Z][12]\d{8}$/.test(id))return alert("身分證格式錯誤");
-  if(ph.length<8||ph.length>10)return alert("電話長度不符");
-  const age=Math.floor((Date.now()-new Date(b))/31536000000);
-  if(age<0||age>150)return alert("生日超出限制");
-
-  try{
-    const r=await axios.get(API,{params:{
-      action:'submit',date:d,slot:s,
-      name:n,birthday:b,id:id,phone:ph
-    }});
-    const num=r.data.num;
-    window.location=`success.html?date=${d}&slot=${s}&time=${t}&name=${encodeURIComponent(n)}&number=${res.data.num}`;
-  }catch(e){
-    alert("送出失敗！");
-    console.error(e);
-  }
+ const d=date.value,s=slot.value,t=slot.options[slot.selectedIndex]?.dataset.time||"",
+       n=name.value.trim(),b=birthday.value,id=idnum.value.trim().toUpperCase(),
+       ph=phone.value.trim(),ag=agree.checked;
+ if(!d||!s||!n||!b||!id||!ph||!ag) return alert("資料未填完整");
+ if(!/^[A-Z][12]\d{8}$/.test(id)) return alert("身分證格式錯誤");
+ if(ph.length<8||ph.length>10) return alert("電話長度不符");
+ const age=Math.floor((Date.now()-new Date(b))/31536000000);
+ if(age<0||age>150) return alert("生日超出限制");
+ try{
+   const r=await axios.get(API,{params:{
+     action:'submit',date:d,slot:s,name:n,birthday:b,id:id,phone:ph
+   }});
+   location=`success.html?date=${d}&slot=${s}&time=${t}&name=${n}&num=${r.data.num}`;
+ }catch(e){
+   console.error(e);
+   alert("送出失敗");
+ }
 };
 </script>
 </body>
 </html>
-
-
-
