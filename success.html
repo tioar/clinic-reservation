@@ -6,62 +6,35 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
-<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-<style>
-body{background:#e8f0f6;}
-.card-box{max-width:500px;margin:60px auto;padding:40px;border-radius:22px;background:#fff;box-shadow:0 10px 20px rgba(0,0,0,.12);text-align:center;}
-.btn-main{background:#3f729b;color:#fff;border:0;border-radius:12px;padding:12px 30px;font-size:18px;}
-.btn-main:hover{opacity:.9}
-.btn-secondary{border:2px solid #3f729b;border-radius:12px;padding:12px 30px;font-size:18px;color:#3f729b;background:#fff;}
-.share-row{margin-top:15px;}
-</style>
 </head>
 <body>
 <div class="card-box">
-  <h2>✅ 預約成功！</h2>
+  <h2 class="mb-3">✅ 預約成功！</h2>
   <p>您的預約資訊：</p>
-  <p id="info" class="fw-bold">載入中...</p>
-  <p id="info2" class="fw-bold"></p>
+  <p id="info" class="fw-bold"></p>
   <p>請在預約的門診時間內到場報到，逾期自動取消。</p>
-
-  <a href="index.html" class="btn-main w-100 mb-3 text-decoration-none">返回預約首頁</a>
-  <a href="query.html" class="btn-secondary w-100 text-decoration-none">查詢/取消預約</a>
-  <div class="share-row">
-    <button class="btn btn-link text-decoration-none" onclick="shareMsg()">📤 分享</button>
+  <div class="mt-4">
+    <a href="index.html" class="btn-main w-100 mb-3">返回預約首頁</a>
+    <a href="query.html" class="btn-secondary w-100">查詢/取消預約</a>
   </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 <script>
-const API="https://script.google.com/macros/s/AKfycbwudGq7uPNInKLkuwVdQ3gTsh_L3tl1tfhxqDv-_c5Fsvd1kkaRbeIel_o79Slr-BqT/exec";
-const rowId = new URLSearchParams(location.search).get('row');
-
-function getWeekStr(d){
-  return '星期' + ['日','一','二','三','四','五','六'][new Date(d).getDay()];
-}
+// GAS url
+const API="https://script.google.com/macros/s/AKfycbzPQ9Oa1RMa0CoPoRKpQ9_1xb59qTydDsr6-BxSlqcpvgt-ov9L03PP7vyIJXNWogmH/exec";
 
 (async()=>{
-  try {
-    const res = await axios.get(API, {params:{action:'getOne',row:rowId}});
-    const {date,slot,name,num} = res.data;
-    document.getElementById("info").innerText  = `${date} ${getWeekStr(date)}（${slot}）`;
-    document.getElementById("info2").innerText = `姓名：${name}，號碼：${num} 號。`;
-  } catch (err) {
-    console.error(err);
-    document.getElementById("info").innerText = "資料載入失敗";
+  const id=new URLSearchParams(location.search).get('id');
+  try{
+    const r=await axios.get(API,{params:{action:'detail',id:id}});
+    const o=r.data;
+    function getWeek(d){ const w=['日','一','二','三','四','五','六']; return '星期'+w[new Date(d).getDay()]; }
+    document.getElementById('info').innerHTML=`${o.date} ${getWeek(o.date)}（${o.slot}）　姓名：${o.name}，號碼：${o.num} 號`;
+  }catch(e){
+    alert("無法取得預約資料");
   }
 })();
-
-function shareMsg(){
-  const txt = document.getElementById("info").innerText + "\n" +
-              document.getElementById("info2").innerText + "\n" +
-              "請於門診時間內準時報到";
-  if(navigator.share){
-    navigator.share({text:txt});
-  } else {
-    navigator.clipboard.writeText(txt);
-    alert("分享文字已複製，可貼上LINE");
-  }
-}
 </script>
 </body>
 </html>
