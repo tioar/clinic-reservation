@@ -10,61 +10,62 @@
 body{background:#e8f0f6;}
 .card-box{max-width:500px;margin:60px auto;padding:40px;border-radius:22px;background:#fff;box-shadow:0 10px 20px rgba(0,0,0,.12);text-align:center;}
 .btn-main{background:#3f729b;color:#fff;border:0;border-radius:12px;padding:12px 30px;font-size:18px;}
+.btn-main:hover{opacity:.9}
 .btn-secondary{border:2px solid #3f729b;border-radius:12px;padding:12px 30px;font-size:18px;color:#3f729b;background:#fff;}
+.share-row{margin-top:15px}
 </style>
-<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 </head>
 <body>
 <div class="card-box">
-  <h2 class="mb-3">✅ 預約成功！</h2>
+  <h2>✅ 預約成功！</h2>
   <p>您的預約資訊：</p>
   <p id="info" class="fw-bold"></p>
   <p id="info2" class="fw-bold"></p>
   <p>請在預約的門診時間內到場報到，逾期自動取消。</p>
-  <div class="mt-4 mb-3">
-    <a href="index.html" class="btn-main w-100 mb-3">返回預約首頁</a>
-    <a href="query.html" class="btn-secondary w-100">查詢/取消預約</a>
-  </div>
-  <div>
-    <a href="#" id="shareLink">📩 分享</a>
+
+  <a href="index.html" class="btn-main w-100 mb-3 text-decoration-none">返回預約首頁</a>
+  <a href="query.html" class="btn-secondary w-100 text-decoration-none">查詢/取消預約</a>
+  <div class="share-row">
+    <button class="btn btn-link text-decoration-none" onclick="shareMsg()">📤 分享</button>
   </div>
 </div>
 
 <script>
-const API="https://script.google.com/macros/s/AKfycbwU6EKpfC--HWONlEpB3bYCOV9tzrFihbPhVgYRsghCr39pbHe6VaCBK1rt6SEGtpN4/exec";
+const API="https://script.google.com/macros/s/AKfycbwRDBlWCPghoQqBKApj2kwtE0hy2el75PiFHEJn1RAL4ewUT7GnFBLfK_aopyLnVye2/exec";
 const q=new URLSearchParams(location.search);
-const rowId=q.get("id");
+const rowId=q.get("id"), d=q.get("date"), s=q.get("slot"), t=q.get("time");
 
-(async ()=>{
+function getWeek(d){
+  const w=['日','一','二','三','四','五','六'];
+  return '星期'+w[new Date(d).getDay()];
+}
+
+// 查GAS抓號碼與姓名
+(async()=>{
   try{
-    const r=await axios.get(API,{params:{action:'detail',id:rowId}});
-    const d=r.data;
-    function getW(date){
-      const w=['日','一','二','三','四','五','六'];
-      return w[new Date(date).getDay()];
-    }
-    document.getElementById("info").innerText=`${d.date} 星期${getW(d.date)}（${d.slot}）`;
-    document.getElementById("info2").innerText=`姓名：${d.name}，號碼：${d.num} 號。`;
-
-    const txt=`陳萬龍診所門診預約成功！
-已預約：${d.date} 星期${getW(d.date)}（${d.slot}）
-姓名：${d.name}，號碼：${d.num} 號。
-請在預約的門診時間內到場報到，逾期自動取消。`;
-    
-    document.getElementById("shareLink").onclick=async(e)=>{
-      e.preventDefault();
-      if(navigator.share){
-        await navigator.share({text:txt});
-      }else{
-        await navigator.clipboard.writeText(txt);
-        alert("已複製，可以貼到 LINE / Messenger");
-      }
-    };
+    const r=await fetch(API+`?action=getOne&id=${rowId}`);
+    const o=await r.json();
+    const num=o.num, name=o.name;
+    document.getElementById("info").innerHTML  = `${d} ${getWeek(d)}（${s}）${t}`;
+    document.getElementById("info2").innerHTML = `姓名：${name}，號碼：${num} 號。`;
   }catch(e){
-    console.error(e);
-    alert("無法取得預約資料");
+    console.log(e);
   }
 })();
+
+function shareMsg(){
+  const txt=`陳萬龍診所門診預約成功！
+已經預約：
+${d} ${getWeek(d)}（${s}）${t}
+請在預約的門診時間內到場報到，逾期自動取消。`;
+
+  if(navigator.share){
+    navigator.share({text:txt});
+  }else{
+    navigator.clipboard.writeText(txt);
+    alert("已複製，可貼上 LINE！");
+  }
+}
 </script>
 </body>
 </html>
