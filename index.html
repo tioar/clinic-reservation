@@ -148,7 +148,7 @@ submitBtn.onclick=async()=>{
       name:n,birthday:b,id:id,phone:ph
     }});
     const num=r.data.num;
-    window.location=`success.html?date=${d}&slot=${s}&time=${t}&name=${encodeURIComponent(n)}&number=${num}`;
+    window.location=`success.html?date=${d}&slot=${s}&time=${t}&name=${encodeURIComponent(n)}&number=${res.data.num}`;
   }catch(e){
     alert("送出失敗！");
     console.error(e);
@@ -157,5 +157,6 @@ submitBtn.onclick=async()=>{
 </script>
 </body>
 </html>
+
 
 
