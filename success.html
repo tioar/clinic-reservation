@@ -36,10 +36,12 @@ body{background:#e8f0f6;}
 </div>
 
 <script>
-const p = new URLSearchParams(location.search);
-const d = p.get("date"), s = p.get("slot"), t = p.get("time"),
-      n = p.get("name"), num = p.get("number");
-
+const q=new URLSearchParams(location.search);
+const d=q.get("date"),
+      s=q.get("slot"),
+      t=q.get("time"),
+      n=q.get("name"),
+      num=q.get("number");
 function getW(d){const w=['日','一','二','三','四','五','六'];return '星期'+w[new Date(d).getDay()];}
 document.getElementById("info").innerHTML  = `${d} ${getW(d)}（${s}）${t}`;
 document.getElementById("info2").innerHTML = `姓名：${n}，號碼：${num} 號。`;
@@ -62,3 +64,4 @@ ${d} ${getW(d)}（${s}）${t}
 </script>
 </body>
 </html>
+
