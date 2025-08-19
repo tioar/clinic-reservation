@@ -9,11 +9,10 @@
 <style>
 body{background:#e8f0f6;}
 .card-box{max-width:500px;margin:60px auto;padding:40px;border-radius:22px;background:#fff;box-shadow:0 10px 20px rgba(0,0,0,.12);text-align:center;}
-.btn-main{background:#3f729b;color:#fff;border:0;border-radius:12px;padding:12px 30px;font-size:18px;text-decoration:none;}
-.btn-main:hover{opacity:.9}
+.btn-main{background:#3f729b;color:#fff;border:0;border-radius:12px;padding:12px 30px;font-size:18px;}
+.btn-main:hover{opacity:0.9}
 .btn-secondary{border:2px solid #3f729b;border-radius:12px;padding:12px 30px;font-size:18px;color:#3f729b;background:#fff;text-decoration:none;}
-.share-link{color:#3f729b;font-weight:600;text-decoration:none;margin-top:25px;display:inline-block;}
-.share-link:hover{text-decoration:underline;}
+.share{text-decoration:none;color:#3f729b;font-size:20px;}
 </style>
 </head>
 <body>
@@ -24,44 +23,36 @@ body{background:#e8f0f6;}
   <p id="info2" class="fw-bold"></p>
   <p>請在預約的門診時間內到場報到，逾期自動取消。</p>
 
-  <div class="mt-4">
+  <div class="mt-4 mb-3">
     <a href="index.html" class="btn-main w-100 mb-3">返回預約首頁</a>
     <a href="query.html" class="btn-secondary w-100">查詢/取消預約</a>
   </div>
 
-  <!-- 分享 -->
-  <div class="text-center">
-    <a href="javascript:;" class="share-link" onclick="shareMsg()">📤 分享</a>
-  </div>
+  <a href="javascript:void(0)" onclick="shareMsg()" class="share d-block mt-2">📤 分享</a>
 </div>
 
 <script>
 const q=new URLSearchParams(location.search);
-const d=q.get("date"),
-      s=q.get("slot"),
-      t=q.get("time"),
-      n=q.get("name"),
-      num=q.get("number");
-function getW(d){const w=['日','一','二','三','四','五','六'];return '星期'+w[new Date(d).getDay()];}
-document.getElementById("info").innerHTML  = `${d} ${getW(d)}（${s}）${t}`;
-document.getElementById("info2").innerHTML = `姓名：${n}，號碼：${num} 號。`;
+const d=q.get("date"),s=q.get("slot"),t=q.get("time"),
+      n=q.get("name"),num=q.get("num");
+
+function getWeek(d){const w=['日','一','二','三','四','五','六'];return'星期'+w[new Date(d).getDay()];}
+document.getElementById("info").innerHTML=`${d} ${getWeek(d)}（${s}）${t}`;
+document.getElementById("info2").innerHTML=`姓名：${n}，號碼：${num} 號。`;
 
 async function shareMsg(){
-  const txt = `陳萬龍診所門診預約成功！
+  const txt=`陳萬龍診所門診預約成功！
 已經預約：
-${d} ${getW(d)}（${s}）${t}
+${d} ${getWeek(d)}（${s}）${t}
 姓名：${n}，號碼：${num} 號。
 請在預約的門診時間內到場報到，逾期自動取消。`;
-  
   if(navigator.share){
-    try{ await navigator.share({text:txt}); }
-    catch(e){ alert("已取消分享"); }
+    try{await navigator.share({text:txt})}catch(e){alert("已取消分享")}
   }else{
     await navigator.clipboard.writeText(txt);
-    alert("分享內容已複製，可貼到 LINE / Messenger");
+    alert("分享內容已複製，可貼到 LINE / Messenger")
   }
 }
 </script>
 </body>
 </html>
-
