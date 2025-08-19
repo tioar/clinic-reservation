@@ -119,7 +119,7 @@ showNotice.onclick=e=>{
 //送出
 submitBtn.onclick=async ()=>{
  const d=date.value, s=slot.value, t=slot.options[slot.selectedIndex]?.dataset.time||"",
-       n=name.value.trim(), b=birthday.value,
+       n=name.value, b=birthday.value,
        id=idnum.value.trim().toUpperCase(),
        ph=phone.value.trim(), ag=agree.checked;
  if(!d||!s||!n||!b||!id||!ph||!ag) return alert("資料未填完整");
@@ -138,4 +138,5 @@ submitBtn.onclick=async ()=>{
 </script>
 </body>
 </html>
+
 
