@@ -1,13 +1,13 @@
 <!doctype html>
 <html lang="zh-Hant">
 <head>
-  <meta charset="UTF-8">
-  <title>陳萬龍診所門診線上預約</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="style.css">
-  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<meta charset="UTF-8">
+<title>陳萬龍診所門診線上預約</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </head>
 <body>
 <div class="card">
@@ -58,10 +58,11 @@
     </label>
   </div>
 
-  <button id="submitBtn" class="btn-main w-100">送出預約</button>
+  <button id="submitBtn" class="btn-main">送出預約</button>
   <a href="query.html" class="d-block mt-3 text-center" style="color:#3b7096;">查詢／取消預約</a>
 </div>
 
+<!-- 注意事項 -->
 <div class="modal fade" id="noticeModal" tabindex="-1">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
@@ -84,86 +85,60 @@
 </div>
 
 <script>
-const API = "https://script.google.com/macros/s/AKfycbwwmPF0rNrulXUSbRNOUwksOK2cXjV4X7tXu7W4FnwiZzVNuSFVkMcEUn_ga-UgZAXS/exec";
+const API="https://script.google.com/macros/s/AKfycbwU6EKpfC--HWONlEpB3bYCOV9tzrFihbPhVgYRsghCr39pbHe6VaCBK1rt6SEGtpN4/exec";
 
-// 日期限制與 weekday
-const dateInput = document.getElementById("date");
-const today = new Date(), min = new Date(today.getTime() + 86400000), max = new Date(today.getTime() + 15 * 86400000);
-dateInput.min = min.toISOString().split("T")[0];
-dateInput.max = max.toISOString().split("T")[0];
+const dateInput=document.getElementById("date");
+const today=new Date(),min=new Date(today.getTime()+86400000),max=new Date(today.getTime()+15*86400000);
+dateInput.min=min.toISOString().split("T")[0];
+dateInput.max=max.toISOString().split("T")[0];
 
-dateInput.addEventListener("change", async () => {
-  const d = dateInput.value;
-  const wtxt = ['日','一','二','三','四','五','六'];
-  document.getElementById("weekday").innerText = `（星期${wtxt[new Date(d).getDay()]}）`;
-  try {
-    const r = await axios.get(API, { params: { action: 'getSlots', date: d } });
-    let html = `<option value="">請選診別</option>`;
-    r.data.forEach(o => {
-      if (o.limit > o.used) {
-        html += `<option value="${o.label}" data-time="${o.time}">${o.label}</option>`;
-      }
+// 日期變動 > 載入診別
+dateInput.addEventListener("change", async()=>{
+  const d=dateInput.value;
+  const wtxt=['日','一','二','三','四','五','六'];
+  const wd=new Date(d).getDay();
+  document.getElementById("weekday").innerText=`（星期${wtxt[wd]}）`;
+  try{
+    const r=await axios.get(API,{params:{action:'getSlots',date:d}});
+    let html=`<option value="">請選診別</option>`;
+    r.data.forEach(o=>{
+      if(o.limit>o.used) html+=`<option value="${o.label}" data-time="${o.time}">${o.label}</option>`;
     });
-    document.getElementById("slot").innerHTML = html;
-  } catch {
-    document.getElementById("slot").innerHTML = `<option>讀取失敗</option>`;
-  }
+    slot.innerHTML=html;
+  }catch(e){slot.innerHTML="<option>讀取失敗</option>"}
 });
 
-// 清除輸入限制
-document.getElementById("idnum").addEventListener("input", e => {
-  e.target.value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,10);
+// input限制
+idnum.addEventListener("input",e=>{
+  e.target.value=e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,10);
 });
-document.getElementById("phone").addEventListener("input", e => {
-  e.target.value = e.target.value.replace(/\D/g,'').slice(0,10);
+phone.addEventListener("input",e=>{
+  e.target.value=e.target.value.replace(/\D/g,'').slice(0,10);
 });
 
-// 彈窗功能
-document.getElementById("showNotice").onclick = e => {
+// 彈窗
+showNotice.onclick=e=>{
   e.preventDefault();
-  new bootstrap.Modal(document.getElementById("noticeModal")).show();
+  new bootstrap.Modal(noticeModal).show();
 };
 
-// 送出預約
-document.getElementById("submitBtn").onclick = async () => {
-  const elDate = document.getElementById("date"),
-        elSlot = document.getElementById("slot"),
-        elName = document.getElementById("name"),
-        elBday = document.getElementById("birthday"),
-        elId = document.getElementById("idnum"),
-        elPhone = document.getElementById("phone"),
-        elAgree = document.getElementById("agree");
-
-  const d = elDate.value,
-        s = elSlot.value,
-        t = elSlot.options[elSlot.selectedIndex]?.dataset.time || "",
-        n = elName.value.trim(),
-        b = elBday.value,
-        id = elId.value.trim().toUpperCase(),
-        ph = elPhone.value.trim(),
-        ag = elAgree.checked;
-
-  if (!d||!s||!n||!b||!id||!ph||!ag) return alert("資料未填完整");
-  if (!/^[A-Z][12]\d{8}$/.test(id)) return alert("身分證格式錯誤");
-  if (ph.length < 8 || ph.length > 10) return alert("電話長度不符");
-  const age = Math.floor((Date.now() - new Date(b)) / 31536000000);
-  if (age < 0 || age > 150) return alert("生日超出限制");
-
-  try {
-    const res = await axios.get(API, {
-      params: {
-        action: 'submit',
-        date: d,
-        slot: s,
-        name: n,
-        birthday: b,
-        id: id,
-        phone: ph
-      }
-    });
-    location = `success.html?id=${res.data.id}`;
-  } catch (err) {
-    console.error(err);
+// 送出
+submitBtn.onclick=async()=>{
+  const d=date.value,s=slot.value,t=slot.options[slot.selectedIndex]?.dataset.time||"",
+        n=name.value.trim(),b=birthday.value,id=idnum.value.trim().toUpperCase(),
+        ph=phone.value.trim(),ag=agree.checked;
+  if(!d||!s||!n||!b||!id||!ph||!ag) return alert("資料未填完整");
+  if(!/^[A-Z][12]\d{8}$/.test(id)) return alert("身分證格式錯誤");
+  if(ph.length<8||ph.length>10) return alert("電話長度不符");
+  const age=Math.floor((Date.now()-new Date(b))/31536000000);
+  if(age<0||age>150) return alert("生日超出限制");
+  try{
+    const r=await axios.get(API,{params:{
+      action:'submit',date:d,slot:s,name:n,birthday:b,id:id,phone:ph
+    }});
+    location=`success.html?id=${r.data.id}`;
+  }catch(e){
+    console.error(e);
     alert("送出失敗");
   }
 };
