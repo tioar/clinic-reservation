@@ -62,53 +62,52 @@
   <a href="query.html" class="d-block mt-3 text-center" style="color:#3b7096;">查詢／取消預約</a>
 </div>
 
-<!-- 注意事項 -->
+<!-- Modal -->
 <div class="modal fade" id="noticeModal" tabindex="-1">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">預約須知與個資告知</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
+      <div class="modal-header"><h5 class="modal-title">預約須知與個資告知</h5>
+        <button class="btn-close" data-bs-dismiss="modal"></button></div>
       <div class="modal-body" style="text-align:left;">
-        <p>1. 本院蒐集之個人資料（姓名、電話、身分證字號）僅用於掛號與醫療聯繫，不對外提供。</p>
+        <p>1. 本院蒐集之個人資料僅用於掛號與醫療聯繫，不對外提供。</p>
         <p>2. 請於預約當日門診時間內準時報到，逾時視同放棄。</p>
         <p>3. 如需取消，請於前一日線上辦理；當日請以電話通知。</p>
         <p>4. 本院保留因醫療需求調整看診順序之權利。</p>
         <p>5. 點選同意即表示您已了解並接受上述說明。</p>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">關閉</button>
       </div>
     </div>
   </div>
 </div>
 
 <script>
-const API="https://script.google.com/macros/s/AKfycbwU6EKpfC--HWONlEpB3bYCOV9tzrFihbPhVgYRsghCr39pbHe6VaCBK1rt6SEGtpN4/exec";
+const API="https://script.google.com/macros/s/AKfycbwRDBlWCPghoQqBKApj2kwtE0hy2el75PiFHEJn1RAL4ewUT7GnFBLfK_aopyLnVye2/exec";
 
+//日期限制
 const dateInput=document.getElementById("date");
 const today=new Date(),min=new Date(today.getTime()+86400000),max=new Date(today.getTime()+15*86400000);
-dateInput.min=min.toISOString().split("T")[0];
-dateInput.max=max.toISOString().split("T")[0];
+dateInput.min=min.toISOString().split("T")[0]; dateInput.max=max.toISOString().split("T")[0];
 
-// 日期變動 > 載入診別
-dateInput.addEventListener("change", async()=>{
+// 變選日期→帶出診別
+dateInput.addEventListener("change", async ()=>{
   const d=dateInput.value;
   const wtxt=['日','一','二','三','四','五','六'];
   const wd=new Date(d).getDay();
   document.getElementById("weekday").innerText=`（星期${wtxt[wd]}）`;
   try{
     const r=await axios.get(API,{params:{action:'getSlots',date:d}});
-    let html=`<option value="">請選診別</option>`;
+    let html='<option value="">請選診別</option>';
     r.data.forEach(o=>{
-      if(o.limit>o.used) html+=`<option value="${o.label}" data-time="${o.time}">${o.label}</option>`;
+      if(o.limit>o.used){
+        html+=`<option value="${o.label}" data-time="${o.time}">${o.label}</option>`;
+      }
     });
     slot.innerHTML=html;
-  }catch(e){slot.innerHTML="<option>讀取失敗</option>"}
+  }catch{
+    slot.innerHTML='<option>讀取失敗</option>';
+  }
 });
 
-// input限制
+// 限制輸入
 idnum.addEventListener("input",e=>{
   e.target.value=e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,10);
 });
@@ -116,30 +115,30 @@ phone.addEventListener("input",e=>{
   e.target.value=e.target.value.replace(/\D/g,'').slice(0,10);
 });
 
-// 彈窗
+// show notice
 showNotice.onclick=e=>{
-  e.preventDefault();
-  new bootstrap.Modal(noticeModal).show();
+  e.preventDefault(); new bootstrap.Modal(noticeModal).show();
 };
 
 // 送出
 submitBtn.onclick=async()=>{
   const d=date.value,s=slot.value,t=slot.options[slot.selectedIndex]?.dataset.time||"",
-        n=name.value.trim(),b=birthday.value,id=idnum.value.trim().toUpperCase(),
+        n=name.value.trim(),b=birthday.value,
+        id=idnum.value.trim().toUpperCase(),
         ph=phone.value.trim(),ag=agree.checked;
+
   if(!d||!s||!n||!b||!id||!ph||!ag) return alert("資料未填完整");
   if(!/^[A-Z][12]\d{8}$/.test(id)) return alert("身分證格式錯誤");
-  if(ph.length<8||ph.length>10) return alert("電話長度不符");
+  if(ph.length<8||ph.length>10)    return alert("電話長度不符");
   const age=Math.floor((Date.now()-new Date(b))/31536000000);
   if(age<0||age>150) return alert("生日超出限制");
+
   try{
-    const r=await axios.get(API,{params:{
-      action:'submit',date:d,slot:s,name:n,birthday:b,id:id,phone:ph
-    }});
-    location=`success.html?id=${r.data.id}`;
+    const res=await axios.get(API,{params:{action:'submit',date:d,slot:s,name:n,birthday:b,id:id,phone:ph}});
+    const {id:rowId,num}=res.data;
+    location=`success.html?id=${rowId}&date=${d}&slot=${s}&time=${t}`;
   }catch(e){
-    console.error(e);
-    alert("送出失敗");
+    alert("送出失敗"); console.error(e);
   }
 };
 </script>
