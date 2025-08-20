@@ -10,64 +10,56 @@
 </head>
 <body>
 <div class="card">
-  <h3 class="mb-3 text-center">查詢 / 取消預約</h3>
+  <h3 class="mb-4 text-center">查詢 / 取消預約</h3>
+
   <div class="mb-3">
     <label class="form-label">請輸入身分證字號 *</label>
     <input type="text" id="idnum" class="form-control" maxlength="10" placeholder="A123456789">
   </div>
   <button id="queryBtn" class="btn-main w-100 mb-3">查詢</button>
+
   <div id="result"></div>
-  <a href="index.html" class="btn btn-outline-secondary w-100 mt-4">返回預約首頁</a>
+  <button onclick="location.href='index.html'" class="btn btn-outline-secondary w-100 mt-4">返回預約首頁</button>
 </div>
 
 <script>
-const API="https://script.google.com/macros/s/AKfycbwRDBlWCPghoQqBKApj2kwtE0hy2el75PiFHEJn1RAL4ewUT7GnFBLfK_aopyLnVye2/exec";
-const resultBox=document.getElementById("result");
-
+const API="https://script.google.com/macros/s/AKfycbx8HilOkxnz9FMHW5mGRme6DBFc92-vBh3h7rPOpI5lIBr22TA99UK0G_c2q1UMkZIi/exec";
 idnum.addEventListener("input",e=>{
   e.target.value=e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,10);
 });
+const resultBox=document.getElementById("result");
 
-queryBtn.onclick=async ()=>{
+// 查詢
+queryBtn.onclick=async()=>{
   const id=idnum.value.trim().toUpperCase();
   if(!/^[A-Z][12]\d{8}$/.test(id)) return alert("身分證格式錯誤");
-
   resultBox.innerHTML="查詢中...";
   try{
-    const r=await axios.get(API,{params:{action:'query',pid:id}});
-    const rows=r.data;
-    if(!rows.length){
-      resultBox.innerHTML="<div class='text-center text-muted'>查無未取消之預約</div>";
-      return;
-    }
-    let html="<ul class='list-group'>";
-    rows.forEach(o=>{
-      html+=`
-<li class="list-group-item d-flex justify-content-between align-items-center">
- <div>
-   <b>${o.date}（${o.slot}）</b><br>
-   姓名：${o.name}　號碼：${o.num}
- </div>
- <button class="btn btn-danger btn-sm" onclick="cancel('${o.id}')">取消</button>
-</li>`;
+    const r=await axios.get(API,{params:{action:'query',id:id}});
+    const arr=r.data;
+    if(!arr.length) return resultBox.innerHTML="<div class='text-muted text-center'>查無資料</div>";
+    let html=`<ul class="list-group">`;
+    arr.forEach(o=>{
+      html+= `<li class="list-group-item d-flex justify-content-between"><div>
+          <b>${o.date}（${o.slot}）</b><br>姓名：${o.name}　號碼：${o.num}號
+        </div>
+        <button class="btn btn-danger btn-sm" onclick="cancel('${o.id}')">取消</button></li>`;
     });
-    html+="</ul>";
-    resultBox.innerHTML=html;
+    resultBox.innerHTML=html+"</ul>";
   }catch(e){
-    resultBox.innerHTML="查詢失敗";
+    resultBox.innerHTML="查詢失敗";console.error(e);
   }
 };
 
+// 取消
 async function cancel(rowId){
-  if(!confirm("確定取消此筆預約？"))return;
+  if(!confirm("確定取消？"))return;
   try{
     const r=await axios.get(API,{params:{action:'cancel',id:rowId}});
-    if(String(r.data).toLowerCase()==='ok'){
-      alert("取消成功"); queryBtn.onclick();
-    }else alert("取消失敗");
-  }catch(e){ alert("取消失敗"); }
+    if((r.data+'').toLowerCase().includes('ok')){alert("已取消");queryBtn.click();}
+    else alert("取消失敗");
+  }catch(e){alert("取消失敗");}
 }
 </script>
 </body>
 </html>
-
