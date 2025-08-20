@@ -6,36 +6,48 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
+<style>
+body{background:#e8f0f6;}
+.card-box{max-width:500px;margin:60px auto;padding:40px;border-radius:22px;background:#fff;box-shadow:0 10px 20px rgba(0,0,0,.12);text-align:center;}
+.btn-main{background:#3f729b;color:#fff;border:0;border-radius:12px;padding:12px 30px;font-size:18px;}
+.btn-secondary{border:2px solid #3f729b;border-radius:12px;padding:12px 30px;font-size:18px;color:#3f729b;background:#fff;}
+</style>
 </head>
 <body>
 <div class="card-box">
   <h2 class="mb-3">✅ 預約成功！</h2>
-  <p>您的預約資訊：</p>
+  <p class="mb-1">您的預約資訊：</p>
   <p id="info" class="fw-bold"></p>
-  <p>請在預約的門診時間內到場報到，逾期自動取消。</p>
+  <p id="info2" class="fw-bold"></p>
+  <p>請在預約門診時間內準時報到，逾期自動取消。</p>
   <div class="mt-4">
     <a href="index.html" class="btn-main w-100 mb-3">返回預約首頁</a>
-    <a href="query.html" class="btn-secondary w-100">查詢/取消預約</a>
+    <a href="query.html" class="btn-secondary w-100">查詢／取消預約</a>
   </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 <script>
-// GAS url
-const API="https://script.google.com/macros/s/AKfycbwRDBlWCPghoQqBKApj2kwtE0hy2el75PiFHEJn1RAL4ewUT7GnFBLfK_aopyLnVye2/exec";
+const API="https://script.google.com/macros/s/AKfycbx8HilOkxnz9FMHW5mGRme6DBFc92-vBh3h7rPOpI5lIBr22TA99UK0G_c2q1UMkZIi/exec";
+
+const q  = new URLSearchParams(location.search);
+const id = q.get('id');
+const date = q.get('date'), slot = q.get('slot'), time = q.get('time');
+
+function getWeek(d){
+  const w=['日','一','二','三','四','五','六'];
+  return '星期'+w[new Date(d).getDay()];
+}
 
 (async()=>{
-  const id=new URLSearchParams(location.search).get('id');
   try{
-    const r=await axios.get(API,{params:{action:'detail',id:id}});
-    const o=r.data;
-    function getWeek(d){ const w=['日','一','二','三','四','五','六']; return '星期'+w[new Date(d).getDay()]; }
-    document.getElementById('info').innerHTML=`${o.date} ${getWeek(o.date)}（${o.slot}）　姓名：${o.name}，號碼：${o.num} 號`;
+    const r=await fetch(`${API}?action=detail&id=${id}`);
+    const o=await r.json();
+    document.getElementById("info").innerHTML = `${date} ${getWeek(date)}（${slot}）${time}`;
+    document.getElementById("info2").innerHTML = `姓名：${o.name}，號碼：${o.num} 號。`;
   }catch(e){
-    alert("無法取得預約資料");
+    document.getElementById("info").innerHTML="資料讀取失敗";
   }
 })();
 </script>
 </body>
 </html>
-
