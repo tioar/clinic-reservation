@@ -15,13 +15,10 @@
     background:#fff; border-radius:24px; padding:36px 30px;
     box-shadow:0 12px 28px rgba(17,45,78,.12);
   }
-  .title-row{
-    display:flex; align-items:center; justify-content:center; gap:14px; margin-bottom:6px;
-  }
+  .title-row{ display:flex; align-items:center; justify-content:center; gap:14px; margin-bottom:6px; }
   .title-row .check{ font-size:44px; line-height:1; }
   .title-row .txt{ font-weight:800; font-size:36px; color:#18364d; }
   .muted{ color:#6b7b8c; }
-
   .strong-line{ font-weight:700; color:#1e3c53; }
 
   .btn-main{
@@ -53,7 +50,6 @@
 
 <div class="wrap">
   <div class="cardx text-center">
-
     <div class="title-row">
       <div class="check">✅</div>
       <div class="txt">預約成功！</div>
@@ -84,12 +80,11 @@
 
     <!-- 填表時間放最底部 -->
     <div id="filledAt" class="muted small"></div>
-
   </div>
 </div>
 
 <script>
-/* ==== 設定你的 GAS endpoint ==== */
+/* ==== 你的新版 GAS endpoint ==== */
 const API = "https://script.google.com/macros/s/AKfycbzknf2k03PsltF5RXXVLUwKsLTkPQeVPQNDcWpV5eeGzIeYKv99Ju_8yWlX1UKoJ9RY/exec";
 
 /* ==== DOM ==== */
@@ -106,44 +101,42 @@ let dotTimer = setInterval(()=>{
   if($dots.textContent.length > 3) $dots.textContent = '.';
 }, 340);
 
-/* ==== Util ==== */
-const WEEK_ABBR = ['日','一','二','三','四','五','六'];
+/* ==== Utils：更穩健的日期處理（配合新版 GAS） ==== */
+function pad2(n){return n<10?'0'+n:String(n);}
 
-function toDate(input){
-  if(!input) return null;
-  if (input instanceof Date) return input;
+function normalizeYMD(input){
+  // 轉成 yyyy-mm-dd（以台北時區避免跨日）
+  if(!input) return '';
   if (typeof input === 'string'){
-    if (/^\d{4}-\d{2}-\d{2}$/.test(input)) return new Date(input + 'T00:00:00'); // 純 Y-M-D
-    return new Date(input); // ISO / 其他字串
+    if (/^\d{4}-\d{2}-\d{2}$/.test(input)) return input;
+    const d = new Date(input);
+    if(!isNaN(d)) return toYMD(d);
+    return '';
   }
-  return new Date(input);
+  if (input instanceof Date) return toYMD(input);
+  const d = new Date(input);
+  return isNaN(d) ? '' : toYMD(d);
 }
-
-function fmtYMD(input){
-  const d = toDate(input);
-  if(!d || isNaN(d)) return '';
-  // 用台北時區輸出 yyyy-mm-dd
-  const ymd = new Intl.DateTimeFormat('zh-TW',{ timeZone:'Asia/Taipei', year:'numeric', month:'2-digit', day:'2-digit'}).format(d).replace(/\//g,'-');
-  return ymd;
+function toYMD(d){
+  // 用固定 09:00 +08:00 避免 DST/UTC 造成日子偏移
+  const z = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate(), 1,0,0));
+  return `${z.getUTCFullYear()}-${pad2(z.getUTCMonth()+1)}-${pad2(z.getUTCDate())}`;
 }
-
-function weekdayZh(input){
-  const d = toDate(input);
-  if(!d || isNaN(d)) return '';
-  const w = new Intl.DateTimeFormat('zh-TW',{ timeZone:'Asia/Taipei', weekday:'long'}).format(d); // e.g. 星期五
-  return w.replace('星期',''); // 只留「五」
+function weekdayZhFromYMD(ymd){
+  if(!ymd) return '';
+  // 直接用 +08:00 算星期
+  const d = new Date(ymd + 'T09:00:00+08:00');
+  const WEEK = ['日','一','二','三','四','五','六'];
+  return WEEK[d.getDay()] || '';
 }
-
-function fmtTs(input){
-  const d = toDate(input);
-  if(!d || isNaN(d)) return '';
-  const f = new Intl.DateTimeFormat('zh-TW',{
-    timeZone:'Asia/Taipei', year:'numeric', month:'2-digit', day:'2-digit',
-    hour:'2-digit', minute:'2-digit', second:'2-digit', hour12:false
-  }).format(d);
-  return f.replace(/\//g,'/');
+function fmtTsTW(input){
+  if(!input) return '';
+  const d = new Date(input);
+  if(isNaN(d)) return '';
+  const y = d.getFullYear(), m=pad2(d.getMonth()+1), da=pad2(d.getDate());
+  const hh=pad2(d.getHours()), mm=pad2(d.getMinutes()), ss=pad2(d.getSeconds());
+  return `${y}/${m}/${da} ${hh}:${mm}:${ss}`;
 }
-
 function guessTimeBySlot(slot){
   if(!slot) return '';
   if (slot.includes('早')) return '08:00~11:00';
@@ -152,42 +145,43 @@ function guessTimeBySlot(slot){
   return '';
 }
 
-/* ==== 主要流程 ==== */
+/* ==== 主流程 ==== */
 (async function init(){
   try{
     const qs = new URLSearchParams(location.search);
     const id = qs.get('id');
     if(!id) throw new Error('缺少預約代碼');
 
-    // 1) 取單筆明細
+    // 1) 取單筆明細（新版 GAS 的 detail_ 回傳 date 為 yyyy-mm-dd）
     const r = await axios.get(API, { params:{ action:'detail', id } });
     const d = r.data || {};
 
-    // 2) 取時段設定（避免 GAS 未回傳 time 時段）
+    const ymd = normalizeYMD(d.date);         // 穩健轉成 yyyy-mm-dd
+    const wk  = weekdayZhFromYMD(ymd);        // 星期幾（數字→中）
     let timeRange = '';
+
+    // 2) 依當天配置取出對應診別的 time（新版 GAS 的 getSlots 會回傳 time）
     try{
-      const s = await axios.get(API, { params:{ action:'getSlots', date: d.date } });
-      const hit = (s.data||[]).find(x => x.label === d.slot);
+      const s = await axios.get(API, { params:{ action:'getSlots', date: ymd } });
+      const hit = (s.data||[]).find(x => String(x.label) === String(d.slot));
       timeRange = hit?.time || '';
     }catch(_){
+      // 後備：依診別字樣猜時間
       timeRange = guessTimeBySlot(d.slot);
     }
 
-    const ymd = fmtYMD(d.date);       // 2025-08-22
-    const wk  = weekdayZh(d.date);    // 五
-
     // 顯示主資訊
-    lineDate.textContent  = `${ymd} 星期${wk}（${d.slot||''}）  ${timeRange||''}`;
-    lineNameNo.textContent= `姓名：${d.name||''}，號碼：${d.num||''} 號。`;
-    filledAt.textContent  = d.time ? fmtTs(d.time) : '';
+    lineDate.textContent   = `${ymd} 星期${wk}（${d.slot||''}）  ${timeRange||''}`;
+    lineNameNo.textContent = `姓名：${d.name||''}，號碼：${d.num||''} 號。`;
+    filledAt.textContent   = d.time ? fmtTsTW(d.time) : '';
 
-    // 分享
+    // 分享內容
     const shareText =
-`✔️陳萬龍診所門診預約成功：
+`✔️陳萬龍診所門診預約成功！
 
 ${ymd} 星期${wk}（${d.slot||''}）${timeRange? ' '+timeRange : ''}
-姓名：${d.name||''}，號碼：${d.num||''} 號。
 
+姓名：${d.name||''}，號碼：${d.num||''} 號。
 請在預約的門診時間內到場報到，過號則須等待現場安排叫名字，逾期自動取消。`;
 
     shareBtn.onclick = async ()=>{
@@ -212,7 +206,3 @@ ${ymd} 星期${wk}（${d.slot||''}）${timeRange? ' '+timeRange : ''}
 </script>
 </body>
 </html>
-
-
-
-
