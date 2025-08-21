@@ -1,241 +1,248 @@
 <!doctype html>
 <html lang="zh-Hant">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>陳萬龍診所門診線上預約</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>預約成功</title>
 
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<!-- Bootstrap 只拿到元件 reset，主要樣式在本檔 -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 
 <style>
   :root{
-    --c-bg:#eef5fa; --c-card:#fff;
-    --c-primary:#3b7096; --c-primary-dark:#2e5a79;
-    --c-text:#18364d; --c-muted:#6b7b8c;
+    --c-bg:#eef5fa;
+    --c-card:#ffffff;
+    --c-primary:#3b6b8a;
+    --c-primary-weak:#e6edf3;
+    --c-text:#1d3557;
+    --c-muted:#6b7b8c;
   }
-  body{ background:var(--c-bg); color:var(--c-text); font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans TC","Microsoft JhengHei",Arial,sans-serif;}
-  .card{
-    max-width:620px; margin:56px auto; border:none; border-radius:20px;
-    box-shadow:0 14px 30px rgba(23,54,77,.12); padding:28px 26px;
+  body{
+    background: var(--c-bg);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans TC", "Microsoft JhengHei", Arial, sans-serif;
+    color: var(--c-text);
   }
-  .header{ display:flex; align-items:center; gap:14px; margin-bottom:18px;}
-  .logo{
-    width:64px;height:64px;border-radius:50%; background:#dfeaf2; color:var(--c-primary);
-    display:grid;place-items:center; font-size:40px; box-shadow:inset 0 0 0 2px #c8d8e5;
+  .wrap{
+    max-width: 960px;
+    margin: 48px auto;
+    padding: 0 16px;
   }
-  h1{font-size:24px; margin:0; font-weight:800; color:#1e3c53;}
-  label.form-label{font-weight:700;}
-  .btn-main{
-    background:var(--c-primary); border:none; width:100%; padding:.9rem 1rem;
-    color:#fff; font-weight:700; border-radius:12px;
+  .card-box{
+    background: var(--c-card);
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0,0,0,.08);
+    padding: 40px 28px 28px;
   }
-  .btn-main:hover{ background:var(--c-primary-dark); }
-  /* 動態讀取字 */
-  .loading-inline{ color:var(--c-muted); font-size:.95rem; margin-top:6px;}
-  /* 全螢幕遮罩 */
-  #overlay{
-    position:fixed; inset:0; background:rgba(255,255,255,.9);
-    display:none; align-items:center; justify-content:center; z-index:9999;
-    backdrop-filter: blur(2px); color:var(--c-primary-dark); text-align:center;
+  .heading{
+    display:flex; align-items:center; justify-content:center; gap:16px; margin-bottom:6px;
   }
-  #overlay .box{
-    padding:22px 26px; border-radius:14px; background:#fff; box-shadow:0 10px 30px rgba(0,0,0,.08);
-    min-width:280px; border:1px solid #e6edf3;
+  .badge-ok{
+    width:64px; height:64px; border-radius:16px;
+    background:#e9f6ef; display:grid; place-items:center;
+    box-shadow: inset 0 0 0 2px #bfe7cf;
+    font-size:36px; color:#28a745;
   }
-  .dots::after{ content:""; display:inline-block; width:2ch; text-align:left; animation:d 1.2s steps(3,end) infinite;}
-  @keyframes d{0%{content:"";}33%{content:".";}66%{content:"..";}100%{content:"...";}}
-  .hint-link{ color:#3b7096; text-decoration:underline;}
+  .title{
+    font-size: 42px; font-weight: 800; letter-spacing: .04em;
+  }
+  .subtitle{ color: var(--c-muted); margin: 6px 0 22px; }
+
+  .info-strong{
+    font-size: 1.2rem;
+    font-weight: 700;
+    letter-spacing: .02em;
+    margin: 8px 0;
+    text-align:center;
+  }
+
+  .note{
+    margin: 14px auto 18px;
+    color: var(--c-muted);
+    display:flex; align-items:flex-start; gap:10px;
+    max-width: 760px;
+    line-height:1.7;
+  }
+
+  .btn-row{
+    display:flex; gap:12px; margin: 18px 0 6px;
+  }
+  .btn-row .btn{
+    flex:1; padding: 14px 12px; border-radius: 12px;
+    font-weight: 700; font-size: 1.05rem;
+  }
+  .btn-primary{
+    background: var(--c-primary); color: #fff; border:none;
+  }
+  .btn-secondary{
+    background: var(--c-primary-weak); color: #333; border:none;
+  }
+
+  .share{
+    margin-top: 10px;
+    text-align: center;
+    font-weight: 700;
+    font-size: 1.05rem;
+  }
+  .share a{
+    color: var(--c-text);
+    text-decoration: underline;
+    cursor: pointer;
+  }
+
+  .ts{
+    text-align:center;
+    margin-top: 8px;
+    color:#8a96a3;
+    font-size:.95rem;
+  }
+
+  /* 讀取中 */
+  .loader{
+    text-align:center;
+    color: var(--c-muted);
+    margin: 22px 0 8px;
+    font-size: 1.05rem;
+    min-height: 1.6em;
+  }
+  .dots::after{
+    content:"";
+    display:inline-block;
+    width: 1.5em;
+    text-align:left;
+    animation: dots 1.2s steps(3,end) infinite;
+  }
+  @keyframes dots {
+    0%{content:"";}
+    33%{content:".";}
+    66%{content:"..";}
+    100%{content:"...";}
+  }
 </style>
 </head>
 <body>
-<div class="card">
-  <div class="header">
-    <div class="logo">＋</div>
-    <h1>陳萬龍診所門診線上預約</h1>
-  </div>
+<div class="wrap">
+  <div class="card-box">
 
-  <div class="mb-3">
-    <label class="form-label">預約日期 *</label>
-    <div class="d-flex align-items-center gap-2">
-      <input type="date" id="date" class="form-control" style="max-width:70%;">
-      <span id="weekday" class="text-muted"></span>
+    <div class="heading">
+      <div class="badge-ok">✅</div>
+      <div class="title">預約成功！</div>
     </div>
-    <div id="loadMsg" class="loading-inline"></div>
-  </div>
+    <div class="subtitle text-center">您的預約資訊：</div>
 
-  <div class="mb-3">
-    <label class="form-label">診別 *</label>
-    <select id="slot" class="form-select">
-      <option value="">請先選擇日期</option>
-    </select>
-  </div>
+    <!-- 資料區 -->
+    <div id="slotLine" class="info-strong">　</div>
+    <div id="nameLine" class="info-strong">　</div>
 
-  <div class="mb-3">
-    <label class="form-label">姓名 *</label>
-    <input type="text" id="name" class="form-control" autocomplete="name">
-  </div>
+    <div class="note">
+      <div style="font-size:20px; line-height:1">🗓️</div>
+      <div>請在預約的門診時間內到場報到，過號則須等待現場安排叫名字，逾期自動取消。</div>
+    </div>
 
-  <div class="mb-3">
-    <label class="form-label">出生年月日 *</label>
-    <input type="date" id="birthday" class="form-control">
-  </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="location.href='index.html'">返回預約首頁</button>
+      <button class="btn btn-secondary" onclick="location.href='query.html'">查詢/取消預約</button>
+    </div>
 
-  <div class="mb-3">
-    <label class="form-label">身分證字號 *</label>
-    <input type="text" id="idnum" class="form-control" maxlength="10" placeholder="A123456789">
-  </div>
+    <div class="share">
+      <a id="shareBtn">📄 分享</a>
+    </div>
 
-  <div class="mb-3">
-    <label class="form-label">連絡電話 *</label>
-    <input type="text" id="phone" class="form-control" maxlength="10" placeholder="0958xxxxxx">
-  </div>
+    <div id="fillTs" class="ts"></div>
 
-  <div class="form-check mb-4">
-    <input type="checkbox" id="agree" class="form-check-input">
-    <label for="agree" class="form-check-label">
-      我已閱讀並同意 <a class="hint-link" href="#" id="showNotice">預約須知</a>
-    </label>
-  </div>
-
-  <button id="submitBtn" class="btn-main">送出預約</button>
-  <a href="query.html" class="d-block mt-3 text-center hint-link">查詢／取消預約</a>
-</div>
-
-<!-- 全螢幕遮罩 -->
-<div id="overlay">
-  <div class="box">
-    <div id="overlayText" style="font-weight:700;">讀取中<span class="dots"></span></div>
-    <div id="overlaySub" class="text-muted mt-1" style="white-space:pre-line;"></div>
+    <div id="loader" class="loader"><span class="dots">讀取中請稍等</span></div>
   </div>
 </div>
 
 <script>
-// 👉 GAS endpoint
-const API = "https://script.google.com/macros/s/AKfycbwXt0DJsqNy0agHuopjPTNmldG_c-sjG5a7sayV-ttE5OoOhTKHgr6RKsc8Sa-V0-Ug/exec";
+  // 👉 你的 GAS endpoint（與 index.html 同一支）
+  const API = "https://script.google.com/macros/s/AKfycbwXt0DJsqNy0agHuopjPTNmldG_c-sjG5a7sayV-ttE5OoOhTKHgr6RKsc8Sa-V0-Ug/exec";
 
-// 日期限制：明天～15天
-const dateInput = document.getElementById("date");
-const today = new Date();
-const min = new Date(today.getTime()+86400000);
-const max = new Date(today.getTime()+15*86400000);
-dateInput.min = min.toISOString().split("T")[0];
-dateInput.max = max.toISOString().split("T")[0];
-dateInput.value = dateInput.min;
+  const slotLine = document.getElementById('slotLine');
+  const nameLine = document.getElementById('nameLine');
+  const fillTs   = document.getElementById('fillTs');
+  const loader   = document.getElementById('loader');
+  const shareBtn = document.getElementById('shareBtn');
 
-// 元件
-const weekday = document.getElementById("weekday");
-const slot = document.getElementById("slot");
-const idnum = document.getElementById("idnum");
-const phone = document.getElementById("phone");
-const submitBtn = document.getElementById("submitBtn");
-const loadMsg = document.getElementById("loadMsg");
+  const params = new URLSearchParams(location.search);
+  const id = params.get('id');
 
-// 遮罩
-const overlay = document.getElementById("overlay");
-const overlayText = document.getElementById("overlayText");
-const overlaySub = document.getElementById("overlaySub");
-const showOverlay = (t, sub="")=>{
-  overlayText.innerHTML = `${t}<span class="dots"></span>`;
-  overlaySub.textContent = sub;
-  overlay.style.display = "flex";
-};
-const hideOverlay = ()=> overlay.style.display = "none";
+  const wtxt = ['日','一','二','三','四','五','六'];
 
-// 輸入限制
-idnum.addEventListener("input",e=>{
-  e.target.value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,10);
-});
-phone.addEventListener("input",e=>{
-  e.target.value = e.target.value.replace(/\D/g,'').slice(0,10);
-});
+  function fmtDateToZh(dStr){
+    // 期待格式 YYYY-MM-DD
+    const d = new Date(dStr + 'T00:00:00');
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth()+1).padStart(2,'0');
+    const dd = String(d.getDate()).padStart(2,'0');
+    const wk = wtxt[d.getDay()];
+    return `${yyyy}-${mm}-${dd} 星期${wk}`;
+  }
 
-// 星期文字
-function setWeekText(dstr){
-  const wtxt=['日','一','二','三','四','五','六'];
-  const d = new Date(dstr+'T00:00:00');
-  weekday.textContent = `（星期${wtxt[d.getDay()]}）`;
-}
+  function buildShareText(data){
+    const dateText = fmtDateToZh(data.date);
+    const slot = data.slot || '';
+    const time = data.time || '';
+    const name = data.name || '';
+    const num  = data.num  || '';
+/*
+陳萬龍診所門診預約成功！
+預約資訊：
+2025-08-22 星期五（午診）14:00~17:00
+姓名：許火旺，號碼：12 號。
+請在預約的門診時間內到場報到，過號則須等待現場安排叫名字，逾期自動取消。
+*/
+    return `陳萬龍診所門診預約成功！
+預約資訊：
+${dateText}（${slot}）${time}
+姓名：${name}，號碼：${num} 號。
+請在預約的門診時間內到場報到，過號則須等待現場安排叫名字，逾期自動取消。`;
+  }
 
-// 讀取時段（避免競態：用 token）
-let reqToken = 0;
-async function loadSlots(){
-  const my = ++reqToken;
-  const d = dateInput.value;
-  setWeekText(d);
-  slot.innerHTML = '<option value="">讀取中...</option>';
-  loadMsg.textContent = "讀取中請稍等" + ".".repeat((Date.now()/500|0)%4);
-
-  try{
-    const r = await axios.get(API, { params:{ action:'getSlots', date:d }});
-    if(my !== reqToken) return; // 已有新請求，放棄這次更新
-    const arr = r.data || [];
-    if(!arr.length){
-      slot.innerHTML = '<option value="">當天未開放</option>';
-      loadMsg.textContent = "";
+  async function init(){
+    if(!id){
+      loader.textContent = '參數有誤：沒有預約編號';
       return;
     }
-    let html = '<option value="">請選診別</option>';
-    arr.forEach(o=>{
-      const remain = Math.max(0, Number(o.limit||0) - Number(o.used||0));
-      const disabled = (Number(o.limit||0) <= 0 || remain <= 0) ? 'disabled' : '';
-      html += `<option value="${o.label}" data-time="${o.time||''}" data-start="${o.startNo||1}" ${disabled}>
-                 ${o.label}（${o.time||''}，剩 ${remain}/${o.limit||0}）
-               </option>`;
-    });
-    slot.innerHTML = html;
-    loadMsg.textContent = "";
-  }catch(e){
-    slot.innerHTML = '<option value="">讀取失敗</option>';
-    loadMsg.textContent = "讀取失敗，請重試";
+    try{
+      const r = await axios.get(API, { params: { action:'detail', id }});
+      const data = r.data || {};
+
+      // 主要兩行
+      const dateText = fmtDateToZh(data.date);
+      slotLine.textContent = `${dateText}（${data.slot||''}）　${data.time||''}`;
+      nameLine.textContent = `姓名：${data.name||''}，號碼：${data.num||''} 號。`;
+
+      // 填表時間
+      fillTs.textContent = data.time || '';
+
+      // 分享
+      const shareText = buildShareText(data);
+      shareBtn.onclick = async ()=>{
+        if(navigator.share){
+          try{
+            await navigator.share({ title:'陳萬龍診所預約成功', text: shareText });
+          }catch{}
+        }else{
+          try{
+            await navigator.clipboard.writeText(shareText);
+            alert('已複製分享內容！');
+          }catch{
+            prompt('複製以下分享內容：', shareText);
+          }
+        }
+      };
+    }catch(err){
+      console.error(err);
+      slotLine.textContent = '讀取失敗';
+      nameLine.textContent = '';
+      fillTs.textContent = '';
+    }finally{
+      loader.style.display = 'none';
+    }
   }
-}
 
-// 日期變更 → 讀取
-dateInput.addEventListener("change", ()=>{
-  showOverlay('讀取中', '');
-  loadSlots().finally(hideOverlay);
-});
-// 首次載入
-showOverlay('讀取中', '');
-loadSlots().finally(hideOverlay);
-
-// 送出
-submitBtn.onclick = async ()=>{
-  const d = date.value, s = slot.value;
-  const opt = slot.options[slot.selectedIndex];
-  const t = opt?.dataset.time || "";
-  const startNo = opt?.dataset.start || "";
-
-  const n = name.value.trim(), b = birthday.value,
-        pid = idnum.value.trim().toUpperCase(),
-        ph  = phone.value.trim(), ag=agree.checked;
-
-  if(!d||!s||!n||!b||!pid||!ph||!ag) return alert("資料未填完整");
-  if(!/^[A-Z][12]\d{8}$/.test(pid))   return alert("身分證格式錯誤");
-  if(ph.length<8||ph.length>10)       return alert("電話長度不符");
-  const age = Math.floor((Date.now()-new Date(b))/31536000000);
-  if(age<0||age>150) return alert("生日超出限制");
-
-  showOverlay('預約中', '請勿離開網頁或重新整理');
-  submitBtn.disabled = true;
-
-  try{
-    const r = await axios.get(API, {
-      params:{ action:'submit', date:d, slot:s, name:n, birthday:b, id:pid, phone:ph }
-    });
-    const ok = r.data?.ok;
-    const rowId = r.data?.id;
-    if(!ok || !rowId) throw new Error('submit failed');
-    location = `success.html?id=${encodeURIComponent(rowId)}`;
-  }catch(e){
-    console.error(e);
-    alert("送出失敗，請重試");
-  }finally{
-    submitBtn.disabled = false;
-    hideOverlay();
-  }
-};
+  init();
 </script>
 </body>
 </html>
