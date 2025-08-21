@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="zh-Hant">
 <head>
 <meta charset="UTF-8">
@@ -51,6 +51,7 @@
     <input type="text" id="phone" class="form-control" maxlength="10" placeholder="0958xxxxxx">
   </div>
 
+  <!-- 預約須知 -->
   <div class="form-check mb-4">
     <input type="checkbox" id="agree" class="form-check-input">
     <label for="agree" class="form-check-label">
@@ -62,65 +63,98 @@
   <a href="query.html" class="d-block mt-3 text-center text-decoration-underline" style="color:#3b7096;">查詢／取消預約</a>
 </div>
 
-<!-- Modal -->
+<!-- 預約須知 Modal -->
 <div class="modal fade" id="noticeModal" tabindex="-1">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header">
-        <h5>預約須知與個資告知</h5>
-        <button class="btn-close" data-bs-dismiss="modal"></button>
+        <h5 class="modal-title">預約須知與個資告知</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body" style="text-align:left;">
-        <p>1. 本院蒐集之個人資料僅用於醫療與聯繫用途。</p>
-        <p>2. 請於預約時段內報到，逾時視同放棄。</p>
-        <p>3. 如需取消，請於前一日線上辦理；當日請電話。</p>
-        <p>4. 本院保留看診順序調整權利。</p>
+        <p>1. 本院蒐集之個人資料（姓名、電話、身分證字號）僅用於掛號與醫療聯繫，不對外提供。</p>
+        <p>2. 請於預約當日門診時間內準時報到，逾時視同放棄。</p>
+        <p>3. 如需取消，請於前一日線上辦理；當日請以電話通知。</p>
+        <p>4. 本院保留因醫療需求調整看診順序之權利。</p>
+        <p>5. 點選同意即表示您已了解並接受上述說明。</p>
       </div>
     </div>
   </div>
 </div>
 
 <script>
-// 👉 GAS API
-const API ="https://script.google.com/macros/s/AKfycbzAcXHkM77WW0cRAI5aU3DiivQwt6hPBbcy4NwXUU5ZWVP_2B0l-mhugcnDLU1CEKoM/exec";
+// 👉 你的 GAS API
+const API = "https://script.google.com/macros/s/AKfycbzAcXHkM77WW0cRAI5aU3DiivQwt6hPBbcy4NwXUU5ZWVP_2B0l-mhugcnDLU1CEKoM/exec";
 
-// 日期限制
+// 日期限制（明天～15天內）
 const dateInput=document.getElementById("date");
 const today=new Date(),min=new Date(today.getTime()+86400000),max=new Date(today.getTime()+15*86400000);
 dateInput.min=min.toISOString().split("T")[0];
 dateInput.max=max.toISOString().split("T")[0];
 
+// 初始帶入明天
+dateInput.value = dateInput.min;
+updateWeekday(dateInput.value);
+
 // 選日期→載入時段
-dateInput.addEventListener("change", async()=>{
-  const d=dateInput.value;
+dateInput.addEventListener("change", onDateChange);
+async function onDateChange(){
+  const d = dateInput.value;
+  updateWeekday(d);
+  slot.innerHTML = '<option>讀取中…</option>';
+  try{
+    const r = await axios.get(API,{params:{action:'getSlots',date:d}});
+    let html = '<option value="">請選診別</option>';
+    r.data.forEach(o=>{
+      const remain = Math.max(0, Number(o.limit) - Number(o.used||0));
+      if(Number(o.limit)>0 && remain>0){
+        // 帶入起始號碼 startNo，成功後提交會送到 GAS
+        html += `<option value="${o.label}"
+                      data-time="${o.time||''}"
+                      data-start="${o.startNo||1}"
+                      data-remain="${remain}">
+                    ${o.label}（${o.time||''}，剩 ${remain}/${o.limit}）
+                 </option>`;
+      }
+    });
+    if(html.indexOf('option value=""')===0 && r.data.length===0){ html='<option>當天未開放</option>'; }
+    slot.innerHTML = html;
+  }catch(e){
+    console.error(e);
+    slot.innerHTML = '<option>讀取失敗</option>';
+  }
+}
+
+function updateWeekday(d){
   const wtxt=['日','一','二','三','四','五','六'];
   document.getElementById("weekday").innerText=`（星期${wtxt[new Date(d).getDay()]}）`;
-  try{
-    const r=await axios.get(API,{params:{action:'getSlots',date:d}});
-    let html='<option value="">請選診別</option>';
-    r.data.forEach(o=>{
-      if(o.limit>o.used) html+=`<option value="${o.label}" data-time="${o.time}">${o.label}</option>`;
-    });
-    slot.innerHTML=html;
-  }catch{
-    slot.innerHTML='<option>讀取失敗</option>';
-  }
-});
+}
 
 // 限制輸入
-idnum.addEventListener("input",e=>{e.target.value=e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,10)});
-phone.addEventListener("input",e=>{e.target.value=e.target.value.replace(/\D/g,'').slice(0,10)});
+idnum.addEventListener("input",e=>{
+  e.target.value=e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,10);
+});
+phone.addEventListener("input",e=>{
+  e.target.value=e.target.value.replace(/\D/g,'').slice(0,10);
+});
 
 // 彈窗
-showNotice.onclick=e=>{e.preventDefault();new bootstrap.Modal(noticeModal).show()};
+showNotice.onclick=(e)=>{
+  e.preventDefault();
+  new bootstrap.Modal(document.getElementById('noticeModal')).show();
+};
 
-// 送出
+// 送出（防雙擊）
+let submitting = false;
 submitBtn.onclick=async()=>{
-  const d=date.value, s=slot.value,
-  t=slot.options[slot.selectedIndex]?.dataset.time||"",
-  n=name.value.trim(), b=birthday.value,
-  id=idnum.value.trim().toUpperCase(),
-  ph=phone.value.trim(), ag=agree.checked;
+  if(submitting) return;
+  const d=date.value, s=slot.value;
+  const opt=slot.options[slot.selectedIndex];
+  const t=opt?.dataset.time || "";
+  const startNo = opt?.dataset.start || "";
+  const n=name.value.trim(), b=birthday.value,
+        id=idnum.value.trim().toUpperCase(),
+        ph=phone.value.trim(), ag=agree.checked;
 
   if(!d||!s||!n||!b||!id||!ph||!ag) return alert("資料未填完整");
   if(!/^[A-Z][12]\d{8}$/.test(id))   return alert("身分證格式錯誤");
@@ -129,15 +163,26 @@ submitBtn.onclick=async()=>{
   if(age<0||age>150) return alert("生日超出限制");
 
   try{
-    const r = await axios.get(API,{params:{action:'submit',date:d,slot:s,name:n,birthday:b,id:id,phone:ph}});
-    location=`success.html?id=${r.data.id}&date=${d}&slot=${s}&time=${t}`;
+    submitting = true;
+    submitBtn.disabled = true;
+    submitBtn.innerText = '送出中…';
+    const r = await axios.get(API,{params:{
+      action:'submit', date:d, slot:s, name:n, birthday:b, id:id, phone:ph, startNo:startNo
+    }});
+    // 僅帶 id 到 success，再向 GAS 查詳細資訊
+    location = `success.html?id=${encodeURIComponent(r.data.id)}`;
   }catch(e){
-    console.error(e); alert("送出失敗！");
+    console.error('SubmitError=', e);
+    alert("送出失敗，請再試一次");
+  }finally{
+    submitting = false;
+    submitBtn.disabled = false;
+    submitBtn.innerText = '送出預約';
   }
 };
+
+// 首次載入自動載入明天時段
+onDateChange();
 </script>
 </body>
 </html>
-
-
-
