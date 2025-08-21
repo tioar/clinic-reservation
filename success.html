@@ -1,66 +1,139 @@
 <!doctype html>
 <html lang="zh-Hant">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta charset="UTF-8" />
 <title>預約成功</title>
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+<link rel="stylesheet" href="style.css" />
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-<style>
-body{background:#eaf2f8}
-.card{max-width:680px;margin:60px auto;padding:28px;border:0;border-radius:18px;box-shadow:0 10px 28px rgba(47,79,114,.12)}
-.icon{font-size:56px;line-height:1}
-h1{font-weight:800;margin:10px 0 16px}
-.info{font-size:20px;line-height:1.7}
-.btn-main{background:#3b7096;border:0;color:#fff;padding:10px 20px;border-radius:12px}
-</style>
 </head>
 <body>
-<div class="card text-center">
-  <div class="icon">✅</div>
-  <h1>預約成功！</h1>
-  <p class="text-muted">您的預約資訊：</p>
+<div class="result-card container py-5">
+  <div class="mx-auto bg-white shadow rounded-4 p-4 p-md-5" style="max-width:820px;">
+    <div class="text-center mb-3">
+      <div style="font-size:64px; line-height:1;">✅</div>
+      <h2 class="fw-bold mt-3">預約成功！</h2>
+      <div class="text-secondary mt-2">您的預約資訊：</div>
+    </div>
 
-  <div id="detail" class="info mb-3">讀取中…</div>
+    <div class="text-center my-4">
+      <div id="line1" class="fs-4 fw-semibold"></div>
+      <div id="line2" class="fs-5 mt-2"></div>
+      <div id="line3" class="fs-5 mt-3"></div>
+    </div>
 
-  <div class="d-flex justify-content-center gap-3">
-    <a href="index.html" class="btn btn-main">返回預約首頁</a>
-    <a href="query.html" class="btn btn-outline-secondary">查詢/取消預約</a>
-  </div>
+    <div class="text-center mt-4">
+      <a href="index.html" class="btn btn-primary px-4 me-2">返回預約首頁</a>
+      <a href="query.html" class="btn btn-outline-secondary px-4">查詢/取消預約</a>
+    </div>
 
-  <div class="mt-3 text-secondary">
-    📅 請在預約的門診時間內到場報到，逾期自動取消。
+    <div class="text-center mt-3">
+      <button id="shareBtn" class="btn btn-link text-decoration-none">
+        📄 分享
+      </button>
+    </div>
+
+    <div id="filledAt" class="text-center text-secondary mt-2 small"></div>
+
+    <div class="text-secondary mt-4" style="display:flex;align-items:flex-start;gap:.5rem;">
+      <span style="font-size:20px;line-height:1.1;">🌟</span>
+      <span>請在預約的門診時間內到場報到，過號則須等待現場安排叫名字，逾期自動取消。</span>
+    </div>
   </div>
 </div>
 
 <script>
+// 👉 你的 GAS /exec
 const API = "https://script.google.com/macros/s/AKfycbxIAVoc2Rwdtpm9dYecLQ5fLQb64yjk12D1IIId1_TwN2ptzh6is23mTMjye0VJI71p/exec";
 
-function qs(k){return new URL(location.href).searchParams.get(k)}
-function weekdayStr(d){
-  const w = ['日','一','二','三','四','五','六'];
-  return '星期'+w[new Date(d+'T00:00:00').getDay()];
-}
+// 讀 URL 參數
+const params = new URLSearchParams(location.search);
+const id = params.get('id');
 
-(async ()=>{
-  const id = qs('id');
-  if(!id){ document.getElementById('detail').innerText='缺少參數'; return; }
+// DOM
+const line1   = document.getElementById('line1'); // 日期 + 星期 +（診別）+ 時段
+const line2   = document.getElementById('line2'); // 填表時間（格式化）… → 需求：移到最底，所以這行改顯示在 line2 for now? 依需求：line2 顯示空，填表時間改放 filledAt
+const line3   = document.getElementById('line3'); // 姓名 + 號碼
+const filledAt = document.getElementById('filledAt');
+const shareBtn = document.getElementById('shareBtn');
 
+const WEEK = ['日','一','二','三','四','五','六'];
+
+// 取預約詳細（GAS: action=detail），再用 getSlots 取得該日該診別的時段字串
+(async function init(){
+  if(!id){
+    alert('無法取得預約資料'); location.href='index.html'; return;
+  }
   try{
-    const r = await axios.get(API,{params:{action:'detail', id}});
-    if(r.data.error){ document.getElementById('detail').innerText=r.data.error; return; }
-    const d = r.data;
-    const wk = weekdayStr(d.date);
-    // d.slot 例：早診；你若要顯示時段，可在 index.html 的 option data-time 帶入後寫到表；這裡先不顯示 time
-    document.getElementById('detail').innerHTML =
-      `<div>${d.date} ${wk}（${d.slot}）</div>
-       <div class="text-muted">${d.submittedAt}</div>
-       <div class="mt-2">姓名：<b>${d.name}</b>，號碼：<b>${d.num}</b> 號。</div>`;
+    // 1) 明細
+    const r = await axios.get(API, { params:{ action:'detail', id } });
+    const d = r.data || {};
+    // d: {date, slot, name, birthday, pid, phone, num, time}
+
+    // 2) 取該日門診時段（從 getSlots 找 label 對應）
+    let timeRange = '';
+    try{
+      const s = await axios.get(API, { params:{ action:'getSlots', date:d.date } });
+      const hit = (s.data||[]).find(x => x.label === d.slot);
+      timeRange = hit?.time || '';
+    }catch(e){ /* keep empty */ }
+
+    // 顯示行
+    const dt = new Date(d.date + 'T00:00:00');
+    const w  = WEEK[dt.getDay()];
+    line1.textContent = `${d.date} 星期${w}（${d.slot}）${timeRange? ' ' + timeRange : ''}`;
+    line2.textContent = ''; // 需求：填表時間放最下方，所以這行不顯示內容
+    line3.textContent = `姓名：${d.name}，號碼：${d.num} 號。`;
+
+    // 底部填表時間
+    const ft = d.time ? new Date(d.time) : null;
+    if(ft && !isNaN(ft)){
+      filledAt.textContent = formatDateTime(ft);
+    }else{
+      // GAS 若回的是 Apps Script 內部日期（非 ISO），試著直接顯示字串
+      filledAt.textContent = d.time || '';
+    }
+
+    // 分享
+    const shareText = [
+      '✔️陳萬龍診所門診預約成功！',
+      '預約資訊：',
+      '',
+      `${d.date} 星期${w}（${d.slot}）${timeRange}`,
+      '',
+      `姓名：${d.name}，號碼：${d.num} 號。`,
+      '🌟請在預約的門診時間內到場報到，過號則須等待現場安排叫名字，逾期自動取消。`
+    ].join('\n');
+
+    shareBtn.onclick = async ()=>{
+      try{
+        if(navigator.share){
+          await navigator.share({ text: shareText });
+        }else{
+          await navigator.clipboard.writeText(shareText);
+          alert('已複製分享內容！');
+        }
+      }catch(_){}
+    };
+
   }catch(e){
     console.error(e);
-    document.getElementById('detail').innerText='無法取得預約資料';
+    alert('無法取得預約資料'); location.href='index.html';
   }
 })();
+
+function pad2(n){ return n<10? '0'+n : ''+n; }
+function formatDateTime(dt){
+  // 顯示為：YYYY/MM/DD HH:MM:SS
+  const Y = dt.getFullYear();
+  const M = pad2(dt.getMonth()+1);
+  const D = pad2(dt.getDate());
+  const h = pad2(dt.getHours());
+  const m = pad2(dt.getMinutes());
+  const s = pad2(dt.getSeconds());
+  return `${Y}/${M}/${D} ${h}:${m}:${s}`;
+}
 </script>
 </body>
 </html>
