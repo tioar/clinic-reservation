@@ -8,12 +8,10 @@
 <link rel="stylesheet" href="style.css" />
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 <style>
-  /* 小幅補充：列表對齊 & 紅色按鈕 */
   .list-row{display:grid;grid-template-columns:1.1fr .9fr .7fr 1fr 1fr .6fr .6fr;gap:.5rem;align-items:center}
   .list-head{font-weight:700;color:#27485f;margin-bottom:.5rem}
   .btn-cancel{background:#dc3545;border:none}
   .btn-cancel:hover{background:#b02a37}
-  /* 全螢幕 Loading overlay（與 success 一致的體驗） */
   #loading{position:fixed;inset:0;background:rgba(255,255,255,.85);display:none;align-items:center;justify-content:center;z-index:9999;font-size:18px;color:#2e5a79;backdrop-filter:blur(2px)}
   #dots{display:inline-block;width:2ch;text-align:left}
 </style>
@@ -49,6 +47,7 @@
 </div>
 
 <script>
+// ✅ 用「同一支」可運作的 GAS，和 index/success 一致
 const API = "https://script.google.com/macros/s/AKfycbzWbxyFWWjFwSEXO09V-zoxRqwjinaiFwNfCLlyRjArnewXYV1LkQKnfATCvFqMbS4x/exec";
 
 const $pid = document.getElementById('pid');
@@ -89,20 +88,22 @@ async function query(){
   showLoading('查詢中請稍等');
 
   try{
-    const r = await axios.get(API,{params:{action:'listByPid', pid}});
-    const rows = Array.isArray(r.data)? r.data : [];
+    // 🔁 與 GAS 對齊：action = queryByPid，參數名稱 = idnum
+    const r = await axios.get(API,{params:{action:'queryByPid', idnum: pid}});
+    const rows = Array.isArray(r.data?.items) ? r.data.items : [];
     $list.innerHTML = '';
+    $res.style.display='block';
+
     if(rows.length===0){
-      $res.style.display='block';
       $hint.style.display='none';
       $list.innerHTML = '<div class="text-muted">查無未取消預約</div>';
       return;
     }
-    $res.style.display='block';
+
     $hint.style.display='block';
 
     rows.forEach(item=>{
-      // item: {id,date,slot,name,num,time}
+      // item: {id,date,slot,time,name,num,canCancel,cancelled}
       const ymd = item.date;
       const w = weekday(ymd);
       const t = item.time || guessTime(item.slot) || '';
@@ -116,10 +117,10 @@ async function query(){
         <div>${item.name||''}</div>
         <div>${item.num||''}</div>
         <div>
-          <button class="btn btn-cancel btn-sm" data-id="${item.id}">取消</button>
+          <button class="btn btn-cancel btn-sm" ${item.canCancel ? '' : 'disabled'} data-id="${item.id}">取消</button>
         </div>
       `;
-      row.querySelector('.btn-cancel').onclick = ()=> cancel(item.id, ymd, item.slot, item.name, item.num);
+      row.querySelector('.btn-cancel').onclick = ()=> cancelOne(item, pid);
       $list.appendChild(row);
     });
   }catch(e){
@@ -130,16 +131,25 @@ async function query(){
   }
 }
 
-async function cancel(id, ymd, slot, name, num){
-  if(!confirm(`確認取消：\n${ymd}（${slot}）\n${name}  第 ${num} 號？`)) return;
+// ✅ 取消：先試以 id 取消；若後端不支援 id，則改用 idnum（取消此身分之全部未取消預約）
+async function cancelOne(item, pid){
+  if(!item?.canCancel){ return; }
+  if(!confirm(`確認取消：\n${item.date}（${item.slot}）\n${item.name}  第 ${item.num} 號？`)) return;
+
   showLoading('取消中請稍等');
   try{
-    const r = await axios.get(API,{params:{action:'cancel', id}});
-    if(r.data && r.data.ok){
-      alert('已取消。');
+    // 方案 A：以 row id 取消（若 GAS 有支援）
+    let resp = await axios.get(API,{params:{action:'cancel', id: item.id}});
+    if(!(resp.data && (resp.data.ok || resp.data.success))){
+      // 方案 B：以身分證字號取消（GAS 舊版行為：會取消此身分所有未取消預約）
+      resp = await axios.get(API,{params:{action:'cancel', idnum: pid}});
+    }
+
+    if(resp.data && (resp.data.ok || resp.data.success)){
+      alert(resp.data.message || '已取消。');
       await query(); // 重新查一次列表
     }else{
-      alert('取消失敗，請稍後再試');
+      alert((resp.data && resp.data.message) || '取消失敗，請稍後再試');
     }
   }catch(e){
     console.error(e);
@@ -156,5 +166,3 @@ $pid.addEventListener('input', e=>{
 </script>
 </body>
 </html>
-
-
