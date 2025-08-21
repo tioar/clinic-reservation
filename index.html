@@ -2,12 +2,54 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="UTF-8" />
-<title>陳萬龍診所門診線上預約</title>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>陳萬龍診所門診線上預約</title>
+
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
 <link rel="stylesheet" href="style.css" />
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<style>
+  /* ====== 小型「診別載入中…」提示 ====== */
+  .slots-loading{ font-size:.95rem; color:#6b7b8c; margin-top:6px; }
+  .slots-loading .dots::after{
+    content:""; display:inline-block; width:1.4em; text-align:left;
+    animation: slotDots 1.1s steps(3,end) infinite;
+  }
+  @keyframes slotDots{
+    0%{content:"";}
+    33%{content:".";}
+    66%{content:"..";}
+    100%{content:"...";}
+  }
+
+  /* ====== 全螢幕「預約中」遮罩 ====== */
+  #submitOverlay[hidden]{ display:none; }
+  #submitOverlay{
+    position:fixed; inset:0; z-index:9999;
+    background:rgba(255,255,255,.9);
+    display:grid; place-items:center;
+    backdrop-filter: blur(2px);
+    font-size:18px; color:#2e5a79;
+  }
+  #submitOverlay .box{
+    text-align:center; padding:20px 26px;
+    background:#fff; border:1px solid #e3eef6; border-radius:14px;
+    box-shadow:0 10px 28px rgba(17,45,78,.12);
+  }
+  #submitOverlay .title{ font-weight:800; font-size:20px; }
+  #submitOverlay .sub{ margin-top:6px; color:#6b7b8c; font-size:14px; }
+  #submitOverlay .dots::after{
+    content:""; display:inline-block; width:1.6em; text-align:left;
+    animation: submitDots 1.2s steps(3,end) infinite;
+  }
+  @keyframes submitDots{
+    0%{content:"";}
+    33%{content:".";}
+    66%{content:"..";}
+    100%{content:"...";}
+  }
+</style>
 </head>
 <body>
 <div class="card">
@@ -16,43 +58,53 @@
     <h1>陳萬龍診所門診線上預約</h1>
   </div>
 
+  <!-- 預約日期 -->
   <div class="mb-3">
     <label class="form-label">預約日期 *</label>
     <div class="d-flex align-items-center flex-nowrap">
-      <input type="date" id="date" class="form-control" style="max-width:70%;" />
+      <input type="date" id="date" class="form-control" style="max-width:70%;">
       <span id="weekday" class="ms-2"></span>
     </div>
   </div>
 
-  <div class="mb-3">
+  <!-- 診別 -->
+  <div class="mb-1">
     <label class="form-label">診別 *</label>
     <select id="slot" class="form-select">
       <option value="">請先選擇日期</option>
     </select>
+    <div id="slotsLoading" class="slots-loading" style="display:none">
+      <span class="dots">讀取中請稍等</span>
+    </div>
   </div>
 
+  <!-- 姓名 -->
   <div class="mb-3">
     <label class="form-label">姓名 *</label>
-    <input type="text" id="name" class="form-control" />
+    <input type="text" id="name" class="form-control">
   </div>
 
+  <!-- 生日 -->
   <div class="mb-3">
     <label class="form-label">出生年月日 *</label>
-    <input type="date" id="birthday" class="form-control" />
+    <input type="date" id="birthday" class="form-control">
   </div>
 
+  <!-- 身分證字號 -->
   <div class="mb-3">
     <label class="form-label">身分證字號 *</label>
-    <input type="text" id="idnum" class="form-control" maxlength="10" placeholder="A123456789" />
+    <input type="text" id="idnum" class="form-control" maxlength="10" placeholder="A123456789">
   </div>
 
+  <!-- 電話 -->
   <div class="mb-3">
     <label class="form-label">連絡電話 *</label>
-    <input type="text" id="phone" class="form-control" maxlength="10" placeholder="0958xxxxxx" />
+    <input type="text" id="phone" class="form-control" maxlength="10" placeholder="0958xxxxxx">
   </div>
 
+  <!-- 預約須知 -->
   <div class="form-check mb-4">
-    <input type="checkbox" id="agree" class="form-check-input" />
+    <input type="checkbox" id="agree" class="form-check-input">
     <label for="agree" class="form-check-label">
       我已閱讀並同意 <a href="#" id="showNotice">預約須知</a>
     </label>
@@ -62,151 +114,146 @@
   <a href="query.html" class="d-block mt-3 text-center text-decoration-underline" style="color:#3b7096;">查詢／取消預約</a>
 </div>
 
-<!-- 預約須知 Modal -->
+<!-- Modal：預約須知 -->
 <div class="modal fade" id="noticeModal" tabindex="-1">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title">預約須知與個資告知</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        <h5>預約須知與個資告知</h5>
+        <button class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body" style="text-align:left;">
-        <p>1. 本院蒐集之個人資料（姓名、電話、身分證字號）僅用於掛號與醫療聯繫，不對外提供。</p>
-        <p>2. 請於預約當日門診時間內準時報到，逾時視同放棄。</p>
-        <p>3. 如需取消，請於前一日線上辦理；當日請以電話通知。</p>
-        <p>4. 本院保留因醫療需求調整看診順序之權利。</p>
-        <p>5. 點選同意即表示您已了解並接受上述說明。</p>
+        <p>1. 本院蒐集之個人資料僅用於醫療與聯繫用途。</p>
+        <p>2. 請於預約時段內準時報到，逾時視同放棄。</p>
+        <p>3. 如需取消，請於前一日線上辦理；當日請電話。</p>
+        <p>4. 本院保留看診順序調整權利。</p>
       </div>
     </div>
   </div>
 </div>
 
+<!-- 全螢幕：預約中 -->
+<div id="submitOverlay" hidden>
+  <div class="box">
+    <div class="title"><span class="dots">預約中</span></div>
+    <div class="sub">請勿離開網頁或重新整理</div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-// 👉 你的 GAS /exec
-const API = "https://script.google.com/macros/s/AKfycbxIAVoc2Rwdtpm9dYecLQ5fLQb64yjk12D1IIId1_TwN2ptzh6is23mTMjye0VJI71p/exec";
+/* ====== GAS API ====== */
+const API = "https://script.google.com/macros/s/AKfycbzknf2k03PsltF5RXXVLUwKsLTkPQeVPQNDcWpV5eeGzIeYKv99Ju_8yWlX1UKoJ9RY/exec";
 
-// 小工具
-const el = id => document.getElementById(id);
+/* ====== DOM ====== */
+const dateInput = document.getElementById("date");
+const weekdayEl = document.getElementById("weekday");
+const slotSel   = document.getElementById("slot");
+const slotsHint = document.getElementById("slotsLoading");
+const nameEl    = document.getElementById("name");
+const birthdayEl= document.getElementById("birthday");
+const idEl      = document.getElementById("idnum");
+const phoneEl   = document.getElementById("phone");
+const agreeEl   = document.getElementById("agree");
+const submitBtn = document.getElementById("submitBtn");
+const overlay   = document.getElementById("submitOverlay");
 
-// DOM 快取（避免用到 window.name 之類全域衝突）
-const $date     = el('date');
-const $slot     = el('slot');
-const $name     = el('name');
-const $birthday = el('birthday');
-const $idnum    = el('idnum');
-const $phone    = el('phone');
-const $agree    = el('agree');
-const $weekday  = el('weekday');
-const $submit   = el('submitBtn');
+/* ====== 日期限制（明天～15天） ====== */
+const today=new Date(),min=new Date(today.getTime()+86400000),max=new Date(today.getTime()+15*86400000);
+dateInput.min=min.toISOString().split("T")[0];
+dateInput.max=max.toISOString().split("T")[0];
+dateInput.value = dateInput.min;
 
-// 日期限制（明天～15天內）
-const today=new Date(), min=new Date(today.getTime()+86400000), max=new Date(today.getTime()+15*86400000);
-$date.min=min.toISOString().split("T")[0];
-$date.max=max.toISOString().split("T")[0];
-// 初始明天
-$date.value = $date.min;
-updateWeekday($date.value);
-
-// 變更日期→載入診別
-$date.addEventListener('change', onDateChange);
-onDateChange();
-
+/* ====== 工具 ====== */
+const wtxt=['日','一','二','三','四','五','六'];
 function updateWeekday(d){
-  const wtxt=['日','一','二','三','四','五','六'];
-  const wd = new Date(d+'T00:00:00').getDay();
-  $weekday.textContent = `（星期${wtxt[wd]}）`;
+  weekdayEl.textContent = d ? `（星期${wtxt[new Date(d).getDay()]}）` : '';
 }
+updateWeekday(dateInput.value);
 
-async function onDateChange(){
-  const d = $date.value;
-  updateWeekday(d);
-  $slot.innerHTML = '<option value="">讀取中…</option>';
+const debounce=(fn,ms=200)=>{let t;return (...args)=>{clearTimeout(t);t=setTimeout(()=>fn(...args),ms)}};
+
+// axios 取消前一次請求
+let slotsAbortCtl = null;
+async function loadSlots(dateStr){
+  if(!dateStr) return;
+  if(slotsAbortCtl) slotsAbortCtl.abort();
+  slotsAbortCtl = new AbortController();
+
+  slotsHint.style.display='block';
+  slotSel.innerHTML='<option value="">讀取中…</option>';
   try{
-    const r = await axios.get(API,{params:{action:'getSlots',date:d}});
-    let html = '<option value="">請選診別</option>';
-    r.data.forEach(o=>{
-      const limit  = Number(o.limit)||0;
-      const used   = Number(o.used)||0;
-      const remain = Math.max(0, limit-used);
-      if(limit>0 && remain>0){
-        html += `<option value="${o.label}"
-                       data-time="${o.time||''}"
-                       data-start="${o.startNo||1}"
-                       data-remain="${remain}">
-                   ${o.label}（${o.time||''}，剩 ${remain}/${limit}）
-                 </option>`;
+    const r=await axios.get(API,{params:{action:'getSlots',date:dateStr},signal:slotsAbortCtl.signal});
+    const arr=Array.isArray(r.data)?r.data:[];
+    let html='<option value="">請選診別</option>';
+    arr.forEach(o=>{
+      const remain=Math.max(0,Number(o.limit||0)-Number(o.used||0));
+      if(Number(o.limit)>0 && remain>0){
+        html+=`<option value="${o.label}" data-time="${o.time||''}" data-start="${o.startNo||''}">
+                  ${o.label}（${o.time||''}，剩 ${remain}/${o.limit}）
+               </option>`;
       }
     });
-    if (html === '<option value="">請選診別</option>' && r.data.length === 0){
-      html = '<option value="">當天未開放</option>';
-    }
-    $slot.innerHTML = html;
+    if(html==='﻿<option value="">請選診別</option>') html='<option value="">當天未開放</option>';
+    slotSel.innerHTML=html;
   }catch(e){
-    console.error(e);
-    $slot.innerHTML = '<option value="">讀取失敗</option>';
+    if(e.name!=='CanceledError'){
+      console.error(e);
+      slotSel.innerHTML='<option value="">讀取失敗</option>';
+    }
+  }finally{
+    slotsHint.style.display='none';
   }
 }
-
-// 限制輸入
-$idnum.addEventListener("input",e=>{
-  e.target.value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,10);
-});
-$phone.addEventListener("input",e=>{
-  e.target.value = e.target.value.replace(/\D/g,'').slice(0,10);
+dateInput.addEventListener('change', ()=>{
+  updateWeekday(dateInput.value);
+  debounce(()=>loadSlots(dateInput.value),150)();
 });
 
-// 預約須知
-el('showNotice').onclick = e=>{
-  e.preventDefault();
-  new bootstrap.Modal(el('noticeModal')).show();
-};
+/* ====== 輸入限制 ====== */
+idEl.addEventListener("input",e=>{
+  e.target.value=e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,10)
+});
+phoneEl.addEventListener("input",e=>{
+  e.target.value=e.target.value.replace(/\D/g,'').slice(0,10)
+});
 
-// 送出（防雙擊 + 明確取值）
-let submitting=false;
-$submit.onclick = async ()=>{
-  if(submitting) return;
+/* ====== 彈窗 ====== */
+document.getElementById('showNotice').onclick=(e)=>{e.preventDefault(); new bootstrap.Modal(document.getElementById('noticeModal')).show();};
 
-  const d  = ($date.value||'').trim();
-  const si = $slot.selectedIndex;
-  const opt = (si>=0)? $slot.options[si] : null;
-  const s  = opt ? (opt.value||'').trim() : '';
+/* ====== 「預約中」遮罩 ====== */
+function showOverlay(show){ overlay.hidden = !show; }
 
-  const t       = opt?.dataset.time  || '';
-  const startNo = opt?.dataset.start || '';
+/* ====== 送出 ====== */
+submitBtn.onclick=async()=>{
+  const d=dateInput.value, s=slotSel.value,
+        opt=slotSel.options[slotSel.selectedIndex],
+        t=opt?.dataset.time||"",
+        startNo=opt?.dataset.start||"",
+        n=nameEl.value.trim(),
+        b=birthdayEl.value,
+        id=idEl.value.trim().toUpperCase(),
+        ph=phoneEl.value.trim(),
+        ag=agreeEl.checked;
 
-  const n  = ($name.value||'').trim();
-  const b  = ($birthday.value||'').trim();
-  const id = ($idnum.value||'').trim().toUpperCase();
-  const ph = ($phone.value||'').trim();
-  const ag = $agree.checked;
+  if(!d||!s||!n||!b||!id||!ph||!ag) return alert("資料未填完整");
+  if(!/^[A-Z][12]\d{8}$/.test(id))   return alert("身分證格式錯誤");
+  if(ph.length<8||ph.length>10)     return alert("電話長度不符");
 
-  if(!d||!s||!n||!b||!id||!ph||!ag){ alert('資料未填完整'); return; }
-  if(!/^[A-Z][12]\d{8}$/.test(id)){ alert('身分證格式錯誤'); return; }
-  if(ph.length<8 || ph.length>10){ alert('電話長度不符'); return; }
-  const age = Math.floor((Date.now()-new Date(b))/31536000000);
-  if(age<0 || age>150){ alert('生日超出限制'); return; }
-
+  submitBtn.disabled=true; showOverlay(true);
   try{
-    submitting=true;
-    $submit.disabled=true;
-    $submit.textContent='送出中…';
-
-    const r = await axios.get(API,{params:{
-      action:'submit', date:d, slot:s, name:n, birthday:b, id:id, phone:ph, startNo:startNo
-    }});
-
-    // 成功後先刷新一次選單快取（剩餘名額），再導向 success
-    await onDateChange();
-    location = `success.html?id=${encodeURIComponent(r.data.id)}`;
+    const r=await axios.get(API,{params:{action:'submit',date:d,slot:s,name:n,birthday:b,id:id,phone:ph,startNo:startNo}});
+    location=`success.html?id=${encodeURIComponent(r.data.id)}`;
   }catch(e){
     console.error(e);
-    alert('送出失敗，請再試一次');
+    alert("送出失敗，請再試一次");
   }finally{
-    submitting=false;
-    $submit.disabled=false;
-    $submit.textContent='送出預約';
+    showOverlay(false); submitBtn.disabled=false;
   }
 };
+
+/* 初次載入明天時段 */
+loadSlots(dateInput.value);
 </script>
 </body>
 </html>
