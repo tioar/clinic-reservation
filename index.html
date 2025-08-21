@@ -1,11 +1,11 @@
 <!doctype html>
 <html lang="zh-Hant">
 <head>
-<meta charset="UTF-8">
+<meta charset="UTF-8" />
 <title>陳萬龍診所門診線上預約</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-<link rel="stylesheet" href="style.css">
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+<link rel="stylesheet" href="style.css" />
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </head>
@@ -19,7 +19,7 @@
   <div class="mb-3">
     <label class="form-label">預約日期 *</label>
     <div class="d-flex align-items-center flex-nowrap">
-      <input type="date" id="date" class="form-control" style="max-width:70%;">
+      <input type="date" id="date" class="form-control" style="max-width:70%;" />
       <span id="weekday" class="ms-2"></span>
     </div>
   </div>
@@ -33,27 +33,26 @@
 
   <div class="mb-3">
     <label class="form-label">姓名 *</label>
-    <input type="text" id="name" class="form-control">
+    <input type="text" id="name" class="form-control" />
   </div>
 
   <div class="mb-3">
     <label class="form-label">出生年月日 *</label>
-    <input type="date" id="birthday" class="form-control">
+    <input type="date" id="birthday" class="form-control" />
   </div>
 
   <div class="mb-3">
     <label class="form-label">身分證字號 *</label>
-    <input type="text" id="idnum" class="form-control" maxlength="10" placeholder="A123456789">
+    <input type="text" id="idnum" class="form-control" maxlength="10" placeholder="A123456789" />
   </div>
 
   <div class="mb-3">
     <label class="form-label">連絡電話 *</label>
-    <input type="text" id="phone" class="form-control" maxlength="10" placeholder="0958xxxxxx">
+    <input type="text" id="phone" class="form-control" maxlength="10" placeholder="0958xxxxxx" />
   </div>
 
-  <!-- 預約須知 -->
   <div class="form-check mb-4">
-    <input type="checkbox" id="agree" class="form-check-input">
+    <input type="checkbox" id="agree" class="form-check-input" />
     <label for="agree" class="form-check-label">
       我已閱讀並同意 <a href="#" id="showNotice">預約須知</a>
     </label>
@@ -83,132 +82,130 @@
 </div>
 
 <script>
-// ====== 安全元素綁定 ======
-const $ = id => document.getElementById(id);
-const el = {
-  date: $('date'),
-  weekday: $('weekday'),
-  slot: $('slot'),
-  name: $('name'),
-  birthday: $('birthday'),
-  idnum: $('idnum'),
-  phone: $('phone'),
-  agree: $('agree'),
-  submit: $('submitBtn'),
-  noticeLink: $('showNotice'),
-  noticeModal: $('noticeModal')
-};
+// 👉 你的 GAS API（記得用最新 /exec）
+const API = "https://script.google.com/macros/s/AKfycbxIAVoc2Rwdtpm9dYecLQ5fLQb64yjk12D1IIId1_TwN2ptzh6is23mTMjye0VJI71p/exec";
 
-// 👉 你的 GAS API
-const API = "https://script.google.com/macros/s/AKfycbyO-CCSC7NAUfF10O34J4pd-Bn3YL7QgyCUNxgKfg-UWzQ7U_ajiI0jayCvHxD3NSKQ/exec";
+// 日期限制（明天～15天內）
+const dateInput = document.getElementById("date");
+const today     = new Date();
+const min       = new Date(today.getTime() + 86400000);
+const max       = new Date(today.getTime() + 15 * 86400000);
+dateInput.min   = min.toISOString().split("T")[0];
+dateInput.max   = max.toISOString().split("T")[0];
 
-// ====== 日期限制（明天～15天內）======
-const today = new Date();
-const min = new Date(today.getTime() + 86400000);
-const max = new Date(today.getTime() + 15 * 86400000);
-el.date.min = min.toISOString().split("T")[0];
-el.date.max = max.toISOString().split("T")[0];
+// 初始帶入明天
+dateInput.value = dateInput.min;
+updateWeekday(dateInput.value);
 
-// 初始帶入明天並載入時段
-el.date.value = el.date.min;
-updateWeekday(el.date.value);
-onDateChange();
+// 選日期→載入時段
+dateInput.addEventListener("change", onDateChange);
 
-// ====== 事件 ======
-el.date.addEventListener('change', onDateChange);
-el.idnum.addEventListener('input', e => {
-  e.target.value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,10);
-});
-el.phone.addEventListener('input', e => {
-  e.target.value = e.target.value.replace(/\D/g,'').slice(0,10);
-});
-el.noticeLink.onclick = e => {
-  e.preventDefault();
-  new bootstrap.Modal(el.noticeModal).show();
-};
-
-// ====== 載入時段 ======
 async function onDateChange(){
-  const d = el.date.value;
+  const d = dateInput.value;
   updateWeekday(d);
-  el.slot.innerHTML = '<option>讀取中…</option>';
+  slot.innerHTML = '<option value="">讀取中…</option>';
   try{
     const r = await axios.get(API, { params:{ action:'getSlots', date:d }});
     let html = '<option value="">請選診別</option>';
-    (r.data || []).forEach(o => {
-      const limit = Number(o.limit || 0);
-      const used  = Number(o.used  || 0);
+    r.data.forEach(o=>{
+      const limit  = Number(o.limit) || 0;
+      const used   = Number(o.used  ) || 0;
       const remain = Math.max(0, limit - used);
-      if(limit > 0 && remain > 0){
+      if (limit > 0 && remain > 0){
         html += `<option value="${o.label}"
-                      data-time="${o.time || ''}"
-                      data-start="${o.startNo || 1}"
-                      data-remain="${remain}">
-                    ${o.label}（${o.time || ''}，剩 ${remain}/${limit}）
+                       data-time="${o.time||''}"
+                       data-start="${o.startNo||1}"
+                       data-remain="${remain}">
+                   ${o.label}（${o.time||''}，剩 ${remain}/${limit}）
                  </option>`;
       }
     });
-    if(html === '<option value="">請選診別</option>') html = '<option>當天未開放</option>';
-    el.slot.innerHTML = html;
-  }catch(err){
-    console.error(err);
-    el.slot.innerHTML = '<option>讀取失敗</option>';
+    if (html === '<option value="">請選診別</option>' && r.data.length === 0){
+      html = '<option value="">當天未開放</option>';
+    }
+    slot.innerHTML = html;
+  }catch(e){
+    console.error(e);
+    slot.innerHTML = '<option value="">讀取失敗</option>';
   }
 }
 
 function updateWeekday(d){
   const wtxt=['日','一','二','三','四','五','六'];
-  el.weekday.textContent = `（星期${wtxt[new Date(d).getDay()]}）`;
+  // 用 T00:00:00 避免不同瀏覽器時區解析差異
+  const wd = new Date(d + 'T00:00:00').getDay();
+  document.getElementById("weekday").innerText = `（星期${wtxt[wd]}）`;
 }
 
-// ====== 送出（防雙擊）======
+// 限制輸入
+idnum.addEventListener("input", e=>{
+  e.target.value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,10);
+});
+phone.addEventListener("input", e=>{
+  e.target.value = e.target.value.replace(/\D/g,'').slice(0,10);
+});
+
+// 彈窗
+showNotice.onclick = e=>{
+  e.preventDefault();
+  new bootstrap.Modal(document.getElementById('noticeModal')).show();
+};
+
+// 送出（防雙擊 + 安全取得 option） —— 兩個小補丁已內建
 let submitting = false;
-el.submit.onclick = async () => {
-  if(submitting) return;
+submitBtn.onclick = async ()=>{
+  if (submitting) return;
 
-  const d = el.date.value;
-  const s = el.slot.value;
-  const opt = el.slot.options[el.slot.selectedIndex];
-  const t = opt?.dataset.time || "";
-  const startNo = opt?.dataset.start || "";
+  const d = date.value.trim();
+  const s = slot.value.trim();
 
-  const n  = el.name.value.trim();
-  const b  = el.birthday.value;
-  const id = el.idnum.value.trim().toUpperCase();
-  const ph = el.phone.value.trim();
-  const ag = el.agree.checked;
+  // 補丁 1：嚴謹取得目前選項，未選診別時阻擋
+  const selIndex = slot.selectedIndex;
+  const opt = (selIndex >= 0) ? slot.options[selIndex] : null;
+  if (!d || !opt || !s){
+    alert('請先選擇日期與診別'); return;
+  }
 
-  // 檢查
+  const t       = opt.dataset.time  || "";
+  const startNo = opt.dataset.start || "";
+
+  const n  = (name.value     || '').trim();
+  const b  = (birthday.value || '').trim();
+  const id = (idnum.value    || '').trim().toUpperCase();
+  const ph = (phone.value    || '').trim();
+  const ag = agree.checked;
+
   if(!d||!s||!n||!b||!id||!ph||!ag) return alert("資料未填完整");
   if(!/^[A-Z][12]\d{8}$/.test(id))   return alert("身分證格式錯誤");
-  if(ph.length < 8 || ph.length > 10) return alert("電話長度不符");
+  if(ph.length<8||ph.length>10)     return alert("電話長度不符");
   const age = Math.floor((Date.now() - new Date(b)) / 31536000000);
-  if(age < 0 || age > 150) return alert("生日超出限制");
+  if(age<0 || age>150) return alert("生日超出限制");
 
   try{
     submitting = true;
-    el.submit.disabled = true;
-    el.submit.textContent = '送出中…';
+    submitBtn.disabled = true;
+    submitBtn.innerText = '送出中…';
 
-    const r = await axios.get(API, {
-      params: {
-        action:'submit',
-        date:d, slot:s, name:n, birthday:b, id:id, phone:ph,
-        startNo: startNo    // 帶起始號碼給 GAS
-      }
-    });
+    const r = await axios.get(API, { params:{
+      action:'submit', date:d, slot:s, name:n, birthday:b, id:id, phone:ph, startNo:startNo
+    }});
 
-    // 只帶 id 到 success 再向 GAS 查詳情
+    // 補丁 2：成功送出後，先刷新一次當天診別剩餘數（然後再導向 success）
+    await onDateChange();
+
     location = `success.html?id=${encodeURIComponent(r.data.id)}`;
   }catch(e){
-    console.error('SubmitError:', e);
-    alert('送出失敗，請再試一次');
+    console.error('SubmitError=', e);
+    alert("送出失敗，請再試一次");
   }finally{
     submitting = false;
-    el.submit.disabled = false;
-    el.submit.textContent = '送出預約';
+    submitBtn.disabled = false;
+    submitBtn.innerText = '送出預約';
   }
 };
+
+// 首次載入自動載入明天時段
+onDateChange();
 </script>
 </body>
 </html>
