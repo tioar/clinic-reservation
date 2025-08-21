@@ -2,181 +2,247 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="UTF-8" />
-<title>預約成功</title>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>預約成功</title>
+
+<!-- Bootstrap 只拿到元件 reset，主要樣式在本檔 -->
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
-<link rel="stylesheet" href="style.css" />
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
 <style>
-  body{ background:#eaf1f6; }
-  .wrap{ max-width:920px; margin:52px auto; }
-  .cardx{
-    background:#fff; border-radius:24px; padding:36px 30px;
-    box-shadow:0 12px 28px rgba(17,45,78,.12);
+  :root{
+    --c-bg:#eef5fa;
+    --c-card:#ffffff;
+    --c-primary:#3b6b8a;
+    --c-primary-weak:#e6edf3;
+    --c-text:#1d3557;
+    --c-muted:#6b7b8c;
   }
-  /* 標題同一行（✅ + 文字） */
-  .title-row{
-    display:flex; align-items:center; justify-content:center; gap:14px;
-    margin-bottom:6px;
+  body{
+    background: var(--c-bg);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans TC", "Microsoft JhengHei", Arial, sans-serif;
+    color: var(--c-text);
   }
-  .title-row .check{ font-size:44px; line-height:1; }
-  .title-row .txt{ font-weight:800; font-size:36px; color:#18364d; }
-  .muted{ color:#6b7b8c; }
+  .wrap{
+    max-width: 960px;
+    margin: 48px auto;
+    padding: 0 16px;
+  }
+  .card-box{
+    background: var(--c-card);
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0,0,0,.08);
+    padding: 40px 28px 28px;
+  }
+  .heading{
+    display:flex; align-items:center; justify-content:center; gap:16px; margin-bottom:6px;
+  }
+  .badge-ok{
+    width:64px; height:64px; border-radius:16px;
+    background:#e9f6ef; display:grid; place-items:center;
+    box-shadow: inset 0 0 0 2px #bfe7cf;
+    font-size:36px; color:#28a745;
+  }
+  .title{
+    font-size: 42px; font-weight: 800; letter-spacing: .04em;
+  }
+  .subtitle{ color: var(--c-muted); margin: 6px 0 22px; }
 
-  /* 主要資訊：粗體 */
-  .strong-line{ font-weight:700; color:#1e3c53; }
-
-  /* 按鈕：灰藍圓角風格，同行排列 */
-  .btn-main{
-    background:#3b7096; color:#fff; border:none; border-radius:12px;
-    padding:.8rem 1.25rem;
+  .info-strong{
+    font-size: 1.2rem;
+    font-weight: 700;
+    letter-spacing: .02em;
+    margin: 8px 0;
+    text-align:center;
   }
-  .btn-main:hover{ background:#2e5a79; color:#fff; }
-  .btn-ghost{
-    background:#fff; color:#3b7096; border:1px solid #c9d6e2; border-radius:12px;
-    padding:.8rem 1.25rem;
-  }
-  .btn-ghost:hover{ background:#f4f8fb; color:#2e5a79; }
 
-  /* 分享加底線 */
-  #shareBtn{ text-decoration:underline; color:#3b7096; }
-
-  /* Loading overlay */
-  #loading{
-    position:fixed; inset:0; background:rgba(255,255,255,.85);
-    display:flex; align-items:center; justify-content:center; z-index:9999;
-    font-size:18px; color:#2e5a79; backdrop-filter: blur(2px);
+  .note{
+    margin: 14px auto 18px;
+    color: var(--c-muted);
+    display:flex; align-items:flex-start; gap:10px;
+    max-width: 760px;
+    line-height:1.7;
   }
-  #dots{ display:inline-block; width:2ch; text-align:left; }
+
+  .btn-row{
+    display:flex; gap:12px; margin: 18px 0 6px;
+  }
+  .btn-row .btn{
+    flex:1; padding: 14px 12px; border-radius: 12px;
+    font-weight: 700; font-size: 1.05rem;
+  }
+  .btn-primary{
+    background: var(--c-primary); color: #fff; border:none;
+  }
+  .btn-secondary{
+    background: var(--c-primary-weak); color: #333; border:none;
+  }
+
+  .share{
+    margin-top: 10px;
+    text-align: center;
+    font-weight: 700;
+    font-size: 1.05rem;
+  }
+  .share a{
+    color: var(--c-text);
+    text-decoration: underline;
+    cursor: pointer;
+  }
+
+  .ts{
+    text-align:center;
+    margin-top: 8px;
+    color:#8a96a3;
+    font-size:.95rem;
+  }
+
+  /* 讀取中 */
+  .loader{
+    text-align:center;
+    color: var(--c-muted);
+    margin: 22px 0 8px;
+    font-size: 1.05rem;
+    min-height: 1.6em;
+  }
+  .dots::after{
+    content:"";
+    display:inline-block;
+    width: 1.5em;
+    text-align:left;
+    animation: dots 1.2s steps(3,end) infinite;
+  }
+  @keyframes dots {
+    0%{content:"";}
+    33%{content:".";}
+    66%{content:"..";}
+    100%{content:"...";}
+  }
 </style>
 </head>
 <body>
+<div class="wrap">
+  <div class="card-box">
 
-<!-- Loading -->
-<div id="loading">讀取中請稍等<span id="dots">...</span></div>
-
-<div class="container wrap">
-  <div class="cardx text-center">
-    <!-- ✅ 預約成功！在同一行 -->
-    <div class="title-row">
-      <div class="check">✅</div>
-      <div class="txt">預約成功！</div>
+    <div class="heading">
+      <div class="badge-ok">✅</div>
+      <div class="title">預約成功！</div>
     </div>
-    <div class="muted mb-4">您的預約資訊：</div>
+    <div class="subtitle text-center">您的預約資訊：</div>
 
-    <!-- 日期/星期/診別/時間（粗體） -->
-    <div id="lineDate" class="strong-line fs-4 mb-3"></div>
-    <!-- 姓名／號碼（粗體） -->
-    <div id="lineNameNo" class="strong-line fs-5 mb-4"></div>
+    <!-- 資料區 -->
+    <div id="slotLine" class="info-strong">　</div>
+    <div id="nameLine" class="info-strong">　</div>
 
-    <!-- 提示：移到姓名號碼下方 -->
-    <div class="d-flex justify-content-center align-items-start gap-2 mb-4" style="color:#4b5b6b;">
-      <div style="font-size:20px;line-height:1.1;">🗓️</div>
+    <div class="note">
+      <div style="font-size:20px; line-height:1">🗓️</div>
       <div>請在預約的門診時間內到場報到，過號則須等待現場安排叫名字，逾期自動取消。</div>
     </div>
 
-    <!-- 按鈕同一行 -->
-    <div class="d-flex justify-content-center gap-2 mb-3">
-      <a class="btn btn-main px-5" href="index.html">返回預約首頁</a>
-      <a class="btn btn-ghost" href="query.html">查詢/取消預約</a>
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="location.href='index.html'">返回預約首頁</button>
+      <button class="btn btn-secondary" onclick="location.href='query.html'">查詢/取消預約</button>
     </div>
 
-    <!-- 分享（加底線） -->
-    <div class="mb-2">
-      <button id="shareBtn" class="btn btn-link p-0">📄 分享</button>
+    <div class="share">
+      <a id="shareBtn">📄 分享 </a>
     </div>
 
-    <!-- 填表時間放最底部 -->
-    <div id="filledAt" class="muted small"></div>
+    <div id="fillTs" class="ts"></div>
+
+    <div id="loader" class="loader"><span class="dots">讀取中請稍等</span></div>
   </div>
 </div>
 
 <script>
-// 👉 你的 GAS endpoint（如有換部署，改這一行）
-const API = "https://script.google.com/macros/s/AKfycbyO-CCSC7NAUfF10O34J4pd-Bn3YL7QgyCUNxgKfg-UWzQ7U_ajiI0jayCvHxD3NSKQ/exec";
+  // 👉 你的 GAS endpoint（與 index.html 同一支）
+  const API = "https://script.google.com/macros/s/AKfycbyO-CCSC7NAUfF10O34J4pd-Bn3YL7QgyCUNxgKfg-UWzQ7U_ajiI0jayCvHxD3NSKQ/exec";
 
-const WEEK = ['日','一','二','三','四','五','六'];
-const qs = new URLSearchParams(location.search);
-const id = qs.get('id');
+  const slotLine = document.getElementById('slotLine');
+  const nameLine = document.getElementById('nameLine');
+  const fillTs   = document.getElementById('fillTs');
+  const loader   = document.getElementById('loader');
+  const shareBtn = document.getElementById('shareBtn');
 
-const $loading = document.getElementById('loading');
-const $dots = document.getElementById('dots');
-let dotTimer = setInterval(()=>{
-  $dots.textContent = $dots.textContent === '...' ? '.' : $dots.textContent + '.';
-  if($dots.textContent.length > 3) $dots.textContent = '.';
-}, 340);
+  const params = new URLSearchParams(location.search);
+  const id = params.get('id');
 
-// DOM
-const lineDate  = document.getElementById('lineDate');
-const lineNameNo= document.getElementById('lineNameNo');
-const filledAt  = document.getElementById('filledAt');
-const shareBtn  = document.getElementById('shareBtn');
+  const wtxt = ['日','一','二','三','四','五','六'];
 
-// 工具
-function pad2(n){ return n<10? '0'+n : ''+n; }
-function fmtYMD(s){
-  if(typeof s === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
-  const d = new Date(s); if(isNaN(d)) return String(s||'');
-  return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;
-}
-function fmtTime(dt){
-  const d = (dt instanceof Date) ? dt : new Date(dt);
-  if(isNaN(d)) return String(dt||'');
-  return `${d.getFullYear()}/${pad2(d.getMonth()+1)}/${pad2(d.getDate())} ${pad2(d.getHours())}:${pad2(d.getMinutes())}:${pad2(d.getSeconds())}`;
-}
-
-(async function init(){
-  try{
-    if(!id) throw new Error('缺少預約代碼');
-    // 1) 取明細
-    const r = await axios.get(API, { params:{ action:'detail', id } });
-    const d = r.data || {};
-    // 2) 取同日時段以抓到「診別時間」
-    let timeRange = '';
-    try{
-      const s = await axios.get(API, { params:{ action:'getSlots', date: d.date } });
-      const hit = (s.data||[]).find(x => x.label === d.slot);
-      timeRange = hit?.time || '';
-    }catch(_){}
-
-    const dateStr = fmtYMD(d.date);
-    const w = WEEK[new Date(dateStr+'T00:00:00').getDay()];
-    // 日期/星期/診別/時間：粗體行
-    lineDate.textContent = `${dateStr} 星期${w}（${d.slot||''}）  ${timeRange||''}`;
-    // 姓名／號碼：粗體行
-    lineNameNo.textContent = `姓名：${d.name||''}，號碼：${d.num||''} 號。`;
-    // 底部填表時間
-    filledAt.textContent = d.time ? fmtTime(d.time) : '';
-
-    // 分享
-    const shareText =
-`陳萬龍診所門診預約成功！
-預約資訊：
-
-${dateStr} 星期${w}（${d.slot||''}）${timeRange? ' '+timeRange : ''}
-
-姓名：${d.name||''}，號碼：${d.num||''} 號。
-請在預約的門診時間內到場報到，過號則須等待現場安排叫名字，逾期自動取消。`;
-
-    shareBtn.onclick = async ()=>{
-      try{
-        if(navigator.share){
-          await navigator.share({ text: shareText });
-        }else{
-          await navigator.clipboard.writeText(shareText);
-          alert('已複製分享內容！');
-        }
-      }catch(_){}
-    };
-
-  }catch(e){
-    console.error(e);
-    alert('無法取得預約資料'); location.href='index.html';
-  }finally{
-    clearInterval(dotTimer);
-    $loading.style.display = 'none';
+  function fmtDateToZh(dStr){
+    // 期待格式 YYYY-MM-DD
+    const d = new Date(dStr + 'T00:00:00');
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth()+1).padStart(2,'0');
+    const dd = String(d.getDate()).padStart(2,'0');
+    const wk = wtxt[d.getDay()];
+    return `${yyyy}-${mm}-${dd} 星期${wk}`;
   }
-})();
+
+  function buildShareText(data){
+    const dateText = fmtDateToZh(data.date);
+    const slot = data.slot || '';
+    const time = data.time || '';
+    const name = data.name || '';
+    const num  = data.num  || '';
+/*
+陳萬龍診所門診預約成功！
+預約資訊：
+2025-08-22 星期五（午診）14:00~17:00
+姓名：許火旺，號碼：12 號。
+請在預約的門診時間內到場報到，過號則須等待現場安排叫名字，逾期自動取消。
+*/
+    return `陳萬龍診所門診預約成功！
+預約資訊：
+${dateText}（${slot}）${time}
+姓名：${name}  號碼：${num} 號。
+🌟請在預約的門診時間內到場報到，過號則須等待現場安排叫名字，逾期自動取消。`;
+  }
+
+  async function init(){
+    if(!id){
+      loader.textContent = '參數有誤：沒有預約編號';
+      return;
+    }
+    try{
+      const r = await axios.get(API, { params: { action:'detail', id }});
+      const data = r.data || {};
+
+      // 主要兩行
+      const dateText = fmtDateToZh(data.date);
+      slotLine.textContent = `${dateText}（${data.slot||''}）　${data.time||''}`;
+      nameLine.textContent = `姓名：${data.name||''}  號碼：${data.num||''} 號。`;
+
+      // 填表時間
+      fillTs.textContent = data.time || '';
+
+      // 分享
+      const shareText = buildShareText(data);
+      shareBtn.onclick = async ()=>{
+        if(navigator.share){
+          try{
+            await navigator.share({ title:'✔️陳萬龍診所門診預約成功', text: shareText });
+          }catch{}
+        }else{
+          try{
+            await navigator.clipboard.writeText(shareText);
+            alert('已複製分享內容！');
+          }catch{
+            prompt('複製以下分享內容：', shareText);
+          }
+        }
+      };
+    }catch(err){
+      console.error(err);
+      slotLine.textContent = '讀取失敗';
+      nameLine.textContent = '';
+      fillTs.textContent = '';
+    }finally{
+      loader.style.display = 'none';
+    }
+  }
+
+  init();
 </script>
 </body>
 </html>
