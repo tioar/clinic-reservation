@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>預約成功</title>
 
-<!-- Bootstrap 只拿到元件 reset，主要樣式在本檔 -->
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 
@@ -24,7 +23,7 @@
     color: var(--c-text);
   }
   .wrap{
-    max-width: 960px;
+    max-width: 520px; /* ✅ 改成和 index 一樣 */
     margin: 48px auto;
     padding: 0 16px;
   }
@@ -44,14 +43,13 @@
     font-size:36px; color:#28a745;
   }
   .title{
-    font-size: 42px; font-weight: 800; letter-spacing: .04em;
+    font-size: 36px; font-weight: 800; letter-spacing: .04em;
   }
   .subtitle{ color: var(--c-muted); margin: 6px 0 22px; }
 
   .info-strong{
-    font-size: 1.2rem;
+    font-size: 1.1rem;
     font-weight: 700;
-    letter-spacing: .02em;
     margin: 8px 0;
     text-align:center;
   }
@@ -61,7 +59,7 @@
     color: var(--c-muted);
     display:flex; align-items:flex-start; gap:10px;
     max-width: 760px;
-    line-height:1.7;
+    line-height:1.6;
   }
 
   .btn-row{
@@ -130,12 +128,11 @@
     </div>
     <div class="subtitle text-center">您的預約資訊：</div>
 
-    <!-- 資料區 -->
     <div id="slotLine" class="info-strong">　</div>
     <div id="nameLine" class="info-strong">　</div>
 
     <div class="note">
-      <div style="font-size:20px; line-height:1">🗓️</div>
+      <div style="font-size:20px; line-height:1">⏰</div>
       <div>請在預約的門診時間內到場報到，過號則須等待現場安排叫名字，逾期自動取消。</div>
     </div>
 
@@ -145,17 +142,15 @@
     </div>
 
     <div class="share">
-      <a id="shareBtn">📄 分享 </a>
+      <a id="shareBtn">📤 分享 </a>
     </div>
 
     <div id="fillTs" class="ts"></div>
-
     <div id="loader" class="loader"><span class="dots">讀取中請稍等</span></div>
   </div>
 </div>
 
 <script>
-  // 👉 你的 GAS endpoint（與 index.html 同一支）
   const API = "https://script.google.com/macros/s/AKfycbyO-CCSC7NAUfF10O34J4pd-Bn3YL7QgyCUNxgKfg-UWzQ7U_ajiI0jayCvHxD3NSKQ/exec";
 
   const slotLine = document.getElementById('slotLine');
@@ -170,7 +165,6 @@
   const wtxt = ['日','一','二','三','四','五','六'];
 
   function fmtDateToZh(dStr){
-    // 期待格式 YYYY-MM-DD
     const d = new Date(dStr + 'T00:00:00');
     const yyyy = d.getFullYear();
     const mm = String(d.getMonth()+1).padStart(2,'0');
@@ -179,24 +173,21 @@
     return `${yyyy}-${mm}-${dd} 星期${wk}`;
   }
 
+  function getSlotTime(slot){
+    if(slot.includes("早")) return "08:00~11:00";
+    if(slot.includes("午")) return "14:00~17:00";
+    return "";
+  }
+
   function buildShareText(data){
     const dateText = fmtDateToZh(data.date);
     const slot = data.slot || '';
-    const time = data.time || '';
-    const name = data.name || '';
-    const num  = data.num  || '';
-/*
-陳萬龍診所門診預約成功！
-預約資訊：
-2025-08-22 星期五（午診）14:00~17:00
-姓名：許火旺，號碼：12 號。
-請在預約的門診時間內到場報到，過號則須等待現場安排叫名字，逾期自動取消。
-*/
+    const time = getSlotTime(slot);
     return `陳萬龍診所門診預約成功！
 預約資訊：
 ${dateText}（${slot}）${time}
-姓名：${name}  號碼：${num} 號。
-🌟請在預約的門診時間內到場報到，過號則須等待現場安排叫名字，逾期自動取消。`;
+姓名：${data.name}，號碼：${data.num} 號。
+請在預約的門診時間內到場報到，過號則須等待現場安排叫名字，逾期自動取消。`;
   }
 
   async function init(){
@@ -208,15 +199,14 @@ ${dateText}（${slot}）${time}
       const r = await axios.get(API, { params: { action:'detail', id }});
       const data = r.data || {};
 
-      // 主要兩行
       const dateText = fmtDateToZh(data.date);
-      slotLine.textContent = `${dateText}（${data.slot||''}）　${data.time||''}`;
-      nameLine.textContent = `姓名：${data.name||''}  號碼：${data.num||''} 號。`;
+      const timeSlot = getSlotTime(data.slot);
 
-      // 填表時間
-      fillTs.textContent = data.time || '';
+      slotLine.textContent = `${dateText}（${data.slot||''}）　${timeSlot}`;
+      nameLine.textContent = `姓名：${data.name||''}　號碼：${data.num||''} 號。`;
 
-      // 分享
+      fillTs.textContent = data.fillTs || '';
+
       const shareText = buildShareText(data);
       shareBtn.onclick = async ()=>{
         if(navigator.share){
