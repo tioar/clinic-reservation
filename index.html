@@ -1,119 +1,241 @@
-<!DOCTYPE html>
-<html lang="zh-TW">
+<!doctype html>
+<html lang="zh-Hant">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>診所線上預約</title>
-  <style>
-    body { font-family: Arial, sans-serif; background: #eef2f7; }
-    .container { max-width: 600px; margin: 40px auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-    h2 { text-align: center; margin-bottom: 20px; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>陳萬龍診所門診線上預約</title>
 
-    label { display: block; margin-top: 15px; font-weight: bold; }
-    input, select { width: 100%; padding: 8px; margin-top: 5px; border: 1px solid #ccc; border-radius: 5px; }
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 
-    button { margin-top: 20px; width: 100%; padding: 12px; background: #2a6fb0; color: white; border: none; border-radius: 6px; font-size: 16px; cursor: pointer; }
-    button:hover { background: #1d5280; }
-
-    .loading-overlay {
-      display: none; position: fixed; top:0; left:0; width:100%; height:100%;
-      background: rgba(0,0,0,0.6); z-index: 9999; justify-content: center; align-items: center; color:white; font-size:22px; flex-direction: column;
-    }
-  </style>
+<style>
+  :root{
+    --c-bg:#eef5fa; --c-card:#fff;
+    --c-primary:#3b7096; --c-primary-dark:#2e5a79;
+    --c-text:#18364d; --c-muted:#6b7b8c;
+  }
+  body{ background:var(--c-bg); color:var(--c-text); font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans TC","Microsoft JhengHei",Arial,sans-serif;}
+  .card{
+    max-width:620px; margin:56px auto; border:none; border-radius:20px;
+    box-shadow:0 14px 30px rgba(23,54,77,.12); padding:28px 26px;
+  }
+  .header{ display:flex; align-items:center; gap:14px; margin-bottom:18px;}
+  .logo{
+    width:64px;height:64px;border-radius:50%; background:#dfeaf2; color:var(--c-primary);
+    display:grid;place-items:center; font-size:40px; box-shadow:inset 0 0 0 2px #c8d8e5;
+  }
+  h1{font-size:24px; margin:0; font-weight:800; color:#1e3c53;}
+  label.form-label{font-weight:700;}
+  .btn-main{
+    background:var(--c-primary); border:none; width:100%; padding:.9rem 1rem;
+    color:#fff; font-weight:700; border-radius:12px;
+  }
+  .btn-main:hover{ background:var(--c-primary-dark); }
+  /* 動態讀取字 */
+  .loading-inline{ color:var(--c-muted); font-size:.95rem; margin-top:6px;}
+  /* 全螢幕遮罩 */
+  #overlay{
+    position:fixed; inset:0; background:rgba(255,255,255,.9);
+    display:none; align-items:center; justify-content:center; z-index:9999;
+    backdrop-filter: blur(2px); color:var(--c-primary-dark); text-align:center;
+  }
+  #overlay .box{
+    padding:22px 26px; border-radius:14px; background:#fff; box-shadow:0 10px 30px rgba(0,0,0,.08);
+    min-width:280px; border:1px solid #e6edf3;
+  }
+  .dots::after{ content:""; display:inline-block; width:2ch; text-align:left; animation:d 1.2s steps(3,end) infinite;}
+  @keyframes d{0%{content:"";}33%{content:".";}66%{content:"..";}100%{content:"...";}}
+  .hint-link{ color:#3b7096; text-decoration:underline;}
+</style>
 </head>
 <body>
-  <div class="container">
-    <h2>陳萬龍診所門診線上預約</h2>
-    <form id="reservationForm">
-      <label>預約日期 *</label>
-      <input type="date" id="date" name="date" required>
-
-      <label>診別 *</label>
-      <select id="session" name="session" required>
-        <option value="">請先選擇日期</option>
-      </select>
-
-      <label>姓名 *</label>
-      <input type="text" id="name" name="name" required>
-
-      <label>出生年月日 *</label>
-      <input type="date" id="birth" name="birth" required>
-
-      <label>身分證字號 *</label>
-      <input type="text" id="idNumber" name="idNumber" required pattern="[A-Z][0-9]{9}">
-
-      <label>聯絡電話 *</label>
-      <input type="tel" id="phone" name="phone" required pattern="[0-9]{9,10}">
-
-      <label><input type="checkbox" required> 我已閱讀並同意 預約須知</label>
-
-      <button type="submit">送出預約</button>
-    </form>
+<div class="card">
+  <div class="header">
+    <div class="logo">＋</div>
+    <h1>陳萬龍診所門診線上預約</h1>
   </div>
 
-  <!-- 遮罩 (讀取 / 預約中) -->
-  <div id="loadingOverlay" class="loading-overlay">
-    <div id="loadingText">讀取中...</div>
+  <div class="mb-3">
+    <label class="form-label">預約日期 *</label>
+    <div class="d-flex align-items-center gap-2">
+      <input type="date" id="date" class="form-control" style="max-width:70%;">
+      <span id="weekday" class="text-muted"></span>
+    </div>
+    <div id="loadMsg" class="loading-inline"></div>
   </div>
 
-  <script>
-    const apiUrl = "https://script.google.com/macros/s/AKfycbzagE3tU999uenXCaPfngKAuEM-VjMtn1ODC4kCXeqCQB6iErn6rKh0EdzP0--_7NPk/exec";
+  <div class="mb-3">
+    <label class="form-label">診別 *</label>
+    <select id="slot" class="form-select">
+      <option value="">請先選擇日期</option>
+    </select>
+  </div>
 
-    const dateInput = document.getElementById("date");
-    const sessionSelect = document.getElementById("session");
-    const form = document.getElementById("reservationForm");
-    const overlay = document.getElementById("loadingOverlay");
-    const loadingText = document.getElementById("loadingText");
+  <div class="mb-3">
+    <label class="form-label">姓名 *</label>
+    <input type="text" id="name" class="form-control" autocomplete="name">
+  </div>
 
-    // 顯示遮罩
-    function showOverlay(msg) {
-      loadingText.innerText = msg;
-      overlay.style.display = "flex";
+  <div class="mb-3">
+    <label class="form-label">出生年月日 *</label>
+    <input type="date" id="birthday" class="form-control">
+  </div>
+
+  <div class="mb-3">
+    <label class="form-label">身分證字號 *</label>
+    <input type="text" id="idnum" class="form-control" maxlength="10" placeholder="A123456789">
+  </div>
+
+  <div class="mb-3">
+    <label class="form-label">連絡電話 *</label>
+    <input type="text" id="phone" class="form-control" maxlength="10" placeholder="0958xxxxxx">
+  </div>
+
+  <div class="form-check mb-4">
+    <input type="checkbox" id="agree" class="form-check-input">
+    <label for="agree" class="form-check-label">
+      我已閱讀並同意 <a class="hint-link" href="#" id="showNotice">預約須知</a>
+    </label>
+  </div>
+
+  <button id="submitBtn" class="btn-main">送出預約</button>
+  <a href="query.html" class="d-block mt-3 text-center hint-link">查詢／取消預約</a>
+</div>
+
+<!-- 全螢幕遮罩 -->
+<div id="overlay">
+  <div class="box">
+    <div id="overlayText" style="font-weight:700;">讀取中<span class="dots"></span></div>
+    <div id="overlaySub" class="text-muted mt-1" style="white-space:pre-line;"></div>
+  </div>
+</div>
+
+<script>
+// 👉 GAS endpoint
+const API = "https://script.google.com/macros/s/AKfycbwXt0DJsqNy0agHuopjPTNmldG_c-sjG5a7sayV-ttE5OoOhTKHgr6RKsc8Sa-V0-Ug/exec";
+
+// 日期限制：明天～15天
+const dateInput = document.getElementById("date");
+const today = new Date();
+const min = new Date(today.getTime()+86400000);
+const max = new Date(today.getTime()+15*86400000);
+dateInput.min = min.toISOString().split("T")[0];
+dateInput.max = max.toISOString().split("T")[0];
+dateInput.value = dateInput.min;
+
+// 元件
+const weekday = document.getElementById("weekday");
+const slot = document.getElementById("slot");
+const idnum = document.getElementById("idnum");
+const phone = document.getElementById("phone");
+const submitBtn = document.getElementById("submitBtn");
+const loadMsg = document.getElementById("loadMsg");
+
+// 遮罩
+const overlay = document.getElementById("overlay");
+const overlayText = document.getElementById("overlayText");
+const overlaySub = document.getElementById("overlaySub");
+const showOverlay = (t, sub="")=>{
+  overlayText.innerHTML = `${t}<span class="dots"></span>`;
+  overlaySub.textContent = sub;
+  overlay.style.display = "flex";
+};
+const hideOverlay = ()=> overlay.style.display = "none";
+
+// 輸入限制
+idnum.addEventListener("input",e=>{
+  e.target.value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,10);
+});
+phone.addEventListener("input",e=>{
+  e.target.value = e.target.value.replace(/\D/g,'').slice(0,10);
+});
+
+// 星期文字
+function setWeekText(dstr){
+  const wtxt=['日','一','二','三','四','五','六'];
+  const d = new Date(dstr+'T00:00:00');
+  weekday.textContent = `（星期${wtxt[d.getDay()]}）`;
+}
+
+// 讀取時段（避免競態：用 token）
+let reqToken = 0;
+async function loadSlots(){
+  const my = ++reqToken;
+  const d = dateInput.value;
+  setWeekText(d);
+  slot.innerHTML = '<option value="">讀取中...</option>';
+  loadMsg.textContent = "讀取中請稍等" + ".".repeat((Date.now()/500|0)%4);
+
+  try{
+    const r = await axios.get(API, { params:{ action:'getSlots', date:d }});
+    if(my !== reqToken) return; // 已有新請求，放棄這次更新
+    const arr = r.data || [];
+    if(!arr.length){
+      slot.innerHTML = '<option value="">當天未開放</option>';
+      loadMsg.textContent = "";
+      return;
     }
-    // 關閉遮罩
-    function hideOverlay() {
-      overlay.style.display = "none";
-    }
-
-    // 日期改變時 -> 讀取診別名額
-    dateInput.addEventListener("change", async () => {
-      sessionSelect.innerHTML = '<option value="">讀取中...</option>';
-      showOverlay("讀取中...");
-      try {
-        const res = await fetch(`${apiUrl}?action=getSessions&date=${dateInput.value}`);
-        const data = await res.json();
-        sessionSelect.innerHTML = "";
-        data.forEach(s => {
-          const opt = document.createElement("option");
-          opt.value = s.session;
-          opt.textContent = `${s.session}（剩 ${s.remaining}/${s.limit}）`;
-          if (s.remaining <= 0) opt.disabled = true;
-          sessionSelect.appendChild(opt);
-        });
-      } catch (e) {
-        sessionSelect.innerHTML = '<option>讀取失敗</option>';
-      }
-      hideOverlay();
+    let html = '<option value="">請選診別</option>';
+    arr.forEach(o=>{
+      const remain = Math.max(0, Number(o.limit||0) - Number(o.used||0));
+      const disabled = (Number(o.limit||0) <= 0 || remain <= 0) ? 'disabled' : '';
+      html += `<option value="${o.label}" data-time="${o.time||''}" data-start="${o.startNo||1}" ${disabled}>
+                 ${o.label}（${o.time||''}，剩 ${remain}/${o.limit||0}）
+               </option>`;
     });
+    slot.innerHTML = html;
+    loadMsg.textContent = "";
+  }catch(e){
+    slot.innerHTML = '<option value="">讀取失敗</option>';
+    loadMsg.textContent = "讀取失敗，請重試";
+  }
+}
 
-    // 表單送出
-    form.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      showOverlay("預約中...\n請勿離開網頁或重新整理");
-      const formData = new FormData(form);
-      try {
-        const res = await fetch(apiUrl, { method: "POST", body: formData });
-        const result = await res.json();
-        if (result.success) {
-          window.location.href = "success.html";
-        } else {
-          alert("預約失敗：" + result.message);
-        }
-      } catch (err) {
-        alert("系統錯誤，請稍後再試。");
-      }
-      hideOverlay();
+// 日期變更 → 讀取
+dateInput.addEventListener("change", ()=>{
+  showOverlay('讀取中', '');
+  loadSlots().finally(hideOverlay);
+});
+// 首次載入
+showOverlay('讀取中', '');
+loadSlots().finally(hideOverlay);
+
+// 送出
+submitBtn.onclick = async ()=>{
+  const d = date.value, s = slot.value;
+  const opt = slot.options[slot.selectedIndex];
+  const t = opt?.dataset.time || "";
+  const startNo = opt?.dataset.start || "";
+
+  const n = name.value.trim(), b = birthday.value,
+        pid = idnum.value.trim().toUpperCase(),
+        ph  = phone.value.trim(), ag=agree.checked;
+
+  if(!d||!s||!n||!b||!pid||!ph||!ag) return alert("資料未填完整");
+  if(!/^[A-Z][12]\d{8}$/.test(pid))   return alert("身分證格式錯誤");
+  if(ph.length<8||ph.length>10)       return alert("電話長度不符");
+  const age = Math.floor((Date.now()-new Date(b))/31536000000);
+  if(age<0||age>150) return alert("生日超出限制");
+
+  showOverlay('預約中', '請勿離開網頁或重新整理');
+  submitBtn.disabled = true;
+
+  try{
+    const r = await axios.get(API, {
+      params:{ action:'submit', date:d, slot:s, name:n, birthday:b, id:pid, phone:ph }
     });
-  </script>
+    const ok = r.data?.ok;
+    const rowId = r.data?.id;
+    if(!ok || !rowId) throw new Error('submit failed');
+    location = `success.html?id=${encodeURIComponent(rowId)}`;
+  }catch(e){
+    console.error(e);
+    alert("送出失敗，請重試");
+  }finally{
+    submitBtn.disabled = false;
+    hideOverlay();
+  }
+};
+</script>
 </body>
 </html>
