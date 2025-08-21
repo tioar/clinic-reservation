@@ -183,12 +183,11 @@ function guessTimeBySlot(slot){
 
     // 分享
     const shareText =
-`✔️陳萬龍診所門診預約成功！
-預約資訊：
+`✔️陳萬龍診所門診預約成功：
 
 ${ymd} 星期${wk}（${d.slot||''}）${timeRange? ' '+timeRange : ''}
-
 姓名：${d.name||''}，號碼：${d.num||''} 號。
+
 請在預約的門診時間內到場報到，過號則須等待現場安排叫名字，逾期自動取消。`;
 
     shareBtn.onclick = async ()=>{
@@ -213,5 +212,6 @@ ${ymd} 星期${wk}（${d.slot||''}）${timeRange? ' '+timeRange : ''}
 </script>
 </body>
 </html>
+
 
 
