@@ -8,12 +8,24 @@
 <link rel="stylesheet" href="style.css" />
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<style>
+  /* 全螢幕送出遮罩（你之前要求的動態點點） */
+  #mask{position:fixed;inset:0;background:rgba(255,255,255,.88);display:none;align-items:center;justify-content:center;z-index:9999;font-size:18px;color:#2e5a79;backdrop-filter:blur(2px)}
+  #dots{display:inline-block;width:2ch;text-align:left}
+</style>
 </head>
 <body>
+<div id="mask">預約中請稍等，請勿關閉或重新整理頁面<span id="dots">...</span></div>
+
 <div class="card">
   <div class="header">
     <div class="logo">＋</div>
     <h1>陳萬龍診所門診線上預約</h1>
+  </div>
+
+  <!-- 🔴 新增：錯誤訊息列（預設隱藏） -->
+  <div id="errBar" class="alert alert-danger d-none" role="alert" style="margin-top:-8px;">
+    重複預約，請檢查預約資料
   </div>
 
   <div class="mb-3">
@@ -82,13 +94,11 @@
 </div>
 
 <script>
-// 👉 你的 GAS /exec
+// 👉 與 success / query 同一支 GAS
 const API = "https://script.google.com/macros/s/AKfycbxXAwIan3rxg1XejPtMabMAUMEY_h8TNzY5aW-Lhc25Xy0stEqF9-7-Ps8XrWAhYrUa/exec";
 
 // 小工具
 const el = id => document.getElementById(id);
-
-// DOM 快取（避免用到 window.name 之類全域衝突）
 const $date     = el('date');
 const $slot     = el('slot');
 const $name     = el('name');
@@ -98,18 +108,27 @@ const $phone    = el('phone');
 const $agree    = el('agree');
 const $weekday  = el('weekday');
 const $submit   = el('submitBtn');
+const $errBar   = el('errBar');
+const $mask     = el('mask');
+const $dots     = el('dots');
 
-// 日期限制（明天～15天內）
-const today=new Date(), min=new Date(today.getTime()+86400000), max=new Date(today.getTime()+15*86400000);
-$date.min=min.toISOString().split("T")[0];
-$date.max=max.toISOString().split("T")[0];
-// 初始明天
-$date.value = $date.min;
-updateWeekday($date.value);
+let dotTimer=null;
+function showMask(txt){
+  $mask.firstChild.nodeValue = (txt||'預約中請稍等，請勿關閉或重新整理頁面');
+  $mask.style.display='flex';
+  if(dotTimer) clearInterval(dotTimer);
+  dotTimer = setInterval(()=>{
+    $dots.textContent = $dots.textContent==='...' ? '.' : $dots.textContent+'.';
+    if($dots.textContent.length>3) $dots.textContent='.';
+  }, 340);
+}
+function hideMask(){ if(dotTimer) clearInterval(dotTimer); $mask.style.display='none'; }
 
-// 變更日期→載入診別
-$date.addEventListener('change', onDateChange);
-onDateChange();
+function showErr(msg){
+  $errBar.textContent = msg || '重複預約，請檢查預約資料';
+  $errBar.classList.remove('d-none');
+}
+function clearErr(){ $errBar.classList.add('d-none'); }
 
 function updateWeekday(d){
   const wtxt=['日','一','二','三','四','五','六'];
@@ -117,7 +136,19 @@ function updateWeekday(d){
   $weekday.textContent = `（星期${wtxt[wd]}）`;
 }
 
+// 日期限制（明天～15天內）
+const today=new Date(), min=new Date(today.getTime()+86400000), max=new Date(today.getTime()+15*86400000);
+$date.min=min.toISOString().split("T")[0];
+$date.max=max.toISOString().split("T")[0];
+$date.value = $date.min;
+updateWeekday($date.value);
+
+// 變更日期→載入診別
+$date.addEventListener('change', onDateChange);
+onDateChange();
+
 async function onDateChange(){
+  clearErr();
   const d = $date.value;
   updateWeekday(d);
   $slot.innerHTML = '<option value="">讀取中…</option>';
@@ -149,9 +180,11 @@ async function onDateChange(){
 
 // 限制輸入
 $idnum.addEventListener("input",e=>{
+  clearErr();
   e.target.value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,10);
 });
 $phone.addEventListener("input",e=>{
+  clearErr();
   e.target.value = e.target.value.replace(/\D/g,'').slice(0,10);
 });
 
@@ -161,57 +194,64 @@ el('showNotice').onclick = e=>{
   new bootstrap.Modal(el('noticeModal')).show();
 };
 
-// 送出（防雙擊 + 明確取值）
+// 送出（在前端顯示錯誤，不跳 success）
 let submitting=false;
 $submit.onclick = async ()=>{
   if(submitting) return;
+  clearErr();
 
   const d  = ($date.value||'').trim();
   const si = $slot.selectedIndex;
   const opt = (si>=0)? $slot.options[si] : null;
   const s  = opt ? (opt.value||'').trim() : '';
 
-  const t       = opt?.dataset.time  || '';
   const startNo = opt?.dataset.start || '';
-
   const n  = ($name.value||'').trim();
   const b  = ($birthday.value||'').trim();
   const id = ($idnum.value||'').trim().toUpperCase();
   const ph = ($phone.value||'').trim();
   const ag = $agree.checked;
 
-  if(!d||!s||!n||!b||!id||!ph||!ag){ alert('資料未填完整'); return; }
-  if(!/^[A-Z][12]\d{8}$/.test(id)){ alert('身分證格式錯誤'); return; }
-  if(ph.length<8 || ph.length>10){ alert('電話長度不符'); return; }
+  if(!d||!s||!n||!b||!id||!ph||!ag){ showErr('資料未填完整'); return; }
+  if(!/^[A-Z][12]\d{8}$/.test(id)){ showErr('身分證格式錯誤'); return; }
+  if(ph.length<8 || ph.length>10){ showErr('電話長度不符'); return; }
   const age = Math.floor((Date.now()-new Date(b))/31536000000);
-  if(age<0 || age>150){ alert('生日超出限制'); return; }
+  if(age<0 || age>150){ showErr('生日超出限制'); return; }
 
   try{
     submitting=true;
     $submit.disabled=true;
-    $submit.textContent='送出中…';
+    showMask();
 
     const r = await axios.get(API,{params:{
-      action:'submit', date:d, slot:s, name:n, birthday:b, id:id, phone:ph, startNo:startNo
+      action:'submit', date:d, slot:s, name:n, birthday:b, id:id, phone:ph
     }});
 
-    // 成功後先刷新一次選單快取（剩餘名額），再導向 success
-    await onDateChange();
+    // 👉 後端若判定重複 / 額滿 / 其他錯誤：在此顯示並停止導頁
+    if(!r.data?.ok){
+      const code = r.data?.error || '';
+      if(code === 'duplicate'){
+        showErr('重複預約，請檢查預約資料');
+      }else if(code === 'full'){
+        showErr('名額已滿，請改選其他時段或日期');
+      }else{
+        showErr(r.data?.message || '送出失敗，請稍後再試');
+      }
+      return;
+    }
+
+    // 成功才導向 success
     location = `success.html?id=${encodeURIComponent(r.data.id)}`;
+
   }catch(e){
     console.error(e);
-    alert('送出失敗，請再試一次');
+    showErr('送出失敗，請稍後再試');
   }finally{
     submitting=false;
     $submit.disabled=false;
-    $submit.textContent='送出預約';
+    hideMask();
   }
 };
 </script>
 </body>
 </html>
-
-
-
-
-
