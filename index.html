@@ -9,7 +9,6 @@
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <style>
-  /* 全螢幕送出遮罩（你之前要求的動態點點） */
   #mask{position:fixed;inset:0;background:rgba(255,255,255,.88);display:none;align-items:center;justify-content:center;z-index:9999;font-size:18px;color:#2e5a79;backdrop-filter:blur(2px)}
   #dots{display:inline-block;width:2ch;text-align:left}
 </style>
@@ -23,7 +22,6 @@
     <h1>陳萬龍診所門診線上預約</h1>
   </div>
 
-  <!-- 🔴 新增：錯誤訊息列（預設隱藏） -->
   <div id="errBar" class="alert alert-danger d-none" role="alert" style="margin-top:-8px;">
     重複預約，請檢查預約資料
   </div>
@@ -36,11 +34,20 @@
     </div>
   </div>
 
+  <!-- 診別 + 看診醫師：同一排、各占一半 -->
   <div class="mb-3">
-    <label class="form-label">診別 *</label>
-    <select id="slot" class="form-select">
-      <option value="">請先選擇日期</option>
-    </select>
+    <div class="row g-2">
+      <div class="col-12 col-md-6">
+        <label class="form-label">診別 *</label>
+        <select id="slot" class="form-select">
+          <option value="">請先選擇日期</option>
+        </select>
+      </div>
+      <div class="col-12 col-md-6">
+        <label class="form-label">看診醫師</label>
+        <input id="doctor" class="form-control" value="陳萬龍醫師" readonly>
+      </div>
+    </div>
   </div>
 
   <div class="mb-3">
@@ -94,13 +101,13 @@
 </div>
 
 <script>
-// 👉 與 success / query 同一支 GAS
-const API = "https://script.google.com/macros/s/AKfycbydxk6PYoyounJITYWSquHBW4d8F1S_JinrqcqV3lwhg0ioxz_2BB-8OR-zi11FKHjY/exec";
+// 與 success / query 同一支 GAS
+const API = "https://script.google.com/macros/s/AKfycbwzN5VFnM35ZQ0e316dUEcncVtBsUTrOxkKSGP6hua90p5LqeNSMREWYH-JOe7LXj8/exec";
 
-// 小工具
 const el = id => document.getElementById(id);
 const $date     = el('date');
 const $slot     = el('slot');
+const $doctor   = el('doctor');
 const $name     = el('name');
 const $birthday = el('birthday');
 const $idnum    = el('idnum');
@@ -145,6 +152,10 @@ updateWeekday($date.value);
 
 // 變更日期→載入診別
 $date.addEventListener('change', onDateChange);
+$slot.addEventListener('change', ()=>{
+  const opt = $slot.options[$slot.selectedIndex];
+  $doctor.value = opt ? (opt.dataset.doctor || '陳萬龍醫師') : '陳萬龍醫師';
+});
 onDateChange();
 
 async function onDateChange(){
@@ -152,18 +163,22 @@ async function onDateChange(){
   const d = $date.value;
   updateWeekday(d);
   $slot.innerHTML = '<option value="">讀取中…</option>';
+  $doctor.value = '陳萬龍醫師';
   try{
     const r = await axios.get(API,{params:{action:'getSlots',date:d}});
     let html = '<option value="">請選診別</option>';
+    let firstDoctor = ''; // 用來更新右邊「看診醫師」
     r.data.forEach(o=>{
       const limit  = Number(o.limit)||0;
       const used   = Number(o.used)||0;
       const remain = Math.max(0, limit-used);
       if(limit>0 && remain>0){
+        if(!firstDoctor) firstDoctor = (o.doctor||'').trim();
         html += `<option value="${o.label}"
                        data-time="${o.time||''}"
                        data-start="${o.startNo||1}"
-                       data-remain="${remain}">
+                       data-remain="${remain}"
+                       data-doctor="${(o.doctor||'').replace(/"/g,'&quot;')}">
                    ${o.label}（${o.time||''}，剩 ${remain}/${limit}）
                  </option>`;
       }
@@ -172,6 +187,9 @@ async function onDateChange(){
       html = '<option value="">當天未開放</option>';
     }
     $slot.innerHTML = html;
+
+    // 預設顯示當日規則的醫師（若有）
+    if(firstDoctor) $doctor.value = firstDoctor;
   }catch(e){
     console.error(e);
     $slot.innerHTML = '<option value="">讀取失敗</option>';
@@ -205,12 +223,12 @@ $submit.onclick = async ()=>{
   const opt = (si>=0)? $slot.options[si] : null;
   const s  = opt ? (opt.value||'').trim() : '';
 
-  const startNo = opt?.dataset.start || '';
   const n  = ($name.value||'').trim();
   const b  = ($birthday.value||'').trim();
   const id = ($idnum.value||'').trim().toUpperCase();
   const ph = ($phone.value||'').trim();
   const ag = $agree.checked;
+  const doctor = ($doctor.value||'').trim();
 
   if(!d||!s||!n||!b||!id||!ph||!ag){ showErr('資料未填完整'); return; }
   if(!/^[A-Z][12]\d{8}$/.test(id)){ showErr('身分證格式錯誤'); return; }
@@ -224,10 +242,9 @@ $submit.onclick = async ()=>{
     showMask();
 
     const r = await axios.get(API,{params:{
-      action:'submit', date:d, slot:s, name:n, birthday:b, id:id, phone:ph
+      action:'submit', date:d, slot:s, name:n, birthday:b, id:id, phone:ph, doctor:doctor
     }});
 
-    // 👉 後端若判定重複 / 額滿 / 其他錯誤：在此顯示並停止導頁
     if(!r.data?.ok){
       const code = r.data?.error || '';
       if(code === 'duplicate'){
@@ -240,7 +257,6 @@ $submit.onclick = async ()=>{
       return;
     }
 
-    // 成功才導向 success
     location = `success.html?id=${encodeURIComponent(r.data.id)}`;
 
   }catch(e){
