@@ -121,16 +121,4 @@ h1,h2,h3,h4,h5{ color:var(--main); font-weight:700; margin:0; }
   .list-head{ display:none; }
 }
 
-/* 讓整串資訊維持單行，超出以 … 表示 */
-.one-line{
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  letter-spacing: .2px;
-}
-
-/* 手機再縮一點字，減少換行機率 */
-@media (max-width: 420px){
-  #lineDate{ font-size: 1rem; }      /* 原本 fs-5 ≈ 1.25rem */
-}
 
