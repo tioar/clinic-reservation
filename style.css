@@ -61,6 +61,59 @@ h1{
   border-radius:10px!important;
 }
 
+:root{
+  /* 主色：紫；輔色灰藍，與前台一致 */
+  --main:#523b96;
+  --hover:#713ec2;
+  --ink:#2e2e3a;
+  --muted:#6b7280;
+  --card-bg:#ffffff;
+  --page-bg:#f3f5f7;
+  --line:#e7e9ee;
+}
+html,body{background:var(--page-bg);}
+h1,h2,h3,h4,h5{color:var(--main); font-weight:700;}
+.card-wrap{
+  max-width:980px; margin:40px auto; background:var(--card-bg);
+  border-radius:16px; box-shadow:0 12px 32px rgba(18,38,63,.06);
+  padding:24px 24px 28px;
+}
+.card-head{
+  display:flex; align-items:center; gap:12px; margin-bottom:16px;
+}
+.card-head .logo{
+  width:44px; height:44px; border-radius:50%;
+  background:var(--main); color:#fff; display:flex; align-items:center; justify-content:center;
+  font-weight:800; font-size:24px;
+}
+.subtitle{color:var(--muted); margin-top:-4px;}
+
+.btn-main{
+  background:var(--main)!important; color:#fff!important; border:none; border-radius:10px; font-weight:600;
+}
+.btn-main:hover{background:var(--hover)!important;}
+.btn-round{border-radius:10px!important;}
+
+.table{
+  border:1px solid var(--line); overflow:hidden; border-radius:12px;
+  background:#fff;
+}
+.table thead th{
+  background:#f7f7fb; color:#3d3d57; font-weight:700; border-bottom:1px solid var(--line);
+}
+.table tbody td{ vertical-align:middle; }
+.form-control, .form-select{
+  border-radius:10px;
+  border:1px solid var(--line);
+}
+.badge-tag{border-radius:999px; padding:.35rem .6rem; font-weight:600;}
+.badge-early{background:#e9f7ef; color:#2c7a45;}
+.badge-noon {background:#fff7e6; color:#a76b02;}
+.badge-night{background:#e7f2ff; color:#215ea8;}
+/* 登入卡片窄版 */
+.login-card{ max-width:420px; }
+
 .btn-outline-secondary{
   border-radius:8px!important;
 }
+
