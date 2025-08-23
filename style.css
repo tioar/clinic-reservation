@@ -1,119 +1,116 @@
-body{
-  background:#eef3f7;
-  font-family:"Segoe UI",sans-serif;
+/* ====== 基本主題（藍灰系，與前台一致） ====== */
+:root{
+  --main:#3e6d8e;      /* 主色 */
+  --hover:#335a75;     /* hover */
+  --ink:#2e2e3a;       /* 文字深色 */
+  --muted:#6b7280;     /* 次要文字 */
+  --card-bg:#ffffff;   /* 卡片底色 */
+  --page-bg:#eef3f7;   /* 頁面底色 */
+  --line:#e7e9ee;      /* 邊框線 */
+  --danger:#dc3545;
+  --danger-hover:#b02a37;
 }
 
+html,body{
+  background:var(--page-bg);
+  font-family:"Segoe UI", "Noto Sans TC", system-ui, -apple-system, "PingFang TC", "Microsoft JhengHei", sans-serif;
+  color:var(--ink);
+}
+
+/* ====== 共用卡片與抬頭 ====== */
 .card{
-  max-width:500px;
+  max-width:560px;
   margin:40px auto;
-  padding:30px;
+  padding:28px;
   border-radius:20px;
-  box-shadow:0 4px 12px rgba(0,0,0,0.1);
-  background:#fff;
+  background:var(--card-bg);
+  box-shadow:0 12px 32px rgba(18,38,63,.08);
 }
 
 .header{
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  margin-bottom:20px;
+  display:flex; align-items:center; justify-content:center;
+  gap:12px; margin-bottom:16px;
 }
-
 .logo{
-  width:60px;
-  height:60px;
-  line-height:60px;
-  text-align:center;
-  border-radius:50%;
-  background:#3e6d8e;
-  color:#fff;
-  font-size:36px;
-  margin-right:12px;
+  width:60px; height:60px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  background:var(--main); color:#fff; font-size:32px; font-weight:800;
 }
+h1,h2,h3,h4,h5{ color:var(--main); font-weight:700; margin:0; }
+.form-label{ font-weight:700; color:var(--ink); }
 
-h1{
-  font-size:22px;
-  font-weight:600;
-  margin:0;
-  color:#3e6d8e;
+/* ====== 表單、按鈕 ====== */
+.form-control, .form-select{
+  border-radius:10px!important; border:1px solid var(--line);
 }
-
-.form-label{
-  font-weight:600;
-}
-
 .btn-main{
-  width:100%;
-  background:#3e6d8e;
-  color:#fff;
-  border:none;
-  padding:12px 0;
-  border-radius:8px;
-  font-size:18px;
+  background:var(--main)!important; color:#fff!important;
+  border:none; border-radius:10px; padding:12px 16px; font-weight:700;
 }
+.btn-main:hover{ background:var(--hover)!important; }
+.btn-outline-secondary{ border-radius:10px!important; font-weight:600; }
 
-.btn-main:hover{
-  opacity:.9;
-}
+/* 取消用紅鈕（query 頁面） */
+.btn-cancel{ background:var(--danger)!important; border:none; color:#fff!important; border-radius:8px; }
+.btn-cancel:hover{ background:var(--danger-hover)!important; }
 
-.form-control,
-.form-select{
-  border-radius:10px!important;
-}
+/* ====== 列表（query 頁面） ====== */
+.list-row{ display:grid; grid-template-columns:1.1fr .9fr .7fr 1fr 1fr .6fr .6fr; gap:.5rem; align-items:center; }
+.list-head{ font-weight:700; color:#27485f; margin-bottom:.5rem; }
 
-:root{
-  /* 主色：紫；輔色灰藍，與前台一致 */
-  --main:#523b96;
-  --hover:#713ec2;
-  --ink:#2e2e3a;
-  --muted:#6b7280;
-  --card-bg:#ffffff;
-  --page-bg:#f3f5f7;
-  --line:#e7e9ee;
+/* ====== Loading 遮罩（index/success/query 通用） ====== */
+#mask, #ing, #loading{
+  position:fixed; inset:0; display:none; align-items:center; justify-content:center;
+  background:rgba(255,255,255,.88); z-index:9999; font-size:18px; color:#2e5a79; backdrop-filter:blur(2px);
 }
-html,body{background:var(--page-bg);}
-h1,h2,h3,h4,h5{color:var(--main); font-weight:700;}
+#dots{ display:inline-block; width:2ch; text-align:left; }
+
+/* ====== Admin 專屬：寬版卡片、桌面表格 ====== */
 .card-wrap{
   max-width:980px; margin:40px auto; background:var(--card-bg);
   border-radius:16px; box-shadow:0 12px 32px rgba(18,38,63,.06);
   padding:24px 24px 28px;
 }
-.card-head{
-  display:flex; align-items:center; gap:12px; margin-bottom:16px;
-}
+.card-head{ display:flex; align-items:center; gap:12px; margin-bottom:16px; }
 .card-head .logo{
-  width:44px; height:44px; border-radius:50%;
-  background:var(--main); color:#fff; display:flex; align-items:center; justify-content:center;
-  font-weight:800; font-size:24px;
+  width:44px; height:44px; font-size:24px;
 }
-.subtitle{color:var(--muted); margin-top:-4px;}
+.subtitle{ color:var(--muted); margin-top:-4px; }
 
-.btn-main{
-  background:var(--main)!important; color:#fff!important; border:none; border-radius:10px; font-weight:600;
-}
-.btn-main:hover{background:var(--hover)!important;}
-.btn-round{border-radius:10px!important;}
-
+/* 表格美化（Admin） */
 .table{
-  border:1px solid var(--line); overflow:hidden; border-radius:12px;
-  background:#fff;
+  border:1px solid var(--line); overflow:hidden; border-radius:12px; background:#fff;
 }
 .table thead th{
-  background:#f7f7fb; color:#3d3d57; font-weight:700; border-bottom:1px solid var(--line);
+  background:#f7f9fb; color:#3d3d57; font-weight:800; border-bottom:1px solid var(--line);
+  vertical-align:middle;
 }
 .table tbody td{ vertical-align:middle; }
-.form-control, .form-select{
-  border-radius:10px;
-  border:1px solid var(--line);
-}
-.badge-tag{border-radius:999px; padding:.35rem .6rem; font-weight:600;}
-.badge-early{background:#e9f7ef; color:#2c7a45;}
-.badge-noon {background:#fff7e6; color:#a76b02;}
-.badge-night{background:#e7f2ff; color:#215ea8;}
-/* 登入卡片窄版 */
+
+/* 標籤色塊（Admin 新增異動區） */
+.tag{ display:inline-block; width:12px; height:12px; border-radius:50%; margin-right:6px; }
+.tag-early{ background:#41a647; }  /* 早診 */
+.tag-noon { background:#f9a825; }  /* 午診 */
+.tag-night{ background:#2196f3; }  /* 晚診 */
+
+.badge-tag{ border-radius:999px; padding:.35rem .6rem; font-weight:700; }
+.badge-early{ background:#e9f7ef; color:#2c7a45; }
+.badge-noon { background:#fff7e6; color:#a76b02; }
+.badge-night{ background:#e7f2ff; color:#215ea8; }
+
+/* 登入卡片窄版（Admin） */
 .login-card{ max-width:420px; }
 
-.btn-outline-secondary{
-  border-radius:8px!important;
+/* 小動畫（Admin 密碼錯誤） */
+@keyframes shake{
+  0%{transform:translateX(0)} 25%{transform:translateX(-5px)}
+  50%{transform:translateX(5px)} 75%{transform:translateX(-5px)} 100%{transform:translateX(0)}
 }
+.shake{ animation:shake .35s; }
 
+/* 手機優化 */
+@media (max-width:576px){
+  .card{ margin:24px auto; padding:22px; }
+  .list-row{ grid-template-columns: 1fr 1fr; row-gap:.35rem; }
+  .list-head{ display:none; }
+}
