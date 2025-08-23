@@ -146,4 +146,17 @@ h1,h2,h3,h4,h5{ color:var(--main); font-weight:700; margin:0; }
   }
 }
 
+/* 注意事項文字縮小 */
+.notice-text {
+  font-size: 0.9rem;   /* 預設 14.4px */
+  line-height: 1.5;    /* 讓文字不擠 */
+  color:#4b5b6b;       /* 確保顏色一致 */
+}
+
+@media (max-width: 400px){
+  .notice-text {
+    font-size: 0.85rem;  /* 小螢幕再縮一點 */
+  }
+}
+
 
