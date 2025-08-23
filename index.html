@@ -8,8 +8,50 @@
 <link rel="stylesheet" href="style.css" />
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- 🔵 LIFF SDK -->
+<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+<script>
+(async () => {
+  try {
+    await liff.init({ liffId: '2007979306-0gl4PKb1' });
+    // 只在 LINE 內頁時要求登入；一般瀏覽器可直接使用
+    if (liff.isInClient() && !liff.isLoggedIn()) {
+      liff.login({ redirectUri: location.href });
+      return;
+    }
+    document.documentElement.classList.add('liff-ready');
+  } catch (e) {
+    console.error('LIFF init fail:', e);
+  }
+})();
+</script>
+
+<!-- 🔐 CryptoJS (AES) -->
+<script src="https://cdn.jsdelivr.net/npm/crypto-js@4.2.0/crypto-js.min.js"></script>
+<script>
+// 32字元金鑰（前端僅作遮蔽用；日後可改後端簽發短效token）
+const AES_KEY = "A2x5fT9qR7nC1vB8mK3pZ6sD4uH0yW2j";
+
+function aesEnc(payload, ttlMs = 10 * 60 * 1000) { // 預設10分鐘
+  const obj = { ...payload };
+  if (ttlMs && Number.isFinite(ttlMs)) obj.exp = Date.now() + ttlMs;
+  const plain = JSON.stringify(obj);
+  const cipher = CryptoJS.AES.encrypt(plain, AES_KEY).toString(); // base64
+  return encodeURIComponent(cipher);
+}
+function aesDec(cipherParam) {
+  const bytes = CryptoJS.AES.decrypt(decodeURIComponent(cipherParam), AES_KEY);
+  const text  = bytes.toString(CryptoJS.enc.Utf8);
+  if (!text) throw new Error("DECRYPT_FAIL");
+  const data = JSON.parse(text);
+  if (data.exp && Date.now() > data.exp) throw new Error("TOKEN_EXPIRED");
+  return data;
+}
+</script>
+
 <style>
-  /* 全螢幕送出遮罩（你之前要求的動態點點） */
+  /* 全螢幕送出遮罩（動態點點） */
   #mask{position:fixed;inset:0;background:rgba(255,255,255,.88);display:none;align-items:center;justify-content:center;z-index:9999;font-size:18px;color:#2e5a79;backdrop-filter:blur(2px)}
   #dots{display:inline-block;width:2ch;text-align:left}
 </style>
@@ -23,7 +65,7 @@
     <h1>陳萬龍診所門診線上預約</h1>
   </div>
 
-  <!-- 🔴 新增：錯誤訊息列（預設隱藏） -->
+  <!-- 錯誤訊息列（預設隱藏） -->
   <div id="errBar" class="alert alert-danger d-none" role="alert" style="margin-top:-8px;">
     重複預約，請檢查預約資料
   </div>
@@ -227,7 +269,6 @@ $submit.onclick = async ()=>{
       action:'submit', date:d, slot:s, name:n, birthday:b, id:id, phone:ph
     }});
 
-    // 👉 後端若判定重複 / 額滿 / 其他錯誤：在此顯示並停止導頁
     if(!r.data?.ok){
       const code = r.data?.error || '';
       if(code === 'duplicate'){
@@ -240,8 +281,28 @@ $submit.onclick = async ()=>{
       return;
     }
 
-    // 成功才導向 success
-    location = `success.html?id=${encodeURIComponent(r.data.id)}`;
+    // ❶ 可靠取得預約代碼
+    const idFromApi = r?.data?.id || r?.data?.Id || r?.data?.bookingId || r?.data?.data?.id;
+    if (!idFromApi) {
+      console.warn('後端未回傳 id，回應為：', r.data);
+      showErr('送出成功，但取得預約代碼失敗，請稍後再試');
+      return;
+    }
+
+    // ❷ 後備：存在 sessionStorage
+    sessionStorage.setItem('lastBookingId', String(idFromApi));
+
+    // ❸ 產生 success 的絕對網址（帶 cipher，避免相對路徑/LIFF 問題）
+    const successUrl = new URL('success.html', location.href);
+    const cipher = aesEnc({ id: idFromApi }); // 10 分鐘有效
+    successUrl.searchParams.set('cipher', cipher);
+
+    // ❹ LIFF 內用 LIFF 開，否則一般導頁
+    if (window.liff && liff.isInClient()) {
+      liff.openWindow({ url: successUrl.href, external: false });
+    } else {
+      location.assign(successUrl.href);
+    }
 
   }catch(e){
     console.error(e);
@@ -255,6 +316,3 @@ $submit.onclick = async ()=>{
 </script>
 </body>
 </html>
-
-
-
