@@ -79,12 +79,8 @@ function aesDec(cipherParam) {
   }
   #dots{ display:inline-block; width:2ch; text-align:left; }
 
-  #mainInfo {
-    font-size: 1.25rem; line-height: 1.5; white-space: nowrap;
-  }
-  @media (max-width: 420px){
-    #mainInfo { white-space: normal; text-align: center; }
-  }
+  #mainInfo { font-size: 1.25rem; line-height: 1.5; white-space: nowrap; }
+  @media (max-width: 420px){ #mainInfo { white-space: normal; text-align: center; } }
   .notice-text { font-size: 0.9rem; line-height: 1.5; color:#4b5b6b; }
   @media (max-width: 400px){ .notice-text { font-size: 0.85rem; } }
 </style>
@@ -137,13 +133,26 @@ let dotTimer = setInterval(()=>{
   if($dots.textContent.length > 3) $dots.textContent = '.';
 }, 340);
 
-// 取得 id：優先 cipher，其次 ?id=，最後 sessionStorage
-function getIdFromUrlOrStorage() {
+/* 解析一般 query + LIFF 的 liff.state */
+function getParam(name){
   const qs = new URLSearchParams(location.search);
-  const cipher = qs.get('cipher');
+  if (qs.get(name)) return qs.get(name);
+  const state = qs.get('liff.state');            // e.g. /path/success.html?cipher=...
+  if (state){
+    try{
+      const u = new URL(state, location.origin);
+      const v = new URLSearchParams(u.search).get(name);
+      if (v) return v;
+    }catch(e){}
+  }
+  return null;
+}
+
+function getIdFromUrlOrStorage() {
+  const cipher = getParam('cipher');
   if (cipher) {
     try {
-      const data = aesDec(cipher); // 會驗證過期
+      const data = aesDec(cipher);
       return data.id;
     } catch (e) {
       alert('連結已過期或無效，請重新查詢。');
@@ -151,12 +160,10 @@ function getIdFromUrlOrStorage() {
       return null;
     }
   }
-  const id = qs.get('id');
+  const id = getParam('id');
   if (id) return id;
-
   const backup = sessionStorage.getItem('lastBookingId');
   if (backup) return backup;
-
   return null;
 }
 
@@ -227,15 +234,16 @@ function guessTimeBySlot(slot){
     lineNameNo.textContent = `姓名：${d.name || ''}，號碼：${d.num || ''} 號。`;
     filledAt.textContent   = d.time ? fmtTsTW(d.time) : '';
 
-    // 可分享連結（10 分鐘有效）
-    const shareUrl = `${location.origin}${location.pathname}?cipher=${aesEnc({ id })}`;
+    // 🔗 分享「查詢頁」的 cipher 連結（10 分鐘有效）
+    const queryUrl = new URL('query.html', location.href);
+    queryUrl.searchParams.set('cipher', aesEnc({ id }));
     const shareText =
 `✔️診所門診預約成功！
 
 ${ymd} 星期${wk}（${d.slot||''}） ${timeRange || ''}
 
 姓名：${d.name||''}，號碼：${d.num||''} 號。
-查詢連結：${shareUrl}
+查詢連結：${queryUrl.href}
 請在預約的門診時間內到場報到，過號則須等待現場安排叫名字，逾期自動取消。`;
 
     shareBtn.onclick = async ()=>{
