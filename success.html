@@ -54,6 +54,16 @@
       text-align: center;
     }
   }
+/* 讓卡片在大螢幕更寬，手機不變 */
+  .wrap{
+  /* 手機：寬度接近滿版；桌機：最多 780px（可自行調大/小） */
+    max-width: min(92vw, 780px);
+  }
+
+/* 如果你是用 style.css 的 .card 版型，也一起放大 */
+  .card, .cardx{
+    max-width: min(92vw, 780px);  /* 與上面一致 */
+  }
 
   /* 注意事項縮小 */
   .notice-text {
@@ -216,3 +226,4 @@ ${ymd} 星期${wk}（${d.slot||''}） ${timeRange || ''}
 </script>
 </body>
 </html>
+
