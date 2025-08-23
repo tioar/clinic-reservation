@@ -41,6 +41,30 @@
     font-size:18px; color:#2e5a79; backdrop-filter: blur(2px);
   }
   #dots{ display:inline-block; width:2ch; text-align:left; }
+
+  /* ===== 單行自動縮小；超窄螢幕改成兩行 ===== */
+  /* 預設：單行並自動縮小到能塞進去為止（不省略） */
+  #lineDate{
+    white-space: nowrap;           /* 先維持單行 */
+    display:block;
+    /* 以視窗寬度自動縮放字級：最小 0.95rem，最大 1.25rem */
+    font-size: clamp(0.95rem, 2.6vw, 1.25rem);
+    line-height: 1.35;
+  }
+  /* 稍窄的手機再微縮一點字 */
+  @media (max-width: 400px){
+    #lineDate{
+      font-size: clamp(0.9rem, 3.2vw, 1.1rem);
+    }
+  }
+  /* 非常窄時（例如小螢幕或字串很長）允許自動換成兩行 */
+  @media (max-width: 330px){
+    #lineDate{
+      white-space: normal;         /* 允許換行 */
+      text-align: center;          /* 兩行時仍置中 */
+      word-break: keep-all;        /* 盡量在空白處換行，避免切字 */
+    }
+  }
 </style>
 </head>
 <body>
@@ -206,10 +230,3 @@ ${ymd} 星期${wk}（${d.slot||''}）${timeRange? ' '+timeRange : ''}
 </script>
 </body>
 </html>
-
-
-
-
-
-
-
