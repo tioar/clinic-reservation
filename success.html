@@ -42,28 +42,27 @@
   }
   #dots{ display:inline-block; width:2ch; text-align:left; }
 
-  /* ===== 單行自動縮小；超窄螢幕改成兩行 ===== */
-  /* 預設：單行並自動縮小到能塞進去為止（不省略） */
+  /* ===== 日期區：預設單行自動縮小；超窄改兩行 ===== */
   #lineDate{
-    white-space: nowrap;           /* 先維持單行 */
+    white-space: nowrap;             /* 先維持單行 */
     display:block;
-    /* 以視窗寬度自動縮放字級：最小 0.95rem，最大 1.25rem */
-    font-size: clamp(0.95rem, 2.6vw, 1.25rem);
+    font-size: clamp(0.95rem, 2.6vw, 1.25rem); /* 主字級自適應 */
     line-height: 1.35;
   }
-  /* 稍窄的手機再微縮一點字 */
-  @media (max-width: 400px){
-    #lineDate{
-      font-size: clamp(0.9rem, 3.2vw, 1.1rem);
-    }
+  /* 次要資訊（診別/時間/醫師）字再小一點、顏色稍淡 */
+  #lineDate .sub-info{
+    font-size: clamp(0.85rem, 2.2vw, 1.05rem);
+    color:#274b62;
+    margin-left:.35rem;              /* 與日期留點距離 */
   }
-  /* 非常窄時（例如小螢幕或字串很長）允許自動換成兩行 */
+  /* 中小手機再微縮 */
+  @media (max-width: 400px){
+    #lineDate{ font-size: clamp(0.9rem, 3.2vw, 1.1rem); }
+    #lineDate .sub-info{ font-size: clamp(0.82rem, 2.8vw, 0.98rem); }
+  }
+  /* 很窄時允許換兩行，避免擠爆 */
   @media (max-width: 330px){
-    #lineDate{
-      white-space: normal;         /* 允許換行 */
-      text-align: center;          /* 兩行時仍置中 */
-      word-break: keep-all;        /* 盡量在空白處換行，避免切字 */
-    }
+    #lineDate{ white-space: normal; text-align:center; word-break: keep-all; }
   }
 </style>
 </head>
@@ -80,8 +79,11 @@
     </div>
     <div class="muted mb-4">您的預約資訊：</div>
 
-    <!-- 日期/星期/診別/時間（粗體） -->
-    <div id="lineDate" class="strong-line fs-5 mb-3"></div>
+    <!-- 日期/星期/診別/時間。分為兩段：datePart(正常字) + slotPart(較小字) -->
+    <div id="lineDate" class="strong-line fs-5 mb-3">
+      <span id="datePart"></span>
+      <span id="slotPart" class="sub-info"></span>
+    </div>
     <!-- 姓名／號碼（粗體） -->
     <div id="lineNameNo" class="strong-line fs-5 mb-4"></div>
 
@@ -114,7 +116,8 @@ const API = "https://script.google.com/macros/s/AKfycbwzN5VFnM35ZQ0e316dUEcncVtB
 /* ==== DOM ==== */
 const $loading = document.getElementById('loading');
 const $dots = document.getElementById('dots');
-const lineDate  = document.getElementById('lineDate');
+const datePart  = document.getElementById('datePart');
+const slotPart  = document.getElementById('slotPart');
 const lineNameNo= document.getElementById('lineNameNo');
 const filledAt  = document.getElementById('filledAt');
 const shareBtn  = document.getElementById('shareBtn');
@@ -129,7 +132,6 @@ let dotTimer = setInterval(()=>{
 function pad2(n){return n<10?'0'+n:String(n);}
 
 function normalizeYMD(input){
-  // 轉成 yyyy-mm-dd（以台北時區避免跨日）
   if(!input) return '';
   if (typeof input === 'string'){
     if (/^\d{4}-\d{2}-\d{2}$/.test(input)) return input;
@@ -142,13 +144,11 @@ function normalizeYMD(input){
   return isNaN(d) ? '' : toYMD(d);
 }
 function toYMD(d){
-  // 用固定 09:00 +08:00 避免 DST/UTC 造成日子偏移
   const z = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate(), 1,0,0));
   return `${z.getUTCFullYear()}-${pad2(z.getUTCMonth()+1)}-${pad2(z.getUTCDate())}`;
 }
 function weekdayZhFromYMD(ymd){
   if(!ymd) return '';
-  // 直接用 +08:00 算星期
   const d = new Date(ymd + 'T09:00:00+08:00');
   const WEEK = ['日','一','二','三','四','五','六'];
   return WEEK[d.getDay()] || '';
@@ -176,34 +176,35 @@ function guessTimeBySlot(slot){
     const id = qs.get('id');
     if(!id) throw new Error('缺少預約代碼');
 
-    // 1) 取單筆明細（新版 GAS 的 detail_ 回傳 date 為 yyyy-mm-dd）
     const r = await axios.get(API, { params:{ action:'detail', id } });
     const d = r.data || {};
 
-    const ymd = normalizeYMD(d.date);         // 穩健轉成 yyyy-mm-dd
-    const wk  = weekdayZhFromYMD(ymd);        // 星期幾（數字→中）
+    const ymd = normalizeYMD(d.date);
+    const wk  = weekdayZhFromYMD(ymd);
     let timeRange = '';
 
-    // 2) 依當天配置取出對應診別的 time（新版 GAS 的 getSlots 會回傳 time）
     try{
       const s = await axios.get(API, { params:{ action:'getSlots', date: ymd } });
       const hit = (s.data||[]).find(x => String(x.label) === String(d.slot));
       timeRange = hit?.time || '';
     }catch(_){
-      // 後備：依診別字樣猜時間
       timeRange = guessTimeBySlot(d.slot);
     }
 
-    // 顯示主資訊
-    lineDate.textContent   = `${ymd} 星期${wk}（${d.slot||''}）  ${timeRange||''}`;
+    // 醫師名稱（API 哪個欄位就取哪個）
+    const doctor = d.doctor || d.doctorName || d.dr || '';
+
+    // ✅ 把字填進兩個 span：前半正常字、後半較小字
+    datePart.textContent = `${ymd} 星期${wk}`;
+    slotPart.textContent = `（${d.slot || ''}） ${timeRange || ''}${doctor ? '〔' + doctor + '醫師〕' : ''}`;
+
     lineNameNo.textContent = `姓名：${d.name||''}，號碼：${d.num||''} 號。`;
     filledAt.textContent   = d.time ? fmtTsTW(d.time) : '';
 
-    // 分享內容
     const shareText =
 `✔️陳萬龍診所門診預約成功！
 
-${ymd} 星期${wk}（${d.slot||''}）${timeRange? ' '+timeRange : ''}
+${ymd} 星期${wk}（${d.slot||''}）${timeRange? ' '+timeRange : ''}${doctor ? ' 〔' + doctor + '醫師〕' : ''}
 
 姓名：${d.name||''}，號碼：${d.num||''} 號。
 請在預約的門診時間內到場報到，過號則須等待現場安排叫名字，逾期自動取消。`;
