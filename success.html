@@ -80,10 +80,11 @@
     </div>
     <div class="muted mb-4">您的預約資訊：</div>
 
-    <!-- 日期/星期/診別/時間（粗體） -->
-    <div id="lineDate" class="strong-line fs-6 mb-3"></div>
-    <!-- 姓名／號碼（粗體） -->
-    <div id="lineNameNo" class="strong-line fs-5 mb-4"></div>
+<!-- 三行顯示 -->
+<div id="dateLine" class="strong-line fs-5 mb-4"></div>
+<div id="timeLine" class="strong-line fs-5 mb-4"></div>
+<div id="lineNameNo" class="strong-line fs-5 mb-4"></div>
+
 
     <!-- 提示：在姓名號碼下方 -->
 <div class="d-flex justify-content-center align-items-start gap-2 mb-4 notice-text">
@@ -229,6 +230,7 @@ ${ymd} 星期${wk}（${d.slot||''}）${timeRange? ' '+timeRange : ''}
 </script>
 </body>
 </html>
+
 
 
 
