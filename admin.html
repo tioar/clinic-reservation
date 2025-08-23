@@ -4,93 +4,166 @@
   <meta charset="UTF-8">
   <title>後台管理</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Bootstrap -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-  <style>
-    :root{--main:#523b96;--hover:#783b96}
-    .btn-main{background:var(--main)!important;color:#fff;border:none;border-radius:8px;}
-    .btn-main:hover{background:var(--hover)!important;}
-    .btn-round{border-radius:8px!important;}
-    h3,h5{color:var(--main)}
-    .tag{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:4px;}
-    .tag-early{background:#41a647}.tag-noon{background:#f9a825}.tag-night{background:#2196f3}
-    @keyframes shake{0%{transform:translateX(0)}25%{transform:translateX(-5px)}
-    50%{transform:translateX(5px)}75%{transform:translateX(-5px)}100%{transform:translateX(0)}}
-    .shake{animation:shake .35s;}
-  </style>
+  <!-- 共用樣式：藍灰圓角粗體 -->
+  <link rel="stylesheet" href="style.css">
 </head>
-<body class="bg-light">
+<body>
 
-<div id="login" class="container py-5" style="max-width:380px">
-  <h3 class="mb-3">後台登入</h3>
-  <input id="acc" class="form-control mb-2" placeholder="帳號">
-  <input id="pw" type="password" class="form-control mb-2" placeholder="密碼">
-  <button id="btnLogin" class="btn-main w-100 btn-round mt-2">登入</button>
+<!-- ====== Login ====== -->
+<div id="login" class="container py-5 login-card">
+  <div class="card">
+    <div class="header">
+      <div class="logo">＋</div>
+      <h1>後台登入</h1>
+    </div>
+    <input id="acc" class="form-control mb-2" placeholder="帳號">
+    <input id="pw" type="password" class="form-control mb-3" placeholder="密碼">
+    <button id="btnLogin" class="btn-main w-100">登入</button>
+  </div>
 </div>
 
-<div id="app" class="container py-4" style="display:none;">
-  <div class="d-flex justify-content-between mb-3">
-    <h3>臨時異動管理</h3>
-    <div>
-      <button id="exportBtn" class="btn btn-secondary btn-sm btn-round me-2">匯出今日起預約名單</button>
-      <button id="logoutBtn"  class="btn-main btn-sm btn-round">登出</button>
+<!-- ====== App ====== -->
+<div id="app" style="display:none;">
+  <div class="card-wrap">
+    <div class="card-head">
+      <div class="logo">＋</div>
+      <div>
+        <h3 class="m-0">臨時異動管理</h3>
+        <div class="subtitle">設定特定日期的上限與備註（僅列未過期）</div>
+      </div>
+      <div class="ms-auto d-flex align-items-center gap-2">
+        <button id="exportBtn" class="btn btn-outline-secondary btn-round btn-sm">匯出今日起預約名單</button>
+        <button id="logoutBtn"  class="btn-main btn-round btn-sm">登出</button>
+      </div>
     </div>
-  </div>
 
-  <!-- 新增 -->
-  <div class="card p-3 mb-4">
-    <h5 class="mb-3">新增異動</h5>
-    <input type="date" id="newDate" class="form-control mb-3">
-    <div class="row mb-2 align-items-center">
-      <div class="col-2"><span class="tag tag-early"></span><strong>早診</strong></div>
-      <div class="col-3"><input id="neEarlyTime" value="08:30~11:30" class="form-control"></div>
-      <div class="col-2"><input id="neEarlyLimit" value="10" type="number" class="form-control"></div>
-      <div class="col-auto"><input id="neEarly" checked type="checkbox"></div>
-    </div>
-    <div class="row mb-2 align-items-center">
-      <div class="col-2"><span class="tag tag-noon"></span><strong>午診</strong></div>
-      <div class="col-3"><input id="neNoonTime" value="14:00~17:00" class="form-control"></div>
-      <div class="col-2"><input id="neNoonLimit" value="10" type="number" class="form-control"></div>
-      <div class="col-auto"><input id="neNoon" checked type="checkbox"></div>
-    </div>
-    <div class="row mb-2 align-items-center">
-      <div class="col-2"><span class="tag tag-night"></span><strong>晚診</strong></div>
-      <div class="col-3"><input id="neNightTime" value="18:00~20:30" class="form-control"></div>
-      <div class="col-2"><input id="neNightLimit" value="10" type="number" class="form-control"></div>
-      <div class="col-auto"><input id="neNight" checked type="checkbox"></div>
-    </div>
-    <div class="row mb-3">
-      <div class="col-6"><input id="neNote" placeholder="備註" class="form-control"></div>
-      <div class="col-auto"><button id="addBtn" class="btn-main btn-round">新增</button></div>
-    </div>
-  </div>
+    <!-- 新增區塊 -->
+    <div class="card mb-4">
+      <h5 class="mb-3">新增異動</h5>
+      <input type="date" id="newDate" class="form-control mb-3">
 
-  <h5>目前異動(未過期)</h5>
-  <table class="table table-striped" id="tbl">
-    <thead><tr>
-      <th>日期</th><th>早診</th><th>午診</th><th>晚診</th><th>備註</th><th>操作</th>
-    </tr></thead>
-    <tbody></tbody>
-  </table>
+      <div class="row mb-2 align-items-center">
+        <div class="col-12 col-md-3 mb-2 mb-md-0">
+          <span class="tag tag-early"></span><strong>早診</strong>
+        </div>
+        <div class="col-6 col-md-4 mb-2 mb-md-0">
+          <input id="neEarlyTime" value="08:30~11:30" class="form-control" placeholder="時段（僅顯示用）">
+        </div>
+        <div class="col-4 col-md-3 mb-2 mb-md-0">
+          <input id="neEarlyLimit" value="10" type="number" class="form-control" placeholder="上限">
+        </div>
+        <div class="col-auto col-md-2">
+          <input id="neEarly" checked type="checkbox"> 開放
+        </div>
+      </div>
+
+      <div class="row mb-2 align-items-center">
+        <div class="col-12 col-md-3 mb-2 mb-md-0">
+          <span class="tag tag-noon"></span><strong>午診</strong>
+        </div>
+        <div class="col-6 col-md-4 mb-2 mb-md-0">
+          <input id="neNoonTime" value="14:00~17:00" class="form-control" placeholder="時段（僅顯示用）">
+        </div>
+        <div class="col-4 col-md-3 mb-2 mb-md-0">
+          <input id="neNoonLimit" value="10" type="number" class="form-control" placeholder="上限">
+        </div>
+        <div class="col-auto col-md-2">
+          <input id="neNoon" checked type="checkbox"> 開放
+        </div>
+      </div>
+
+      <div class="row mb-3 align-items-center">
+        <div class="col-12 col-md-3 mb-2 mb-md-0">
+          <span class="tag tag-night"></span><strong>晚診</strong>
+        </div>
+        <div class="col-6 col-md-4 mb-2 mb-md-0">
+          <input id="neNightTime" value="18:00~20:30" class="form-control" placeholder="時段（僅顯示用）">
+        </div>
+        <div class="col-4 col-md-3 mb-2 mb-md-0">
+          <input id="neNightLimit" value="10" type="number" class="form-control" placeholder="上限">
+        </div>
+        <div class="col-auto col-md-2">
+          <input id="neNight" checked type="checkbox"> 開放
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-8 col-md-6">
+          <input id="neNote" placeholder="備註" class="form-control">
+        </div>
+        <div class="col-auto">
+          <button id="addBtn" class="btn-main btn-round">新增</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 列表 -->
+    <h5 class="mb-2">目前異動（未過期）</h5>
+    <div class="table-responsive">
+      <table class="table table-striped" id="tbl">
+        <thead>
+          <tr>
+            <th>日期</th>
+            <th>早診</th>
+            <th>午診</th>
+            <th>晚診</th>
+            <th>備註</th>
+            <th style="width:140px;">操作</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+  </div>
 </div>
+
+<!-- JS libs -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 
 <script>
-// ====== 修改這裡為你的GAS網址 ======
+// ====== 修改這裡為你的 GAS 網址 ======
 const API = "https://script.google.com/macros/s/AKfycbwzN5VFnM35ZQ0e316dUEcncVtBsUTrOxkKSGP6hua90p5LqeNSMREWYH-JOe7LXj8/exec";
 
+// 登入（與你原本一致）
 const account="wl.zensuo", defaultPw="A5152971";
 let pwd=localStorage.getItem("admin_pw")||defaultPw;
+
+const login  = document.getElementById('login');
+const app    = document.getElementById('app');
+const acc    = document.getElementById('acc');
+const pw     = document.getElementById('pw');
+const btnLogin   = document.getElementById('btnLogin');
+const logoutBtn  = document.getElementById('logoutBtn');
+const addBtn     = document.getElementById('addBtn');
+const exportBtn  = document.getElementById('exportBtn');
+const tbl        = document.getElementById('tbl');
+const newDate    = document.getElementById('newDate');
+const neEarly    = document.getElementById('neEarly');
+const neNoon     = document.getElementById('neNoon');
+const neNight    = document.getElementById('neNight');
+const neEarlyTime= document.getElementById('neEarlyTime');
+const neNoonTime = document.getElementById('neNoonTime');
+const neNightTime= document.getElementById('neNightTime');
+const neEarlyLimit= document.getElementById('neEarlyLimit');
+const neNoonLimit = document.getElementById('neNoonLimit');
+const neNightLimit= document.getElementById('neNightLimit');
+const neNote     = document.getElementById('neNote');
 
 // ---- Login ----
 btnLogin.onclick=()=>{ 
   if(acc.value===account && pw.value===pwd){
-    login.style.display="none"; app.style.display="block"; load();
+    login.style.display="none";
+    app.style.display="block";
+    load();
   }else{
     pw.classList.add("shake"); setTimeout(()=>pw.classList.remove("shake"),350);
   }
 };
-logoutBtn.onclick=()=>{app.style.display="none"; login.style.display="block"};
+logoutBtn.onclick=()=>{ app.style.display="none"; login.style.display="block"; };
 
 // ---- Load table ----
 async function load(){
@@ -104,8 +177,8 @@ async function load(){
       <td>${x.晚診上限||0}</td>
       <td>${x.備註||""}</td>
       <td>
-        <button class="btn btn-warning btn-sm me-1" onclick="edit('${x.id}')">編輯</button>
-        <button class="btn btn-danger btn-sm" onclick="del_('${x.id}')">刪除</button>
+        <button class="btn btn-warning btn-sm me-1 btn-round" onclick="edit('${x.id}')">編輯</button>
+        <button class="btn btn-danger btn-sm btn-round" onclick="del_('${x.id}')">刪除</button>
       </td></tr>`;
   })
 }
@@ -122,8 +195,9 @@ addBtn.onclick=async()=>{
     備註    : neNote.value
   };
   await axios.get(API,{params});
-  alert("新增完成"); load();
-}
+  alert("新增完成");
+  load();
+};
 
 // ---- delete ----
 async function del_(id){
@@ -138,18 +212,21 @@ async function edit(id){
   const f=d.data;
   const html = `<div class="modal fade" id="editM">
   <div class="modal-dialog"><div class="modal-content">
-   <div class="modal-header"><h5>編輯 ${f.日期}</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+   <div class="modal-header">
+     <h5 class="modal-title">編輯 ${f.日期}</h5>
+     <button class="btn-close" data-bs-dismiss="modal"></button>
+   </div>
    <div class="modal-body">
      <div class="mb-2"><span class="tag tag-early"></span><strong>早診</strong>
-       <input id="edEL" class="form-control d-inline w-25" type="number" value="${f["早診上限"]||0}"></div>
+       <input id="edEL" class="form-control d-inline w-25 ms-2" type="number" value="${f["早診上限"]||0}"></div>
      <div class="mb-2"><span class="tag tag-noon"></span><strong>午診</strong>
-       <input id="edNL" class="form-control d-inline w-25" type="number" value="${f["午診上限"]||0}"></div>
+       <input id="edNL" class="form-control d-inline w-25 ms-2" type="number" value="${f["午診上限"]||0}"></div>
      <div class="mb-2"><span class="tag tag-night"></span><strong>晚診</strong>
-       <input id="edTL" class="form-control d-inline w-25" type="number" value="${f["晚診上限"]||0}"></div>
-     <input id="edNote" class="form-control" value="${f["備註"]||""}">
+       <input id="edTL" class="form-control d-inline w-25 ms-2" type="number" value="${f["晚診上限"]||0}"></div>
+     <input id="edNote" class="form-control mt-2" value="${f["備註"]||""}">
    </div>
    <div class="modal-footer">
-     <button class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+     <button class="btn btn-outline-secondary btn-round" data-bs-dismiss="modal">取消</button>
      <button id="saveBtn" class="btn-main btn-round">儲存</button>
    </div>
   </div></div></div>`;
@@ -161,24 +238,23 @@ async function edit(id){
       action:'adminEdit',id,
       早診上限:edEL.value, 午診上限:edNL.value, 晚診上限:edTL.value, 備註:edNote.value
     }});
-    m.hide(); load();
+    m.hide();
+    load();
   };
 }
 
 // ---- 匯出預約名單 ----
 exportBtn.onclick= async ()=>{
   const r = await axios.get(API,{params:{action:'export'}});
-  const blob = new Blob([r.data],{/*csv*/type:"text/csv;charset=utf-8;"} );
+  const blob = new Blob([r.data],{type:"text/csv;charset=utf-8;"});
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href=url; a.download="預約名單.csv"; a.click();
 };
+
+// 暴露函式給 inline onclick
+window.edit = edit;
+window.del_ = del_;
 </script>
 </body>
 </html>
-
-
-
-
-
-
