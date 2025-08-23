@@ -4,10 +4,23 @@
   <meta charset="UTF-8">
   <title>後台管理</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <!-- Bootstrap -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-  <!-- 共用樣式：藍灰圓角粗體 -->
   <link rel="stylesheet" href="style.css">
+
+  <!-- LIFF SDK -->
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <script>
+  // 你的 LIFF ID（不含 -gl 之後的 channelId；這個就是完整 LIFF ID）
+  const LIFF_ID = '2007979306-0gl4PKb1';
+  (async () => {
+    try {
+      await liff.init({ liffId: LIFF_ID });
+      document.documentElement.classList.add('liff-ready');
+    } catch (e) {
+      console.error('LIFF init fail:', e);
+    }
+  })();
+  </script>
 </head>
 <body>
 
@@ -18,9 +31,16 @@
       <div class="logo">＋</div>
       <h1>後台登入</h1>
     </div>
+
+    <!-- LINE 登入 -->
+    <button id="btnLoginLINE" class="btn-main w-100 mb-2">使用 LINE 登入</button>
+
+    <div class="text-center text-muted my-2">— 或 —</div>
+
+    <!-- 管理密碼登入（後備） -->
     <input id="acc" class="form-control mb-2" placeholder="帳號">
-    <input id="pw" type="password" class="form-control mb-3" placeholder="密碼">
-    <button id="btnLogin" class="btn-main w-100">登入</button>
+    <input id="pw" type="password" class="form-control mb-3" placeholder="管理密碼">
+    <button id="btnLoginPW" class="btn btn-outline-secondary w-100">以管理密碼登入</button>
   </div>
 </div>
 
@@ -99,7 +119,6 @@
       </div>
     </div>
 
-    <!-- 列表 -->
     <h5 class="mb-2">目前異動（未過期）</h5>
     <div class="table-responsive">
       <table class="table table-striped" id="tbl">
@@ -120,23 +139,19 @@
   </div>
 </div>
 
-<!-- JS libs -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-
 <script>
-// ====== 修改這裡為你的 GAS 網址 ======
+// ====== 你的 GAS endpoint ======
 const API = "https://script.google.com/macros/s/AKfycbwzN5VFnM35ZQ0e316dUEcncVtBsUTrOxkKSGP6hua90p5LqeNSMREWYH-JOe7LXj8/exec";
 
-// 登入（與你原本一致）
-const account="wl.zensuo", defaultPw="A5152971";
-let pwd=localStorage.getItem("admin_pw")||defaultPw;
-
-const login  = document.getElementById('login');
-const app    = document.getElementById('app');
-const acc    = document.getElementById('acc');
-const pw     = document.getElementById('pw');
-const btnLogin   = document.getElementById('btnLogin');
+// DOM
+const loginBox   = document.getElementById('login');
+const appBox     = document.getElementById('app');
+const acc        = document.getElementById('acc');
+const pw         = document.getElementById('pw');
+const btnLoginPW = document.getElementById('btnLoginPW');
+const btnLoginLINE = document.getElementById('btnLoginLINE');
 const logoutBtn  = document.getElementById('logoutBtn');
 const addBtn     = document.getElementById('addBtn');
 const exportBtn  = document.getElementById('exportBtn');
@@ -153,23 +168,71 @@ const neNoonLimit = document.getElementById('neNoonLimit');
 const neNightLimit= document.getElementById('neNightLimit');
 const neNote     = document.getElementById('neNote');
 
-// ---- Login ----
-btnLogin.onclick=()=>{ 
-  if(acc.value===account && pw.value===pwd){
-    login.style.display="none";
-    app.style.display="block";
-    load();
-  }else{
-    pw.classList.add("shake"); setTimeout(()=>pw.classList.remove("shake"),350);
+// session token（1hr）
+let ADMIN_TOKEN = sessionStorage.getItem('ADMIN_TOKEN') || "";
+
+// ---- helpers ----
+function showApp(){ loginBox.style.display="none"; appBox.style.display="block"; load(); }
+function showLogin(){ appBox.style.display="none"; loginBox.style.display="block"; }
+function assertAuthed(){ if(!ADMIN_TOKEN){ showLogin(); throw new Error('no token'); } }
+
+// ---- LINE login ----
+btnLoginLINE.onclick = async () => {
+  try{
+    if(!liff.isLoggedIn()){
+      liff.login({ redirectUri: location.href });
+      return;
+    }
+    const idToken = liff.getIDToken();
+    if(!idToken){ alert('取得 LINE 身分失敗'); return; }
+    const r = await axios.get(API, { params:{ action:'adminLoginLiff', idToken }});
+    if(r.data?.ok){
+      ADMIN_TOKEN = r.data.token;
+      sessionStorage.setItem('ADMIN_TOKEN', ADMIN_TOKEN);
+      showApp();
+    }else{
+      alert(r.data?.message || '無權限');
+    }
+  }catch(e){
+    console.error(e);
+    alert('登入失敗');
   }
 };
-logoutBtn.onclick=()=>{ app.style.display="none"; login.style.display="block"; };
+
+// ---- password login（後備，不在前端寫死任何值） ----
+btnLoginPW.onclick = async () => {
+  try{
+    const a = (acc.value||'').trim();
+    const p = (pw.value||'').trim();
+    if(!a || !p){ pw.classList.add('shake'); setTimeout(()=>pw.classList.remove('shake'),350); return; }
+    const r = await axios.get(API, { params:{ action:'adminLoginPw', acc:a, pw:p }});
+    if(r.data?.ok){
+      ADMIN_TOKEN = r.data.token;
+      sessionStorage.setItem('ADMIN_TOKEN', ADMIN_TOKEN);
+      showApp();
+    }else{
+      alert(r.data?.message || '帳號或密碼錯誤');
+    }
+  }catch(e){
+    console.error(e);
+    alert('登入失敗');
+  }
+};
+
+// ---- logout ----
+logoutBtn.onclick = () => {
+  ADMIN_TOKEN = "";
+  sessionStorage.removeItem('ADMIN_TOKEN');
+  try{ if(liff.isLoggedIn()) liff.logout(); }catch(_){}
+  showLogin();
+};
 
 // ---- Load table ----
 async function load(){
-  const r = await axios.get(API,{params:{action:'adminGet'}});
+  assertAuthed();
+  const r = await axios.get(API,{ params:{ action:'adminGet', token: ADMIN_TOKEN }});
   const tbody=tbl.querySelector('tbody'); tbody.innerHTML="";
-  r.data.forEach(x=>{
+  (r.data||[]).forEach(x=>{
     tbody.innerHTML+=`<tr>
       <td>${x.日期}</td>
       <td>${x.早診上限||0}</td>
@@ -177,38 +240,50 @@ async function load(){
       <td>${x.晚診上限||0}</td>
       <td>${x.備註||""}</td>
       <td>
-        <button class="btn btn-warning btn-sm me-1 btn-round" onclick="edit('${x.id}')">編輯</button>
-        <button class="btn btn-danger btn-sm btn-round" onclick="del_('${x.id}')">刪除</button>
+        <button class="btn btn-warning btn-sm me-1 btn-round" onclick="editRow('${x.id}')">編輯</button>
+        <button class="btn btn-danger btn-sm btn-round" onclick="delRow('${x.id}')">刪除</button>
       </td></tr>`;
   })
 }
 
 // ---- add ----
-addBtn.onclick=async()=>{
-  if(!newDate.value) return alert("請選日期");
-  const params={
-    action:'adminAdd',
-    日期    : newDate.value,
-    早診上限: neEarly.checked?Number(neEarlyLimit.value):0,
-    午診上限: neNoon.checked?Number(neNoonLimit.value):0,
-    晚診上限: neNight.checked?Number(neNightLimit.value):0,
-    備註    : neNote.value
-  };
-  await axios.get(API,{params});
-  alert("新增完成");
-  load();
+addBtn.onclick = async () => {
+  try{
+    assertAuthed();
+    if(!newDate.value) return alert("請選日期");
+    await axios.get(API,{ params:{
+      action:'adminAdd', token: ADMIN_TOKEN,
+      日期    : newDate.value,
+      早診上限: neEarly.checked ? Number(neEarlyLimit.value) : 0,
+      午診上限: neNoon.checked  ? Number(neNoonLimit.value)  : 0,
+      晚診上限: neNight.checked ? Number(neNightLimit.value) : 0,
+      備註    : neNote.value
+    }});
+    alert("新增完成");
+    load();
+  }catch(e){
+    console.error(e);
+    alert('新增失敗或尚未登入');
+  }
 };
 
 // ---- delete ----
-async function del_(id){
-  if(!confirm("確定刪除？"))return;
-  await axios.get(API,{params:{action:'adminDel',id}});
-  load();
+async function delRow(id){
+  if(!confirm("確定刪除？")) return;
+  try{
+    assertAuthed();
+    await axios.get(API,{ params:{ action:'adminDel', id, token: ADMIN_TOKEN }});
+    load();
+  }catch(e){
+    console.error(e);
+    alert('刪除失敗或尚未登入');
+  }
 }
 
 // ---- edit ----
-async function edit(id){
-  const d=await axios.get(API,{params:{action:'adminOne',id}});
+async function editRow(id){
+  assertAuthed();
+  const d=await axios.get(API,{ params:{ action:'adminOne', id, token: ADMIN_TOKEN }});
   const f=d.data;
   const html = `<div class="modal fade" id="editM">
   <div class="modal-dialog"><div class="modal-content">
@@ -234,8 +309,8 @@ async function edit(id){
   const m=new bootstrap.Modal(document.getElementById("editM")); m.show();
   document.getElementById("saveBtn").onclick=async()=>{
     if(!confirm("確定儲存？"))return;
-    await axios.get(API,{params:{
-      action:'adminEdit',id,
+    await axios.get(API,{ params:{
+      action:'adminEdit', id, token: ADMIN_TOKEN,
       早診上限:edEL.value, 午診上限:edNL.value, 晚診上限:edTL.value, 備註:edNote.value
     }});
     m.hide();
@@ -243,18 +318,11 @@ async function edit(id){
   };
 }
 
-// ---- 匯出預約名單 ----
-exportBtn.onclick= async ()=>{
-  const r = await axios.get(API,{params:{action:'export'}});
-  const blob = new Blob([r.data],{type:"text/csv;charset=utf-8;"});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href=url; a.download="預約名單.csv"; a.click();
-};
+window.editRow = editRow;
+window.delRow  = delRow;
 
-// 暴露函式給 inline onclick
-window.edit = edit;
-window.del_ = del_;
+// 若已經有 token，直接進入
+if(ADMIN_TOKEN){ showApp(); }
 </script>
 </body>
 </html>
