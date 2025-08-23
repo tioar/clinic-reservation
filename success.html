@@ -10,7 +10,7 @@
 
 <style>
   body{ background:#eaf1f6; font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans TC", "Microsoft JhengHei", Arial, sans-serif; color:#18364d; }
-  .wrap{ max-width:520px; margin:52px auto; padding:0 16px; }  /* 與 index 同寬 */
+  .wrap{ max-width:520px; margin:52px auto; padding:0 16px; }
   .cardx{
     background:#fff; border-radius:24px; padding:36px 30px;
     box-shadow:0 12px 28px rgba(17,45,78,.12);
@@ -42,28 +42,14 @@
   }
   #dots{ display:inline-block; width:2ch; text-align:left; }
 
-  /* ===== 單行自動縮小；超窄螢幕改成兩行 ===== */
-  /* 預設：單行並自動縮小到能塞進去為止（不省略） */
-  #lineDate{
-    white-space: nowrap;           /* 先維持單行 */
-    display:block;
-    /* 以視窗寬度自動縮放字級：最小 0.95rem，最大 1.25rem */
-    font-size: clamp(0.95rem, 2.6vw, 1.25rem);
-    line-height: 1.35;
+  /* 注意事項文字縮小 */
+  .notice-text {
+    font-size: 0.9rem;
+    line-height: 1.5;
+    color:#4b5b6b;
   }
-  /* 稍窄的手機再微縮一點字 */
   @media (max-width: 400px){
-    #lineDate{
-      font-size: clamp(0.9rem, 3.2vw, 1.1rem);
-    }
-  }
-  /* 非常窄時（例如小螢幕或字串很長）允許自動換成兩行 */
-  @media (max-width: 330px){
-    #lineDate{
-      white-space: normal;         /* 允許換行 */
-      text-align: center;          /* 兩行時仍置中 */
-      word-break: keep-all;        /* 盡量在空白處換行，避免切字 */
-    }
+    .notice-text { font-size: 0.85rem; }
   }
 </style>
 </head>
@@ -80,24 +66,24 @@
     </div>
     <div class="muted mb-4">您的預約資訊：</div>
 
-<!-- 三行顯示 -->
-<div id="dateLine" class="strong-line fs-5 mb-4"></div>
-<div id="timeLine" class="strong-line fs-5 mb-4"></div>
-<div id="lineNameNo" class="strong-line fs-5 mb-4"></div>
-
+    <!-- 三行顯示 -->
+    <div id="dateLine" class="strong-line fs-5 mb-4"></div>
+    <div id="timeLine" class="strong-line fs-5 mb-4"></div>
+    <div id="lineNameNo" class="strong-line fs-5 mb-4"></div>
 
     <!-- 提示：在姓名號碼下方 -->
-<div class="d-flex justify-content-center align-items-start gap-2 mb-4 notice-text">
-  <div style="font-size:20px;line-height:1.1;">⏰</div>
-  <div>請在預約的門診時間內報到，可按「看診進度」查門診叫號，過號則須等待現場安排叫名字，逾期自動取消。</div>
-</div>
+    <div class="d-flex justify-content-center align-items-start gap-2 mb-4 notice-text">
+      <div style="font-size:20px;line-height:1.1;">⏰</div>
+      <div>請在預約的門診時間內報到，可按「看診進度」查門診叫號，過號則須等待現場安排叫名字，逾期自動取消。</div>
+    </div>
+
     <!-- 按鈕同一行且平均 -->
     <div class="d-flex justify-content-center gap-2 mb-3">
       <a class="btn btn-main flex-fill" href="index.html">返回預約首頁</a>
       <a class="btn btn-ghost flex-fill" href="query.html">查詢/取消預約</a>
     </div>
 
-    <!-- 分享（加底線） -->
+    <!-- 分享 -->
     <div class="mb-2">
       <button id="shareBtn" class="btn btn-link p-0">📤 分享</button>
     </div>
@@ -108,28 +94,23 @@
 </div>
 
 <script>
-/* ==== 你的新版 GAS endpoint ==== */
 const API = "https://script.google.com/macros/s/AKfycbwzN5VFnM35ZQ0e316dUEcncVtBsUTrOxkKSGP6hua90p5LqeNSMREWYH-JOe7LXj8/exec";
 
-/* ==== DOM ==== */
 const $loading = document.getElementById('loading');
 const $dots = document.getElementById('dots');
-const lineDate  = document.getElementById('lineDate');
+const dateLine  = document.getElementById('dateLine');
+const timeLine  = document.getElementById('timeLine');
 const lineNameNo= document.getElementById('lineNameNo');
 const filledAt  = document.getElementById('filledAt');
 const shareBtn  = document.getElementById('shareBtn');
 
-/* ==== 動態點點 ==== */
 let dotTimer = setInterval(()=>{
   $dots.textContent = $dots.textContent === '...' ? '.' : $dots.textContent + '.';
   if($dots.textContent.length > 3) $dots.textContent = '.';
 }, 340);
 
-/* ==== Utils：更穩健的日期處理（配合新版 GAS） ==== */
 function pad2(n){return n<10?'0'+n:String(n);}
-
 function normalizeYMD(input){
-  // 轉成 yyyy-mm-dd（以台北時區避免跨日）
   if(!input) return '';
   if (typeof input === 'string'){
     if (/^\d{4}-\d{2}-\d{2}$/.test(input)) return input;
@@ -142,13 +123,11 @@ function normalizeYMD(input){
   return isNaN(d) ? '' : toYMD(d);
 }
 function toYMD(d){
-  // 用固定 09:00 +08:00 避免 DST/UTC 造成日子偏移
   const z = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate(), 1,0,0));
   return `${z.getUTCFullYear()}-${pad2(z.getUTCMonth()+1)}-${pad2(z.getUTCDate())}`;
 }
 function weekdayZhFromYMD(ymd){
   if(!ymd) return '';
-  // 直接用 +08:00 算星期
   const d = new Date(ymd + 'T09:00:00+08:00');
   const WEEK = ['日','一','二','三','四','五','六'];
   return WEEK[d.getDay()] || '';
@@ -169,41 +148,41 @@ function guessTimeBySlot(slot){
   return '';
 }
 
-/* ==== 主流程 ==== */
 (async function init(){
   try{
     const qs = new URLSearchParams(location.search);
     const id = qs.get('id');
     if(!id) throw new Error('缺少預約代碼');
 
-    // 1) 取單筆明細（新版 GAS 的 detail_ 回傳 date 為 yyyy-mm-dd）
     const r = await axios.get(API, { params:{ action:'detail', id } });
     const d = r.data || {};
 
-    const ymd = normalizeYMD(d.date);         // 穩健轉成 yyyy-mm-dd
-    const wk  = weekdayZhFromYMD(ymd);        // 星期幾（數字→中）
+    const ymd = normalizeYMD(d.date);
+    const wk  = weekdayZhFromYMD(ymd);
     let timeRange = '';
 
-    // 2) 依當天配置取出對應診別的 time（新版 GAS 的 getSlots 會回傳 time）
     try{
       const s = await axios.get(API, { params:{ action:'getSlots', date: ymd } });
       const hit = (s.data||[]).find(x => String(x.label) === String(d.slot));
       timeRange = hit?.time || '';
     }catch(_){
-      // 後備：依診別字樣猜時間
       timeRange = guessTimeBySlot(d.slot);
     }
 
-    // 顯示主資訊
-    lineDate.textContent   = `${ymd} 星期${wk}（${d.slot||''}）  ${timeRange||''}`;
-    lineNameNo.textContent = `姓名：${d.name||''}，號碼：${d.num||''} 號。`;
+    const doctor = d.doctor || d.doctorName || d.dr || '';
+
+    // 三行顯示
+    dateLine.textContent   = `${ymd} 星期${wk}（${d.slot || ''}）`;
+    timeLine.textContent   = `${timeRange || ''}${doctor ? '〔' + doctor + '醫師〕' : ''}`;
+    lineNameNo.textContent = `姓名：${d.name || ''}，號碼：${d.num || ''} 號。`;
+
     filledAt.textContent   = d.time ? fmtTsTW(d.time) : '';
 
-    // 分享內容
     const shareText =
 `✔️陳萬龍診所門診預約成功！
 
-${ymd} 星期${wk}（${d.slot||''}）${timeRange? ' '+timeRange : ''}
+${ymd} 星期${wk}（${d.slot||''}）
+${timeRange || ''}${doctor ? '〔' + doctor + '醫師〕' : ''}
 
 姓名：${d.name||''}，號碼：${d.num||''} 號。
 請在預約的門診時間內到場報到，過號則須等待現場安排叫名字，逾期自動取消。`;
@@ -230,9 +209,3 @@ ${ymd} 星期${wk}（${d.slot||''}）${timeRange? ' '+timeRange : ''}
 </script>
 </body>
 </html>
-
-
-
-
-
-
