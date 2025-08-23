@@ -121,4 +121,29 @@ h1,h2,h3,h4,h5{ color:var(--main); font-weight:700; margin:0; }
   .list-head{ display:none; }
 }
 
+/* ===== success 頁面：日期/星期/診別/時間 單行自適應 ===== */
+/* 預設：單行顯示，字級自動縮小以塞進卡片（不省略、不換行） */
+#lineDate{
+  white-space: nowrap;
+  line-height: 1.35;
+  /* 依螢幕寬度自動縮放字級：最小 0.95rem，最大 1.25rem */
+  font-size: clamp(0.95rem, 2.6vw, 1.25rem);
+}
+
+/* 稍窄手機再微縮一點字 */
+@media (max-width: 400px){
+  #lineDate{
+    font-size: clamp(0.9rem, 3.2vw, 1.1rem);
+  }
+}
+
+/* 非常窄時允許自動換成兩行（避免擠壞版面） */
+@media (max-width: 330px){
+  #lineDate{
+    white-space: normal;   /* 解除單行限制，允許換行 */
+    text-align: center;    /* 兩行時仍置中 */
+    word-break: keep-all;  /* 儘量在空白或標點換行，避免切字 */
+  }
+}
+
 
