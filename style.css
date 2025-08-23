@@ -121,42 +121,25 @@ h1,h2,h3,h4,h5{ color:var(--main); font-weight:700; margin:0; }
   .list-head{ display:none; }
 }
 
-/* ===== success 頁面：日期/星期/診別/時間 單行自適應 ===== */
-/* 預設：單行顯示，字級自動縮小以塞進卡片（不省略、不換行） */
-#lineDate{
-  white-space: nowrap;
-  line-height: 1.35;
-  /* 依螢幕寬度自動縮放字級：最小 0.95rem，最大 1.25rem */
-  font-size: clamp(0.95rem, 2.6vw, 1.25rem);
+/* ===== success：三段大字（等同 fs-5 mb-4） ===== */
+/* 三行的 id：#dateLine、#timeLine、#lineNameNo */
+#dateLine,
+#timeLine,
+#lineNameNo{
+  font-size: 1.25rem;   /* 等同 Bootstrap fs-5 */
+  margin-bottom: 1.5rem;/* 等同 Bootstrap mb-4 */
+  font-weight: 700;     /* 與 strong-line 對齊的粗體 */
+  color: #1e3c53;       /* 與 strong-line 顏色一致 */
 }
 
-/* 稍窄手機再微縮一點字 */
-@media (max-width: 400px){
-  #lineDate{
-    font-size: clamp(0.9rem, 3.2vw, 1.1rem);
+/* 若想在超小螢幕略縮字，可開啟這段 */
+@media (max-width: 360px){
+  #dateLine,
+  #timeLine,
+  #lineNameNo{
+    font-size: 1.1rem;
   }
 }
 
-/* 非常窄時允許自動換成兩行（避免擠壞版面） */
-@media (max-width: 330px){
-  #lineDate{
-    white-space: normal;   /* 解除單行限制，允許換行 */
-    text-align: center;    /* 兩行時仍置中 */
-    word-break: keep-all;  /* 儘量在空白或標點換行，避免切字 */
-  }
-}
-
-/* 注意事項文字縮小 */
-.notice-text {
-  font-size: 0.9rem;   /* 預設 14.4px */
-  line-height: 1.5;    /* 讓文字不擠 */
-  color:#4b5b6b;       /* 確保顏色一致 */
-}
-
-@media (max-width: 400px){
-  .notice-text {
-    font-size: 0.85rem;  /* 小螢幕再縮一點 */
-  }
-}
 
 
