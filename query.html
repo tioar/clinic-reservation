@@ -193,4 +193,81 @@ async function showByBookingId(bookingId){
 }
 
 // === 渲染一列 ===
-functi
+function appendRow(item, pid){
+  const ymd = item.date;
+  const w = weekday(ymd);
+  const t = item.time || guessTime(item.slot) || '';
+  const row = document.createElement('div');
+  row.className = 'list-row mb-2';
+  row.innerHTML = `
+    <div>${ymd || ''}</div>
+    <div>星期${w || ''}</div>
+    <div>${item.slot || ''}</div>
+    <div>${t}</div>
+    <div>${item.name || ''}</div>
+    <div>${item.num || ''}</div>
+    <div>
+      <button class="btn btn-cancel btn-sm" ${item.canCancel ? '' : 'disabled'}>取消</button>
+    </div>
+  `;
+  row.querySelector('.btn-cancel').onclick = ()=> cancelOne(item, pid);
+  $list.appendChild(row);
+}
+
+// === 取消：優先用 row id，失敗才用 idnum ===
+async function cancelOne(item, pid){
+  if(!item?.canCancel){ return; }
+  if(!confirm(`確認取消：\n${item.date}（${item.slot}）\n${item.name}  第 ${item.num} 號？`)) return;
+
+  showing('取消中請稍等');
+  try{
+    let resp = await axios.get(API,{ params:{ action:'cancel', id: item.id, t: Date.now() }});
+    if(!(resp.data && (resp.data.ok || resp.data.success))){
+      if(pid){
+        resp = await axios.get(API,{ params:{ action:'cancel', idnum: pid, t: Date.now() }});
+      }
+    }
+
+    if(resp.data && (resp.data.ok || resp.data.success)){
+      alert(resp.data.message || '已取消。');
+      if(pid){ await queryByPid(); }
+      else { // 單筆模式：移除畫面即可
+        $list.innerHTML = '<div class="text-muted">此預約已取消</div>';
+      }
+    }else{
+      alert((resp.data && resp.data.message) || '取消失敗，請稍後再試');
+    }
+  }catch(e){
+    console.error(e);
+    alert('取消失敗，請稍後再試');
+  }finally{
+    hideing();
+  }
+}
+
+// === 事件 ===
+$btn.onclick = queryByPid;
+$pid.addEventListener('input', e=>{
+  e.target.value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,10);
+});
+
+// === 進站判斷：若有 cipher 就走單筆模式，並立刻清掉 URL 參數 ===
+(function boot(){
+  const qs = getSearchParamsAnywhere();
+  const cipher = qs.get('cipher');
+  if(cipher){
+    try{
+      const { id } = aesDec(cipher);
+      scrubUrl(location.pathname); // 清掉網址上的密文
+      showByBookingId(id);
+      return;
+    }catch(e){
+      console.warn('cipher 解密失敗：', e);
+      scrubUrl(location.pathname);
+      // 繼續顯示一般查詢
+    }
+  }
+})();
+</script>
+</body>
+</html>
