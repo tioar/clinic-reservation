@@ -269,6 +269,7 @@ $submit.onclick = async ()=>{
       action:'submit', date:d, slot:s, name:n, birthday:b, id:id, phone:ph
     }});
 
+    // 👉 後端若判定重複 / 額滿 / 其他錯誤：在此顯示並停止導頁
     if(!r.data?.ok){
       const code = r.data?.error || '';
       if(code === 'duplicate'){
@@ -292,14 +293,20 @@ $submit.onclick = async ()=>{
     // ❷ 後備：存在 sessionStorage
     sessionStorage.setItem('lastBookingId', String(idFromApi));
 
-    // ❸ 產生 success 的絕對網址（帶 cipher，避免相對路徑/LIFF 問題）
-    const successUrl = new URL('success.html', location.href);
-    const cipher = aesEnc({ id: idFromApi }); // 10 分鐘有效
+    // ❸ 更保險：用「目前頁面的目錄」當 base，再組出 success 的絕對網址
+    const baseDir = new URL('.', location.href);          // 取得目錄(一定以 / 結尾)
+    const successUrl = new URL('success.html', baseDir);  // -> .../success.html
+    const cipher = aesEnc({ id: idFromApi });             // 10 分鐘有效
     successUrl.searchParams.set('cipher', cipher);
 
-    // ❹ LIFF 內用 LIFF 開，否則一般導頁
+    // ❹ LIFF 內用 LIFF 開，失敗則退回一般導頁；非 LIFF 直接導頁
     if (window.liff && liff.isInClient()) {
-      liff.openWindow({ url: successUrl.href, external: false });
+      try {
+        liff.openWindow({ url: successUrl.href, external: false });
+      } catch (err) {
+        console.warn('liff.openWindow 失敗，改用 location.assign', err);
+        location.assign(successUrl.href);
+      }
     } else {
       location.assign(successUrl.href);
     }
