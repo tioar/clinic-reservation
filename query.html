@@ -8,65 +8,17 @@
 <link rel="stylesheet" href="style.css" />
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 
-<!-- LIFF SDK -->
+<!-- （可留可拿掉）LIFF SDK：不影響用身分證查詢 -->
 <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 <script>
 (async () => {
   try {
     await liff.init({ liffId: '2007979306-0gl4PKb1' });
-    if (liff.isInClient() && !liff.isLoggedIn()) {
-      liff.login({ redirectUri: location.href });
-      return;
-    }
     document.documentElement.classList.add('liff-ready');
   } catch (e) {
-    console.error('LIFF init fail:', e);
+    console.warn('LIFF init fail (不影響查詢)：', e);
   }
 })();
-</script>
-
-<!-- CryptoJS (AES) -->
-<script src="https://cdn.jsdelivr.net/npm/crypto-js@4.2.0/crypto-js.min.js"></script>
-<script>
-// === 常數 ===
-const API = "https://script.google.com/macros/s/AKfycbwzN5VFnM35ZQ0e316dUEcncVtBsUTrOxkKSGP6hua90p5LqeNSMREWYH-JOe7LXj8/exec";
-const AES_KEY = "A2x5fT9qR7nC1vB8mK3pZ6sD4uH0yW2j";
-
-// === AES ===
-function aesDec(v){
-  const txt = CryptoJS.AES.decrypt(decodeURIComponent(v), AES_KEY).toString(CryptoJS.enc.Utf8);
-  if(!txt) throw new Error("DECRYPT_FAIL");
-  const data = JSON.parse(txt);
-  if(data.exp && Date.now() > data.exp) throw new Error("TOKEN_EXPIRED");
-  return data;
-}
-
-// === URL 工具（支援 liff.state）+ 清參數 ===
-function getSearchParamsAnywhere(){
-  const p = new URLSearchParams(location.search);
-  const state = p.get('liff.state');
-  if(state){
-    const u = new URL(state, location.origin);
-    return new URLSearchParams(u.search);
-  }
-  return p;
-}
-function scrubUrl(newPathName){
-  history.replaceState({}, "", newPathName || location.pathname);
-}
-
-// === 日期工具 ===
-function weekday(ymd){
-  const d = new Date(ymd+'T09:00:00+08:00');
-  return ['日','一','二','三','四','五','六'][d.getDay()];
-}
-function guessTime(slot){
-  if(!slot) return '';
-  if(slot.includes('早')) return '08:00~11:00';
-  if(slot.includes('午')) return '14:00~17:00';
-  if(slot.includes('晚')) return '18:00~20:30';
-  return '';
-}
 </script>
 
 <style>
@@ -76,6 +28,9 @@ function guessTime(slot){
   .btn-cancel:hover{background:#b02a37}
   #ing{position:fixed;inset:0;background:rgba(255,255,255,.85);display:none;align-items:center;justify-content:center;z-index:9999;font-size:18px;color:#2e5a79;backdrop-filter:blur(2px)}
   #dots{display:inline-block;width:2ch;text-align:left}
+  @media (max-width:576px){
+    .list-row{grid-template-columns:1.1fr .7fr .7fr .9fr 1fr .6fr .7fr}
+  }
 </style>
 </head>
 <body>
@@ -87,11 +42,11 @@ function guessTime(slot){
     <h1>查詢／取消預約</h1>
   </div>
 
-  <!-- 一般查詢區 -->
+  <!-- 查詢區 -->
   <div id="normalBox">
     <div class="mb-3">
       <label class="form-label">身分證字號</label>
-      <input type="text" id="pid" class="form-control" placeholder="例如：A123456789" maxlength="10">
+      <input type="text" id="pid" class="form-control" placeholder="例如：A123456789" maxlength="10" autocomplete="off">
     </div>
     <div class="d-grid gap-2">
       <button id="btnQuery" class="btn-main">查詢</button>
@@ -111,15 +66,20 @@ function guessTime(slot){
 </div>
 
 <script>
-const $pid = document.getElementById('pid');
-const $btn = document.getElementById('btnQuery');
-const $res = document.getElementById('result');
+// ===== 設定 =====
+const API = "https://script.google.com/macros/s/AKfycbwzN5VFnM35ZQ0e316dUEcncVtBsUTrOxkKSGP6hua90p5LqeNSMREWYH-JOe7LXj8/exec";
+
+// ===== DOM =====
+const $pid  = document.getElementById('pid');
+const $btn  = document.getElementById('btnQuery');
+const $res  = document.getElementById('result');
 const $list = document.getElementById('list');
 const $hint = document.getElementById('hint');
-const $ing = document.getElementById('ing');
+const $ing  = document.getElementById('ing');
 const $dots = document.getElementById('dots');
 const $normal = document.getElementById('normalBox');
 
+// ===== Loading 點點 =====
 let dotTimer=null;
 function showing(txt){
   $ing.firstChild.nodeValue = (txt||'處理中請稍等');
@@ -132,15 +92,31 @@ function showing(txt){
 }
 function hideing(){ if(dotTimer) clearInterval(dotTimer); $ing.style.display='none'; }
 
-// === 以身分證字號查詢（原功能） ===
+// ===== 小工具 =====
+function weekday(ymd){
+  const d = new Date(ymd+'T09:00:00+08:00');
+  return ['日','一','二','三','四','五','六'][d.getDay()];
+}
+function guessTime(slot){
+  if(!slot) return '';
+  if(slot.includes('早')) return '08:00~11:00';
+  if(slot.includes('午')) return '14:00~17:00';
+  if(slot.includes('晚')) return '18:00~20:30';
+  return '';
+}
+
+// ===== 查詢（用身分證字號） =====
 async function queryByPid(){
   const pid = $pid.value.trim().toUpperCase();
   if(!/^[A-Z][12]\d{8}$/.test(pid)){ alert('請輸入正確的身分證字號'); return; }
-  showing('查詢中請稍等');
 
+  showing('查詢中請稍等');
   try{
+    // 與 GAS 對齊：action=queryByPid, 參數 idnum
     const r = await axios.get(API,{ params:{ action:'queryByPid', idnum: pid, t: Date.now() }});
     const payload = (typeof r.data === 'string') ? JSON.parse(r.data) : r.data;
+
+    // 只顯示未取消
     const rows = Array.isArray(payload?.items) ? payload.items.filter(x => !x.cancelled) : [];
 
     $list.innerHTML = '';
@@ -153,7 +129,7 @@ async function queryByPid(){
     }
 
     $hint.style.display='block';
-    rows.forEach(item=> appendRow(item, pid));
+    rows.forEach(item => appendRow(item, pid));
   }catch(e){
     console.error(e);
     alert('查詢失敗，請稍後再試');
@@ -162,78 +138,48 @@ async function queryByPid(){
   }
 }
 
-// === 以 booking id 顯示單筆（來自 cipher） ===
-async function showByBookingId(bookingId){
-  showing('載入中');
-  try{
-    const r = await axios.get(API, { params:{ action:'detail', id: bookingId }});
-    const d = r.data || {};
-    // 簡化成 rows 介面以共用 appendRow
-    const item = {
-      id: bookingId,
-      date: d.date,
-      slot: d.slot,
-      time: d.time,
-      name: d.name,
-      num: d.num,
-      canCancel: true,   // 若後端有條件，可依回傳調整
-    };
-
-    $normal.style.display = 'none';
-    $res.style.display = 'block';
-    $hint.style.display = 'none';
-    $list.innerHTML = '';
-    appendRow(item, null); // 無 pid
-  }catch(e){
-    console.error(e);
-    alert('無法載入預約資料');
-  }finally{
-    hideing();
-  }
-}
-
-// === 渲染一列 ===
+// ===== 渲染一列 =====
 function appendRow(item, pid){
-  const ymd = item.date;
-  const w = weekday(ymd);
-  const t = item.time || guessTime(item.slot) || '';
+  const ymd = item.date || '';
+  const w   = weekday(ymd);
+  const t   = item.time || guessTime(item.slot) || '';
+
   const row = document.createElement('div');
   row.className = 'list-row mb-2';
   row.innerHTML = `
-    <div>${ymd || ''}</div>
-    <div>星期${w || ''}</div>
-    <div>${item.slot || ''}</div>
+    <div>${ymd}</div>
+    <div>星期${w}</div>
+    <div>${item.slot||''}</div>
     <div>${t}</div>
-    <div>${item.name || ''}</div>
-    <div>${item.num || ''}</div>
+    <div>${item.name||''}</div>
+    <div>${item.num||''}</div>
     <div>
-      <button class="btn btn-cancel btn-sm" ${item.canCancel ? '' : 'disabled'}>取消</button>
+      <button class="btn btn-cancel btn-sm" ${item.canCancel===false?'disabled':''} data-id="${item.id||''}">取消</button>
     </div>
   `;
-  row.querySelector('.btn-cancel').onclick = ()=> cancelOne(item, pid);
+  const btn = row.querySelector('.btn-cancel');
+  btn.onclick = () => cancelOne(item, pid);
   $list.appendChild(row);
 }
 
-// === 取消：優先用 row id，失敗才用 idnum ===
+// ===== 取消（優先用 row id，失敗再用身分證字號整批取消） =====
 async function cancelOne(item, pid){
-  if(!item?.canCancel){ return; }
-  if(!confirm(`確認取消：\n${item.date}（${item.slot}）\n${item.name}  第 ${item.num} 號？`)) return;
+  if(item?.canCancel===false) return;
+  const ok = confirm(`確認取消：\n${item.date||''}（${item.slot||''}）\n${item.name||''} 第 ${item.num||''} 號？`);
+  if(!ok) return;
 
   showing('取消中請稍等');
   try{
+    // A. 以 row id 取消
     let resp = await axios.get(API,{ params:{ action:'cancel', id: item.id, t: Date.now() }});
     if(!(resp.data && (resp.data.ok || resp.data.success))){
-      if(pid){
-        resp = await axios.get(API,{ params:{ action:'cancel', idnum: pid, t: Date.now() }});
-      }
+      // B. 後備：以身分證字號取消（會取消該身分所有未取消預約）
+      resp = await axios.get(API,{ params:{ action:'cancel', idnum: pid, t: Date.now() }});
     }
 
     if(resp.data && (resp.data.ok || resp.data.success)){
       alert(resp.data.message || '已取消。');
-      if(pid){ await queryByPid(); }
-      else { // 單筆模式：移除畫面即可
-        $list.innerHTML = '<div class="text-muted">此預約已取消</div>';
-      }
+      await queryByPid(); // 重新查一次
     }else{
       alert((resp.data && resp.data.message) || '取消失敗，請稍後再試');
     }
@@ -245,29 +191,16 @@ async function cancelOne(item, pid){
   }
 }
 
-// === 事件 ===
+// ===== 綁定事件與輸入限制 =====
 $btn.onclick = queryByPid;
 $pid.addEventListener('input', e=>{
   e.target.value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,10);
 });
 
-// === 進站判斷：若有 cipher 就走單筆模式，並立刻清掉 URL 參數 ===
-(function boot(){
-  const qs = getSearchParamsAnywhere();
-  const cipher = qs.get('cipher');
-  if(cipher){
-    try{
-      const { id } = aesDec(cipher);
-      scrubUrl(location.pathname); // 清掉網址上的密文
-      showByBookingId(id);
-      return;
-    }catch(e){
-      console.warn('cipher 解密失敗：', e);
-      scrubUrl(location.pathname);
-      // 繼續顯示一般查詢
-    }
-  }
-})();
+// Enter 直接查
+$pid.addEventListener('keydown', e=>{
+  if(e.key === 'Enter') queryByPid();
+});
 </script>
 </body>
 </html>
