@@ -141,5 +141,20 @@ h1,h2,h3,h4,h5{ color:var(--main); font-weight:700; margin:0; }
   }
 }
 
+/* 主資訊：維持大字，但避免過度壓縮 */
+#mainInfo {
+  font-size: 1.25rem;   /* 基本字級 = fs-5 (20px) */
+  line-height: 1.5;
+  white-space: nowrap;  /* 預設不換行 */
+}
+
+/* 如果螢幕太窄，允許換行避免字太小 */
+@media (max-width: 420px){
+  #mainInfo {
+    white-space: normal;   /* 小螢幕允許自動換行 */
+    text-align: center;
+  }
+}
+
 
 
