@@ -45,7 +45,7 @@ function aesDec(v){
   return data;
 }
 
-// === URL 工具：同時支援 liff.state ===
+// === URL 工具（支援 liff.state） ===
 function getSearchParamsAnywhere(){
   const p = new URLSearchParams(location.search);
   const state = p.get('liff.state');
@@ -138,7 +138,7 @@ function guessTimeBySlot(slot){
       <a class="btn btn-ghost flex-fill" href="query.html">查詢/取消預約</a>
     </div>
 
-    <!-- 這一行：分享 ＆ 關閉視窗 並排平均 -->
+    <!-- 分享 / 關閉 -->
     <div class="d-flex justify-content-center gap-2 mb-2">
       <button id="shareBtn" class="btn btn-ghost flex-fill">📤 分享</button>
       <button id="closeBtn" class="btn btn-ghost flex-fill">❌ 關閉視窗</button>
@@ -149,8 +149,8 @@ function guessTimeBySlot(slot){
 </div>
 
 <script>
-const $loading = document.getElementById('loading');
-const $dots = document.getElementById('dots');
+const $loading  = document.getElementById('loading');
+const $dots     = document.getElementById('dots');
 const mainInfo  = document.getElementById('mainInfo');
 const lineNameNo= document.getElementById('lineNameNo');
 const filledAt  = document.getElementById('filledAt');
@@ -158,11 +158,49 @@ const shareBtn  = document.getElementById('shareBtn');
 const closeBtn  = document.getElementById('closeBtn');
 const homeBtn   = document.getElementById('homeBtn');
 
+// ===== 關閉視窗（頂層就綁好 + 多重退路） =====
+closeBtn.addEventListener('click', onClose);
+homeBtn.addEventListener('click', e=>{
+  // 在 LIFF 內按「返回預約首頁」→ 直接關閉回聊天室；非 LIFF 則照預設連結回首頁
+  if (window.liff && typeof liff.isInClient === 'function' && liff.isInClient()) {
+    e.preventDefault();
+    try { liff.closeWindow(); } catch(_) { safeFallback(); }
+  }
+});
+function onClose(e){
+  e.preventDefault();
+  // 1) LIFF 內：嘗試關閉
+  if (window.liff && typeof liff.isInClient === 'function' && liff.isInClient()) {
+    try {
+      liff.closeWindow();
+      // 若未成功關閉（極少數狀況），400ms 後啟動退路
+      setTimeout(() => {
+        if (!document.hidden && !document.webkitHidden) safeFallback();
+      }, 400);
+      return;
+    } catch(_) { /* 繼續退路 */ }
+  }
+  // 2) 外部瀏覽器或失敗：退路
+  safeFallback();
+}
+function safeFallback(){
+  // 先嘗試回上一頁；沒有 history 就回首頁
+  if (history.length > 1) {
+    history.back();
+    // 防止 back 失敗，300ms 後硬導回首頁
+    setTimeout(()=> location.replace('index.html'), 300);
+  } else {
+    location.replace('index.html');
+  }
+}
+
+// ===== 載入動畫點點 =====
 let dotTimer = setInterval(()=>{
   $dots.textContent = $dots.textContent === '...' ? '.' : $dots.textContent + '.';
   if($dots.textContent.length > 3) $dots.textContent = '.';
 }, 340);
 
+// ===== 主流程 =====
 (async function init(){
   try{
     // 取 id：cipher > id > sessionStorage
@@ -176,7 +214,7 @@ let dotTimer = setInterval(()=>{
 
     if(!id){ alert('連結無效或已過期，請回首頁。'); location.href='index.html'; return; }
 
-    // 取得後就清掉網址參數（避免敏感字串殘留）
+    // 取得後清掉網址參數
     scrubUrl(location.pathname);
 
     const r = await axios.get(API, { params:{ action:'detail', id } });
@@ -207,7 +245,7 @@ ${ymd} 星期${wk}（${d.slot||''}） ${timeRange||''}
 
     shareBtn.onclick = async ()=>{
       try{
-        if (window.liff && liff.isInClient() && liff.isApiAvailable('shareTargetPicker')) {
+        if (window.liff && typeof liff.isInClient === 'function' && liff.isInClient() && liff.isApiAvailable('shareTargetPicker')) {
           await liff.shareTargetPicker([{ type:'text', text: shareText }]);
         } else if (navigator.share) {
           await navigator.share({ text: shareText });
@@ -217,27 +255,6 @@ ${ymd} 星期${wk}（${d.slot||''}） ${timeRange||''}
         }
       }catch(_){}
     };
-
-    // 關閉視窗
-    closeBtn.onclick = (e)=>{
-      e.preventDefault();
-      if (window.liff && liff.isInClient()) {
-        liff.closeWindow();              // LIFF 內直接關閉
-      } else {
-        // 非 LIFF：嘗試關閉；不行就返回或回首頁
-        window.close();
-        if (history.length > 1) history.back();
-        else location.href = 'index.html';
-      }
-    };
-
-    // 在 LIFF 內若按「返回預約首頁」，可直接關閉回聊天室（可選）
-    homeBtn.addEventListener('click', (e)=>{
-      if (window.liff && liff.isInClient()) {
-        e.preventDefault();
-        liff.closeWindow();
-      }
-    });
 
   }catch(e){
     console.error(e);
@@ -250,4 +267,3 @@ ${ymd} 星期${wk}（${d.slot||''}） ${timeRange||''}
 </script>
 </body>
 </html>
-
