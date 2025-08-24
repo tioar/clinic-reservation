@@ -1,56 +1,38 @@
 <!doctype html>
 <html lang="zh-Hant">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <title>後台管理</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <meta name="viewport" content="width=device-width, initial-scale=1">
 
-  <!-- 你原本若有 style.css 會自動套用；以下補上必要的藍灰圓角風格 -->
+  <!-- 保留你原本的樣式，沿用藍灰圓角風格 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+
   <style>
-    :root{
-      --bg:#f5f8fb; --ink:#334; --ink2:#556; --blue:#2b7cff; --blue-700:#1a5ed1;
-      --card:#fff; --br:#e5edf6; --chip:#dfe9f5;
-    }
-    html,body{background:var(--bg); color:var(--ink);}
-    .card-wrap{max-width:1024px; margin:24px auto; padding:0 12px;}
-    .card-head{display:flex; align-items:center; gap:12px; margin-bottom:14px;}
-    .card{background:var(--card); border:1px solid var(--br); border-radius:18px; padding:18px; box-shadow:0 2px 10px rgba(30,60,90,.04)}
-    .logo{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#2b7cff,#6fb3ff);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:900}
-    .subtitle{color:#6b7a90; font-size:.9rem}
-    .btn-main{background:linear-gradient(135deg,#2b7cff,#6fb3ff); color:#fff; border:none; padding:.55rem 1rem; border-radius:999px; font-weight:700}
-    .btn-main:hover{background:linear-gradient(135deg,#1a5ed1,#4f9cff)}
-    .btn-round{border-radius:999px}
-    .btn-chip{border:1px solid var(--br); background:#f0f6ff; color:#1e4e9a; padding:.45rem .9rem; border-radius:999px; font-weight:700}
-    .navtabs{display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap}
-    .tab-btn{border:1px solid var(--br); background:#eef4fb; color:#1f3762; padding:.5rem 1rem; border-radius:999px; font-weight:700}
-    .tab-btn.active{background:var(--blue); color:#fff; border-color:var(--blue)}
-    .login-card .card{max-width:420px; margin:8vh auto}
-    .table thead th{white-space:nowrap}
-    .tag{display:inline-block; width:.8rem;height:.8rem;border-radius:999px;margin-right:.4rem;vertical-align:middle}
-    .tag-early{background:#60a5fa}.tag-noon{background:#34d399}.tag-night{background:#f59e0b}
-    .sheet-chip{border-radius:14px;border:1px solid #c9d6e2;padding:.55rem .9rem;font-weight:600;text-decoration:none;color:#1f3762;background:#f7fbff}
-    .sheet-chip:hover{background:#eef6ff;border-color:#b9c8d6}
-    .num-step{display:inline-flex;border:1px solid var(--br);border-radius:10px;overflow:hidden}
-    .num-step input{width:88px;border:0;text-align:center;padding:.35rem .5rem}
-    .num-step button{background:#eef4fb;border:0;padding:.35rem .6rem}
+    /* 小幅美化捷徑按鈕，與你之前一致 */
+    .sheet-chip{border-radius:14px;border:1px solid #c9d6e2;padding:.55rem .9rem;font-weight:600}
+    .sheet-chip:hover{background:#f4f8fb;border-color:#b9c8d6}
+    /* 分頁按鈕用既有風格：active 用 .btn-main，非 active 用 outline */
+    .tabbar{display:flex;flex-wrap:wrap;gap:.5rem;margin:8px 0 16px}
+    .tabbar .btn{border-radius:999px}
     .muted{color:#6b7a90}
-    .small-note{font-size:.85rem;color:#6b7a90}
-    .table td, .table th{vertical-align:middle}
+    .small-note{font-size:.9rem;color:#6b7a90}
+    .table td,.table th{vertical-align:middle}
   </style>
 </head>
 <body>
 
-<!-- ====== Login（僅帳密） ====== -->
-<div id="login" class="container py-4 login-card">
+<!-- ====== Login（只留帳密） ====== -->
+<div id="login" class="container py-5 login-card">
   <div class="card">
-    <div class="header d-flex align-items-center gap-2 mb-3">
+    <div class="header">
       <div class="logo">＋</div>
-      <h1 class="h4 m-0">後台登入</h1>
+      <h1>後台登入</h1>
     </div>
     <input id="acc" class="form-control mb-2" placeholder="帳號">
     <input id="pw" type="password" class="form-control mb-3" placeholder="管理密碼">
-    <button id="btnLoginPW" class="btn-main w-100">登入</button>
+    <button id="btnLoginPW" class="btn btn-outline-secondary w-100">登入</button>
   </div>
 </div>
 
@@ -69,14 +51,14 @@
       </div>
     </div>
 
-    <!-- 分頁按鈕 -->
-    <div class="navtabs">
-      <button class="tab-btn active" data-tab="tab-today">今天名單</button>
-      <button class="tab-btn" data-tab="tab-settings">預約設定</button>
-      <button class="tab-btn" data-tab="tab-special">臨時異動</button>
+    <!-- 分頁按鈕（維持原風格：主色/outline） -->
+    <div class="tabbar">
+      <button class="btn btn-main" id="tabBtnToday"    data-tab="tab-today">今天名單</button>
+      <button class="btn btn-outline-secondary" id="tabBtnSettings" data-tab="tab-settings">預約設定</button>
+      <button class="btn btn-outline-secondary" id="tabBtnSpecial"  data-tab="tab-special">臨時異動</button>
     </div>
 
-    <!-- ====== 分頁：今天名單 ====== -->
+    <!-- ====== 今天名單 ====== -->
     <section id="tab-today">
       <div class="card mb-3">
         <div class="d-flex align-items-center justify-content-between">
@@ -84,9 +66,7 @@
             <h5 class="m-0">今天名單</h5>
             <div id="todayInfo" class="small-note mt-1"></div>
           </div>
-          <div class="d-flex gap-2">
-            <button id="btnTodayReload" class="btn btn-outline-secondary btn-round btn-sm">重新整理</button>
-          </div>
+          <div><button id="btnTodayReload" class="btn btn-outline-secondary btn-round btn-sm">重新整理</button></div>
         </div>
         <div id="todayStats" class="row g-3 mt-2"></div>
       </div>
@@ -95,10 +75,10 @@
         <div class="table-responsive">
           <table class="table table-striped align-middle" id="tblToday">
             <thead>
-            <tr>
-              <th>診別</th><th>時段</th><th>號碼</th><th>姓名</th><th>生日</th>
-              <th>身分證</th><th>電話</th><th>建立時間</th><th style="width:90px;">操作</th>
-            </tr>
+              <tr>
+                <th>診別</th><th>時段</th><th>號碼</th><th>姓名</th><th>生日</th>
+                <th>身分證</th><th>電話</th><th>建立時間</th><th style="width:90px;">操作</th>
+              </tr>
             </thead>
             <tbody></tbody>
           </table>
@@ -107,41 +87,39 @@
       </div>
     </section>
 
-    <!-- ====== 分頁：預約設定（預約期限 + weekday 規則） ====== -->
+    <!-- ====== 預約設定（預約期限 + weekday） ====== -->
     <section id="tab-settings" style="display:none;">
-      <!-- Booking Window -->
       <div class="card mb-4">
         <div class="d-flex align-items-center justify-content-between">
-          <h5 class="m-0">預約期限（可預約的天數）</h5>
-          <div class="small-note">顯示區間為「今天 + 起始天 ～ 今天 + 結束天」</div>
+          <h5 class="m-0">預約期限</h5>
+          <div class="small-note">顯示區間 = 今天 + 起始天 ～ 今天 + 結束天</div>
         </div>
         <div id="winInfo" class="muted my-2"></div>
         <div class="d-flex flex-wrap align-items-center gap-3">
           <div>
             <div class="muted small mb-1">起始天</div>
-            <div class="num-step">
-              <button data-ds="-1">－</button>
-              <input id="winStart" type="number" value="2">
-              <button data-ds="+1">＋</button>
+            <div class="input-group" style="max-width:160px;">
+              <button class="btn btn-outline-secondary" id="btnStartMinus">－</button>
+              <input id="winStart" type="number" class="form-control text-center" value="2">
+              <button class="btn btn-outline-secondary" id="btnStartPlus">＋</button>
             </div>
           </div>
           <div>
             <div class="muted small mb-1">結束天</div>
-            <div class="num-step">
-              <button data-de="-1">－</button>
-              <input id="winEnd" type="number" value="14">
-              <button data-de="+1">＋</button>
+            <div class="input-group" style="max-width:160px;">
+              <button class="btn btn-outline-secondary" id="btnEndMinus">－</button>
+              <input id="winEnd" type="number" class="form-control text-center" value="14">
+              <button class="btn btn-outline-secondary" id="btnEndPlus">＋</button>
             </div>
           </div>
           <div class="d-flex gap-2 align-items-end">
             <button id="btnWinSet" class="btn-main btn-round">套用</button>
             <button id="btnWinMinus" class="btn btn-outline-secondary btn-round">－1/－1</button>
-            <button id="btnWinPlus" class="btn btn-outline-secondary btn-round">＋1/＋1</button>
+            <button id="btnWinPlus"  class="btn btn-outline-secondary btn-round">＋1/＋1</button>
           </div>
         </div>
       </div>
 
-      <!-- Weekday Rules -->
       <div class="card mb-4">
         <h5 class="mb-2">每週規則（daily_limit）</h5>
         <div class="table-responsive">
@@ -149,12 +127,8 @@
             <thead>
               <tr>
                 <th>星期</th>
-                <th>早診上限</th>
-                <th>午診上限</th>
-                <th>晚診上限</th>
-                <th>早診時間</th>
-                <th>午診時間</th>
-                <th>晚診時間</th>
+                <th>早診上限</th><th>午診上限</th><th>晚診上限</th>
+                <th>早診時間</th><th>午診時間</th><th>晚診時間</th>
                 <th>起始號</th>
                 <th style="width:90px;">操作</th>
               </tr>
@@ -165,15 +139,15 @@
         <div class="small-note">時間格式示例：08:30~11:30</div>
       </div>
 
-      <!-- 試算表捷徑 -->
+      <!-- 可選：試算表捷徑 -->
       <div class="card" id="sheetsCard" style="display:none;">
         <h5 class="mb-2">試算表捷徑</h5>
         <div id="sheetBtns" class="d-flex flex-wrap gap-2"></div>
-        <div class="text-muted small mt-2">（需有該試算表權限；將在新分頁開啟）</div>
+        <div class="text-muted small mt-2">（需有該試算表權限；會在新分頁開啟）</div>
       </div>
     </section>
 
-    <!-- ====== 分頁：臨時異動（special_limit） ====== -->
+    <!-- ====== 臨時異動（special_limit） ====== -->
     <section id="tab-special" style="display:none;">
       <div class="card mb-4">
         <h5 class="mb-3">新增臨時異動</h5>
@@ -222,7 +196,7 @@
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 <script>
 /* ====== 你的 GAS endpoint ====== */
-const API = "https://script.google.com/macros/s/AKfycbwzN5VFnM35ZQ0e316dUEcncVtBsUTrOxkKSGP6hua90p5LqeNSMREWYH-JOe7LXj8/exec";
+const API = "https://script.google.com/macros/s/AKfycbwEpqcjHZhu-vnz673u5mKmDnS1J4cnDHWTx-fmvQ4UcJnrz5IRn-bcq4GBN1jddFKo/exec";
 
 /* ====== DOM ====== */
 const loginBox   = document.getElementById('login');
@@ -233,70 +207,39 @@ const btnLoginPW = document.getElementById('btnLoginPW');
 const logoutBtn  = document.getElementById('logoutBtn');
 const exportBtn  = document.getElementById('exportBtn');
 
-/* tabs */
-const tabBtns = [...document.querySelectorAll('.tab-btn')];
-const tabViews = {
-  'tab-today':   document.getElementById('tab-today'),
-  'tab-settings':document.getElementById('tab-settings'),
-  'tab-special': document.getElementById('tab-special'),
+/* Tabs */
+const tabBtnToday    = document.getElementById('tabBtnToday');
+const tabBtnSettings = document.getElementById('tabBtnSettings');
+const tabBtnSpecial  = document.getElementById('tabBtnSpecial');
+const views = {
+  'tab-today':    document.getElementById('tab-today'),
+  'tab-settings': document.getElementById('tab-settings'),
+  'tab-special':  document.getElementById('tab-special'),
 };
-
-/* 今天名單 */
-const todayInfo  = document.getElementById('todayInfo');
-const todayStats = document.getElementById('todayStats');
-const tblToday   = document.getElementById('tblToday').querySelector('tbody');
-document.getElementById('btnTodayReload').onclick = loadToday;
-
-/* settings: window */
-const winInfo = document.getElementById('winInfo');
-const winStart = document.getElementById('winStart');
-const winEnd   = document.getElementById('winEnd');
-document.querySelector('[data-ds="-1"]').onclick = ()=> adjustWin(-1,0);
-document.querySelector('[data-ds="+1"]').onclick = ()=> adjustWin(+1,0);
-document.querySelector('[data-de="-1"]').onclick = ()=> adjustWin(0,-1);
-document.querySelector('[data-de="+1"]').onclick = ()=> adjustWin(0,+1);
-document.getElementById('btnWinSet').onclick = setWin;
-document.getElementById('btnWinMinus').onclick = ()=> adjustWin(-1,-1);
-document.getElementById('btnWinPlus').onclick  = ()=> adjustWin(+1,+1);
-
-/* settings: daily_limit */
-const tblDaily = document.getElementById('tblDaily').querySelector('tbody');
-
-/* special_limit */
-const newDate    = document.getElementById('newDate');
-const neEarly    = document.getElementById('neEarly');
-const neNoon     = document.getElementById('neNoon');
-const neNight    = document.getElementById('neNight');
-const neEarlyTime= document.getElementById('neEarlyTime');
-const neNoonTime = document.getElementById('neNoonTime');
-const neNightTime= document.getElementById('neNightTime');
-const neEarlyLimit= document.getElementById('neEarlyLimit');
-const neNoonLimit = document.getElementById('neNoonLimit');
-const neNightLimit= document.getElementById('neNightLimit');
-const neNote     = document.getElementById('neNote');
-const addBtn     = document.getElementById('addBtn');
-const tbl        = document.getElementById('tbl');
-
-/* 試算表捷徑 */
-const sheetsCard = document.getElementById('sheetsCard');
-const sheetBtns  = document.getElementById('sheetBtns');
-const favOrder = ['預約名單','daily_limit','special_limit','預約期限'];
-const favIdx = (name)=>{ const i=favOrder.indexOf(name); return i<0?999:i; };
+function switchTab(id){
+  // 按鈕外觀：選中的用主色，其它用 outline
+  [tabBtnToday,tabBtnSettings,tabBtnSpecial].forEach(b=>{
+    const active = (b.dataset.tab || b.id.replace('tabBtn','tab-')) === id;
+    b.classList.toggle('btn-main', active);
+    b.classList.toggle('btn-outline-secondary', !active);
+  });
+  Object.entries(views).forEach(([k,el])=> el.style.display = (k===id?'block':'none'));
+}
 
 /* session token */
 let ADMIN_TOKEN = sessionStorage.getItem('ADMIN_TOKEN') || "";
 
 /* helpers */
-function showApp(){ loginBox.style.display="none"; appBox.style.display="block"; onTab('tab-today'); }
+function showApp(){ loginBox.style.display="none"; appBox.style.display="block"; switchTab('tab-today'); loadToday(); }
 function showLogin(){ appBox.style.display="none"; loginBox.style.display="block"; }
 function assertAuthed(){ if(!ADMIN_TOKEN){ showLogin(); throw new Error('no token'); } }
 
-/* ====== Auth：帳密登入 ====== */
+/* ====== Auth：帳密登入（呼叫 adminLogin） ====== */
 btnLoginPW.onclick = async () => {
   try{
     const a = (acc.value||'').trim();
     const p = (pw.value||'').trim();
-    if(!a || !p){ pw.classList.add('is-invalid'); setTimeout(()=>pw.classList.remove('is-invalid'),600); return; }
+    if(!a || !p){ pw.classList.add('shake'); setTimeout(()=>pw.classList.remove('shake'),350); return; }
     const r = await axios.get(API, { params:{ action:'adminLogin', acc:a, pw:p }});
     if(r.data?.ok){
       ADMIN_TOKEN = r.data.token;
@@ -305,57 +248,51 @@ btnLoginPW.onclick = async () => {
     }else{
       alert(r.data?.message || '帳號或密碼錯誤');
     }
-  }catch(e){ console.error(e); alert('登入失敗'); }
+  }catch(e){
+    console.error(e);
+    alert('登入失敗');
+  }
 };
 
-/* 登出 */
-logoutBtn.onclick = () => {
-  ADMIN_TOKEN = "";
-  sessionStorage.removeItem('ADMIN_TOKEN');
-  showLogin();
-};
+/* 登出 / 匯出 */
+logoutBtn.onclick = () => { ADMIN_TOKEN=""; sessionStorage.removeItem('ADMIN_TOKEN'); showLogin(); };
+exportBtn.onclick = ()=>{ assertAuthed(); window.open(`${API}?action=export&token=${encodeURIComponent(ADMIN_TOKEN)}`,'_blank'); };
 
-/* 匯出 */
-exportBtn.onclick = ()=>{
-  assertAuthed();
-  const url = `${API}?action=export&token=${encodeURIComponent(ADMIN_TOKEN)}`;
-  window.open(url, '_blank');
-};
-
-/* ====== Tabs ====== */
-tabBtns.forEach(b=>{
-  b.onclick = ()=> onTab(b.dataset.tab);
+/* 綁定 tabs */
+[tabBtnToday,tabBtnSettings,tabBtnSpecial].forEach(btn=>{
+  btn.onclick = async ()=>{
+    const id = btn.dataset.tab;
+    switchTab(id);
+    try{
+      if(id==='tab-today'){ await loadToday(); }
+      if(id==='tab-settings'){ await Promise.all([loadWindow(), loadDaily(), loadSheetLinks()]); }
+      if(id==='tab-special'){ await loadSpecials(); }
+    }catch(e){ console.error(e); }
+  };
 });
-async function onTab(tabId){
-  tabBtns.forEach(b=> b.classList.toggle('active', b.dataset.tab===tabId));
-  Object.entries(tabViews).forEach(([id,el])=> el.style.display = (id===tabId?'block':'none'));
-
-  // lazy load
-  try{
-    if(tabId==='tab-today'){ await loadToday(); }
-    if(tabId==='tab-settings'){ await Promise.all([loadWindow(), loadDaily(), loadSheetLinks()]); }
-    if(tabId==='tab-special'){ await loadSpecials(); }
-  }catch(e){ console.error(e); }
-}
 
 /* ====== 今天名單 ====== */
+const todayInfo  = document.getElementById('todayInfo');
+const todayStats = document.getElementById('todayStats');
+const tblToday   = document.getElementById('tblToday').querySelector('tbody');
+document.getElementById('btnTodayReload').onclick = loadToday;
+
 async function loadToday(){
   assertAuthed();
   const r = await axios.get(API,{ params:{ action:'adminToday', token: ADMIN_TOKEN }});
   const d = r.data || {};
   todayInfo.textContent = `${d.date || ''}　${d.weekday || ''}`;
 
-  // stats cards
+  // stats
   todayStats.innerHTML = '';
   (d.slots||[]).forEach(s=>{
+    const tag = s.label==='早診'?'tag-early':(s.label==='午診'?'tag-noon':'tag-night');
     todayStats.insertAdjacentHTML('beforeend', `
-      <div class="col-12 col-md-4">
-        <div class="card">
-          <div class="mb-1"><span class="tag ${s.label==='早診'?'tag-early':(s.label==='午診'?'tag-noon':'tag-night')}"></span><strong>${s.label}</strong></div>
-          <div class="muted small mb-1">時段：${s.time||'—'}</div>
-          <div><strong>${s.used||0}</strong> / ${s.limit||0}　<span class="muted small">起始號：${s.startNo||1}</span></div>
-        </div>
-      </div>
+      <div class="col-12 col-md-4"><div class="card">
+        <div class="mb-1"><span class="tag ${tag}"></span><strong>${s.label}</strong></div>
+        <div class="muted small mb-1">時段：${s.time||'—'}</div>
+        <div><strong>${s.used||0}</strong> / ${s.limit||0}　<span class="muted small">起始號：${s.startNo||1}</span></div>
+      </div></div>
     `);
   });
 
@@ -386,27 +323,39 @@ async function cancelByRow(id){
 window.cancelByRow = cancelByRow;
 
 /* ====== 預約期限 ====== */
+const winInfo = document.getElementById('winInfo');
+const winStart= document.getElementById('winStart');
+const winEnd  = document.getElementById('winEnd');
+document.getElementById('btnStartMinus').onclick = ()=> adjustWin(+(-1), 0);
+document.getElementById('btnStartPlus' ).onclick = ()=> adjustWin(+1, 0);
+document.getElementById('btnEndMinus'  ).onclick = ()=> adjustWin(0, +(-1));
+document.getElementById('btnEndPlus'   ).onclick = ()=> adjustWin(0, +1);
+document.getElementById('btnWinSet').onclick   = setWin;
+document.getElementById('btnWinMinus').onclick = ()=> adjustWin(-1,-1);
+document.getElementById('btnWinPlus' ).onclick = ()=> adjustWin(+1,+1);
+
 async function loadWindow(){
   assertAuthed();
   const r = await axios.get(API,{ params:{ action:'adminWindow', token: ADMIN_TOKEN }});
   const d = r.data || {};
   winStart.value = d.start ?? 2;
   winEnd.value   = d.end ?? 14;
-  winInfo.textContent = `目前：起始天 D+${winStart.value}（${d.startDate||''}）～ 結束天 D+${winEnd.value}（${d.endDate||''}）`;
+  winInfo.textContent = `目前：起始 D+${winStart.value}（${d.startDate||''}）～ 結束 D+${winEnd.value}（${d.endDate||''}）`;
 }
 async function setWin(){
   assertAuthed();
   const start = Number(winStart.value), end = Number(winEnd.value);
   const r = await axios.get(API,{ params:{ action:'adminWindowSet', start, end, token: ADMIN_TOKEN }});
-  if(r.data?.ok){ await loadWindow(); } else { alert('設定失敗'); }
+  if(r.data?.ok) await loadWindow(); else alert('設定失敗');
 }
 async function adjustWin(ds,de){
   assertAuthed();
   const r = await axios.get(API,{ params:{ action:'adminWindowAdjust', startDelta:ds, endDelta:de, token: ADMIN_TOKEN }});
-  if(r.data?.ok){ await loadWindow(); } else { alert('調整失敗'); }
+  if(r.data?.ok) await loadWindow(); else alert('調整失敗');
 }
 
-/* ====== daily_limit ====== */
+/* ====== daily_limit（weekday） ====== */
+const tblDaily = document.getElementById('tblDaily').querySelector('tbody');
 async function loadDaily(){
   assertAuthed();
   const r = await axios.get(API,{ params:{ action:'dailyGet', token: ADMIN_TOKEN }});
@@ -416,7 +365,7 @@ async function loadDaily(){
     const id = `wd_${w.weekdayEn}`;
     tblDaily.insertAdjacentHTML('beforeend', `
       <tr id="${id}">
-        <td>星期${w.weekdayZh||''} <div class="muted small">${w.weekdayEn}</div></td>
+        <td>星期${w.weekdayZh||''}<div class="muted small">${w.weekdayEn}</div></td>
         <td><input class="form-control form-control-sm" type="number" value="${w.limitE||0}" data-k="limitE"></td>
         <td><input class="form-control form-control-sm" type="number" value="${w.limitN||0}" data-k="limitN"></td>
         <td><input class="form-control form-control-sm" type="number" value="${w.limitL||0}" data-k="limitL"></td>
@@ -433,33 +382,28 @@ async function saveWeek(wdEn){
   assertAuthed();
   const tr = document.getElementById(`wd_${wdEn}`);
   const q = { action:'dailySet', token: ADMIN_TOKEN, wd: wdEn };
-  tr.querySelectorAll('input').forEach(i=>{
-    const k = i.dataset.k; q[k] = i.value;
-  });
+  tr.querySelectorAll('input').forEach(i=>{ q[i.dataset.k]=i.value; });
   const r = await axios.get(API,{ params:q });
   if(!(r.data && r.data.ok)) alert('儲存失敗');
 }
+window.saveWeek = saveWeek;
 
-/* ====== special_limit ====== */
-async function loadSpecials(){
-  assertAuthed();
-  const r = await axios.get(API,{ params:{ action:'adminGet', token: ADMIN_TOKEN }});
-  const tbody = tbl.querySelector('tbody'); tbody.innerHTML = '';
-  (r.data||[]).forEach(x=>{
-    tbody.insertAdjacentHTML('beforeend', `<tr>
-      <td>${x.日期}</td>
-      <td>${x.早診上限||0}</td>
-      <td>${x.午診上限||0}</td>
-      <td>${x.晚診上限||0}</td>
-      <td>${x.備註||""}</td>
-      <td>
-        <button class="btn btn-warning btn-sm me-1 btn-round" onclick="editRow('${x.id}')">編輯</button>
-        <button class="btn btn-danger btn-sm btn-round" onclick="delRow('${x.id}')">刪除</button>
-      </td>
-    </tr>`);
-  });
-}
-addBtn.onclick = async ()=>{
+/* ====== special_limit（臨時異動） ====== */
+const newDate    = document.getElementById('newDate');
+const neEarly    = document.getElementById('neEarly');
+const neNoon     = document.getElementById('neNoon');
+const neNight    = document.getElementById('neNight');
+const neEarlyTime= document.getElementById('neEarlyTime');
+const neNoonTime = document.getElementById('neNoonTime');
+const neNightTime= document.getElementById('neNightTime');
+const neEarlyLimit= document.getElementById('neEarlyLimit');
+const neNoonLimit = document.getElementById('neNoonLimit');
+const neNightLimit= document.getElementById('neNightLimit');
+const neNote     = document.getElementById('neNote');
+const addBtn     = document.getElementById('addBtn');
+const tbl        = document.getElementById('tbl');
+
+addBtn.onclick = async () => {
   try{
     assertAuthed();
     if(!newDate.value) return alert("請選日期");
@@ -473,15 +417,40 @@ addBtn.onclick = async ()=>{
     }});
     alert("新增完成");
     loadSpecials();
-  }catch(e){ console.error(e); alert('新增失敗'); }
+  }catch(e){
+    console.error(e);
+    alert('新增失敗或尚未登入');
+  }
 };
+
+async function loadSpecials(){
+  assertAuthed();
+  const r = await axios.get(API,{ params:{ action:'adminGet', token: ADMIN_TOKEN }});
+  const tbody=tbl.querySelector('tbody'); tbody.innerHTML="";
+  (r.data||[]).forEach(x=>{
+    tbody.insertAdjacentHTML('beforeend', `<tr>
+      <td>${x.日期}</td>
+      <td>${x.早診上限||0}</td>
+      <td>${x.午診上限||0}</td>
+      <td>${x.晚診上限||0}</td>
+      <td>${x.備註||""}</td>
+      <td>
+        <button class="btn btn-warning btn-sm me-1 btn-round" onclick="editRow('${x.id}')">編輯</button>
+        <button class="btn btn-danger btn-sm btn-round" onclick="delRow('${x.id}')">刪除</button>
+      </td></tr>`);
+  })
+}
+
 async function delRow(id){
   if(!confirm("確定刪除？")) return;
   try{
     assertAuthed();
     await axios.get(API,{ params:{ action:'adminDel', id, token: ADMIN_TOKEN }});
     loadSpecials();
-  }catch(e){ console.error(e); alert('刪除失敗'); }
+  }catch(e){
+    console.error(e);
+    alert('刪除失敗或尚未登入');
+  }
 }
 async function editRow(id){
   assertAuthed();
@@ -522,20 +491,25 @@ async function editRow(id){
 window.editRow = editRow;
 window.delRow  = delRow;
 
-/* ====== 試算表捷徑 ====== */
+/* ====== 試算表捷徑（可選） ====== */
+const sheetsCard = document.getElementById('sheetsCard');
+const sheetBtns  = document.getElementById('sheetBtns');
+const favOrder = ['預約名單','daily_limit','special_limit','預約期限'];
+const favIdx = (name)=>{ const i=favOrder.indexOf(name); return i<0?999:i; };
+
 async function loadSheetLinks(){
   try{
     assertAuthed();
     const r = await axios.get(API,{ params:{ action:'sheetLinks', token: ADMIN_TOKEN }});
     const { id, sheets=[] } = r.data || {};
     if(!id || !sheets.length){ sheetsCard.style.display='none'; return; }
-    sheets.sort((a,b)=>{ const fa=favIdx(a.name), fb=favIdx(b.name); return fa===fb ? a.name.localeCompare(b.name,'zh-Hant') : fa - fb; });
-    sheetBtns.innerHTML = sheets.map(s=>(`
-      <a class="sheet-chip" target="_blank" rel="noopener"
+    sheets.sort((a,b)=>{ const fa=favIdx(a.name), fb=favIdx(b.name); return fa===fb ? a.name.localeCompare(b.name,'zh-Hant') : fa-fb; });
+    sheetBtns.innerHTML = sheets.map(s=>`
+      <a class="sheet-chip text-decoration-none" target="_blank" rel="noopener"
          href="https://docs.google.com/spreadsheets/d/${id}/edit#gid=${s.gid}">
         ${s.name}
       </a>
-    `)).join('');
+    `).join('');
     sheetsCard.style.display='block';
   }catch(e){
     console.warn('sheetLinks 失敗：', e);
@@ -543,7 +517,7 @@ async function loadSheetLinks(){
   }
 }
 
-/* 自動進入 */
+/* 已有 token 直接進入 */
 if(ADMIN_TOKEN){ showApp(); }
 </script>
 </body>
