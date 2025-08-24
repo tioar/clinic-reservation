@@ -129,7 +129,7 @@ function guessTimeBySlot(slot){
 
     <div class="d-flex justify-content-center align-items-start gap-2 mb-4 notice-text">
       <div style="font-size:20px;line-height:1.1;">⏰</div>
-      <div>請在預約的門診時間內報到，可按「看診進度」查門診叫號，過號則須等待現場安排叫名字，逾期自動取消。</div>
+      <div>請在預約的門診時間內報到，可按「看診進度」查門診叫號，過號則須等待現場安排叫名字，逾期自動取消。如需取消預約，可至「查詢／取消預約」頁，輸入您的身分證字號即可。門診當天只能以電話取消。</div>
     </div>
 
     <!-- 返回 / 查詢 -->
@@ -197,7 +197,7 @@ let dotTimer = setInterval(()=>{
 
     // 分享純文字（沒有任何網址）
     const shareText =
-`✔️診所門診預約成功！
+`✔️陳萬龍診所門診預約成功！
 
 ${ymd} 星期${wk}（${d.slot||''}） ${timeRange||''}
 姓名：${d.name||''}，號碼：${d.num||''} 號。
@@ -227,4 +227,5 @@ ${ymd} 星期${wk}（${d.slot||''}） ${timeRange||''}
 </script>
 </body>
 </html>
+
 
