@@ -2,7 +2,7 @@
 <html lang="zh-Hant">
 <head>
   <meta charset="UTF-8">
-  <title>後台管理</title>
+  <title>陳萬龍診所預約後台管理</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -308,6 +308,45 @@ function asArr(payload){
 }
 const VALID_WD = new Set(['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday']);
 
+/* ====== 生日格式化（民國年） ====== */
+/** 顯示模式（此專案固定民國年）：'minguo' or 'gregorian' */
+const BIRTHDAY_MODE = 'minguo';
+function pad2(n){ return n<10 ? '0'+n : ''+n; }
+/** 盡可能把任何生日輸入轉成 Date：支援 Date、字串(YYYY-MM-DD/YYYY/MM/DD/瀏覽器字串)、Sheets 日期序號 */
+function parseDateLike(v){
+  if(!v && v!==0) return null;
+  if(v instanceof Date) return isNaN(v) ? null : v;
+
+  if(typeof v === 'number'){ // Google Sheets serial number (epoch 1899-12-30)
+    const ms = (v - 25569) * 86400 * 1000;
+    const d  = new Date(ms);
+    return isNaN(d) ? null : d;
+  }
+
+  if(typeof v === 'string'){
+    const s = v.trim();
+    const m = s.match(/^(\d{4})[-\/](\d{1,2})[-\/](\d{1,2})$/);
+    if(m){
+      const d = new Date(Number(m[1]), Number(m[2])-1, Number(m[3]));
+      return isNaN(d) ? null : d;
+    }
+    const d = new Date(s);
+    return isNaN(d) ? null : d;
+  }
+  return null;
+}
+/** 依模式輸出生日字串（民國：YYY-MM-DD；西元：YYYY-MM-DD） */
+function fmtBirthday(v){
+  const d = parseDateLike(v);
+  if(!d) return v ?? '';
+  const y = d.getFullYear(), m = pad2(d.getMonth()+1), da = pad2(d.getDate());
+  if(BIRTHDAY_MODE === 'minguo'){
+    const my = y - 1911; // 民國年
+    return `${my}-${m}-${da}`; // 例如 103-02-11
+  }
+  return `${y}-${m}-${da}`;
+}
+
 /* ====== Auth ====== */
 btnLoginPW.onclick = async () => {
   try{
@@ -381,7 +420,7 @@ function renderDay(container, data){
         <td>${x.time||''}</td>
         <td>${x.num||''}</td>
         <td>${x.name||''}</td>
-        <td>${x.birthday||''}</td>
+        <td>${fmtBirthday(x.birthday)}</td>
         <td>${x.pid||''}</td>
         <td>${x.phone||''}</td>
         <td>${x.createdAt||''}</td>
@@ -608,4 +647,3 @@ if(ADMIN_TOKEN){ showApp(); }
 </script>
 </body>
 </html>
-
