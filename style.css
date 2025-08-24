@@ -1,58 +1,34 @@
 /* ====== 基本主題（藍灰系，與前台一致） ====== */
 :root{
-  --main:#3e6d8e;      /* 主色 */
-  --hover:#335a75;     /* hover */
-  --ink:#2e2e3a;       /* 文字深色 */
-  --muted:#6b7280;     /* 次要文字 */
-  --card-bg:#ffffff;   /* 卡片底色 */
-  --page-bg:#eef3f7;   /* 頁面底色 */
-  --line:#e7e9ee;      /* 邊框線 */
-  --danger:#dc3545;
-  --danger-hover:#b02a37;
+  --main:#3e6d8e; --hover:#335a75; --ink:#2e2e3a; --muted:#6b7280;
+  --card-bg:#ffffff; --page-bg:#eef3f7; --line:#e7e9ee;
+  --danger:#dc3545; --danger-hover:#b02a37;
 }
-
 html,body{
   background:var(--page-bg);
-  font-family:"Segoe UI", "Noto Sans TC", system-ui, -apple-system, "PingFang TC", "Microsoft JhengHei", sans-serif;
+  font-family:"Segoe UI","Noto Sans TC",system-ui,-apple-system,"PingFang TC","Microsoft JhengHei",sans-serif;
   color:var(--ink);
 }
 
 /* ====== 共用卡片與抬頭 ====== */
 .card{
-  max-width:560px;
-  margin:40px auto;
-  padding:28px;
-  border-radius:20px;
-  background:var(--card-bg);
+  /* 取消全域 560px 限制，讓內容頁可變寬 */
+  margin:40px auto; padding:28px; border-radius:20px; background:var(--card-bg);
   box-shadow:0 12px 32px rgba(18,38,63,.08);
 }
+/* 只有登入頁要窄卡片 */
+.login-card .card{ max-width:560px; }
 
-.header{
-  display:flex; align-items:center; justify-content:center;
-  gap:12px; margin-bottom:16px;
-}
-.logo{
-  width:60px; height:60px; border-radius:50%;
-  display:flex; align-items:center; justify-content:center;
-  background:var(--main); color:#fff; font-size:32px; font-weight:800;
-}
+.header{ display:flex; align-items:center; justify-content:center; gap:12px; margin-bottom:16px; }
+.logo{ width:60px;height:60px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--main);color:#fff;font-size:32px;font-weight:800; }
 h1,h2,h3,h4,h5{ color:var(--main); font-weight:700; margin:0; }
-
-/* 🔵 調整標題大小 */
-.header h1 { font-size:20px; }
+.header h1{ font-size:20px; }
 
 /* ====== 表單、按鈕 ====== */
-.form-control, .form-select{
-  border-radius:10px!important; border:1px solid var(--line);
-}
-.btn-main{
-  background:var(--main)!important; color:#fff!important;
-  border:none; border-radius:10px; padding:12px 16px; font-weight:700;
-}
+.form-control,.form-select{ border-radius:10px!important; border:1px solid var(--line); }
+.btn-main{ background:var(--main)!important; color:#fff!important; border:none; border-radius:10px; padding:12px 16px; font-weight:700; }
 .btn-main:hover{ background:var(--hover)!important; }
 .btn-outline-secondary{ border-radius:10px!important; font-weight:600; }
-
-/* 取消用紅鈕（query 頁面） */
 .btn-cancel{ background:var(--danger)!important; border:none; color:#fff!important; border-radius:8px; }
 .btn-cancel:hover{ background:var(--danger-hover)!important; }
 
@@ -60,71 +36,85 @@ h1,h2,h3,h4,h5{ color:var(--main); font-weight:700; margin:0; }
 .list-row{ display:grid; grid-template-columns:1.1fr .9fr .7fr 1fr 1fr .6fr .6fr; gap:.5rem; align-items:center; }
 .list-head{ font-weight:700; color:#27485f; margin-bottom:.5rem; }
 
-/* ====== Loading 遮罩（index/success/query 通用） ====== */
-#mask, #ing, #loading{
-  position:fixed; inset:0; display:none; align-items:center; justify-content:center;
-  background:rgba(255,255,255,.88); z-index:9999; font-size:18px; color:#2e5a79; backdrop-filter:blur(2px);
-}
+/* ====== Loading 遮罩 ====== */
+#mask,#ing,#loading{ position:fixed; inset:0; display:none; align-items:center; justify-content:center; background:rgba(255,255,255,.88); z-index:9999; font-size:18px; color:#2e5a79; backdrop-filter:blur(2px); }
 #dots{ display:inline-block; width:2ch; text-align:left; }
 
-/* ====== Admin 專屬：寬版卡片、桌面表格 ====== */
+/* ====== Admin：外框 ====== */
 .card-wrap{
-  max-width:1180px; /* 建議寬一點，欄位不擠；想回 980 也可 */
+  max-width:1180px;   /* 放寬中間卡片 */
   margin:40px auto; background:var(--card-bg);
   border-radius:16px; box-shadow:0 12px 32px rgba(18,38,63,.06);
   padding:24px 24px 28px;
 }
+.card-wrap .card{ max-width:100%; margin:16px 0; }
 .card-head{ display:flex; align-items:center; gap:12px; margin-bottom:16px; }
 .card-head .logo{ width:44px; height:44px; font-size:24px; }
 .subtitle{ color:var(--muted); margin-top:-4px; }
 
-/* 表格美化（Admin） */
-.table{
-  border:1px solid var(--line); overflow:hidden; border-radius:12px; background:#fff;
-}
-.table thead th{
-  background:#f7f9fb; color:#3d3d57; font-weight:800; border-bottom:1px solid var(--line);
-  vertical-align:middle;
-}
+/* 表格美化 */
+.table{ border:1px solid var(--line); overflow:hidden; border-radius:12px; background:#fff; }
+.table thead th{ background:#f7f9fb; color:#3d3d57; font-weight:800; border-bottom:1px solid var(--line); vertical-align:middle; }
 .table tbody td{ vertical-align:middle; }
 
-/* 標籤色塊（Admin 新增異動區） */
+/* 標籤色塊 */
 .tag{ display:inline-block; width:12px; height:12px; border-radius:50%; margin-right:6px; }
-.tag-early{ background:#41a647; }  /* 早診 */
-.tag-noon { background:#f9a825; }  /* 午診 */
-.tag-night{ background:#2196f3; }  /* 晚診 */
-
+.tag-early{ background:#41a647; } .tag-noon{ background:#f9a825; } .tag-night{ background:#2196f3; }
 .badge-tag{ border-radius:999px; padding:.35rem .6rem; font-weight:700; }
-.badge-early{ background:#e9f7ef; color:#2c7a45; }
-.badge-noon { background:#fff7e6; color:#a76b02; }
-.badge-night{ background:#e7f2ff; color:#215ea8; }
+.badge-early{ background:#e9f7ef; color:#2c7a45; } .badge-noon{ background:#fff7e6; color:#a76b02; } .badge-night{ background:#e7f2ff; color:#215ea8; }
 
-/* 登入卡片窄版（Admin） */
+/* 登入卡片窄版 */
 .login-card{ max-width:420px; }
 
-/* 小動畫（Admin 密碼錯誤） */
-@keyframes shake{
-  0%{transform:translateX(0)} 25%{transform:translateX(-5px)}
-  50%{transform:translateX(5px)} 75%{transform:translateX(-5px)} 100%{transform:translateX(0)}
-}
+/* 小動畫 */
+@keyframes shake{ 0%{transform:translateX(0)}25%{transform:translateX(-5px)}50%{transform:translateX(5px)}75%{transform:translateX(-5px)}100%{transform:translateX(0)} }
 .shake{ animation:shake .35s; }
 
 /* 手機優化 */
 @media (max-width:576px){
   .card{ margin:24px auto; padding:22px; }
-  .list-row{ grid-template-columns: 1fr 1fr; row-gap:.35rem; }
+  .list-row{ grid-template-columns:1fr 1fr; row-gap:.35rem; }
   .list-head{ display:none; }
 }
 
-/* ===== success：三段大字（等同 fs-5 mb-4） ===== */
-#dateLine, #timeLine, #lineNameNo{
-  font-size: 1.25rem;  margin-bottom: 1.5rem; font-weight: 700; color: #1e3c53;
-}
-@media (max-width: 360px){
-  #dateLine, #timeLine, #lineNameNo{ font-size: 1.1rem; }
-}
-#mainInfo { font-size: 1.25rem; line-height: 1.5; white-space: nowrap; }
-@media (max-width: 420px){ #mainInfo { white-space: normal; text-align: center; } }
+/* ===== success：三段大字 ===== */
+#dateLine,#timeLine,#lineNameNo{ font-size:1.25rem; margin-bottom:1.5rem; font-weight:700; color:#1e3c53; }
+@media (max-width:360px){ #dateLine,#timeLine,#lineNameNo{ font-size:1.1rem; } }
+#mainInfo{ font-size:1.25rem; line-height:1.5; white-space:nowrap; }
+@media (max-width:420px){ #mainInfo{ white-space:normal; text-align:center; } }
 
-/* 補：今天名單欄位預設不換行（避免擠爆） */
-#tblToday th,#tblToday td{ white-space: nowrap; }
+/* 今天名單欄位預設不換行（避免擠爆） */
+#tblToday th,#tblToday td{ white-space:nowrap; }
+
+/* 隱藏所有 number 欄位上下箭頭（保留你的 ± 按鈕） */
+.card-wrap input[type=number]::-webkit-outer-spin-button,
+.card-wrap input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0; }
+.card-wrap input[type=number]{ -moz-appearance:textfield; appearance:textfield; }
+
+/* =========================
+   每週規則（daily_limit）寬度修正
+   ========================= */
+
+/* 讓表格用自動排版，避免硬撐寬度 */
+#tblDaily{ table-layout:auto; }
+/* 允許儲存格自動換行（先前若設過 nowrap，這裡覆蓋回去） */
+#tblDaily th, #tblDaily td{ white-space:normal; }
+
+/* 數字上限欄（早/午/晚）＋ 起始號：兩位數固定窄寬 */
+#tblDaily input[data-k="limitE"],
+#tblDaily input[data-k="limitN"],
+#tblDaily input[data-k="limitL"],
+#tblDaily input[data-k="startNo"]{
+  width:72px; min-width:72px; max-width:72px;
+  text-align:center; padding-left:.5rem; padding-right:.5rem;
+}
+
+/* 三個時間欄位：給固定合理寬度（避免太寬導致捲動） */
+#tblDaily input[data-k="timeE"],
+#tblDaily input[data-k="timeN"],
+#tblDaily input[data-k="timeL"]{
+  width:200px; min-width:180px; max-width:220px;
+}
+
+/* 操作欄固定寬度，避免壓縮其它欄 */
+#tblDaily th:last-child, #tblDaily td:last-child{ width:90px; white-space:nowrap; }
