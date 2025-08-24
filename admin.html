@@ -9,34 +9,16 @@
   <link rel="stylesheet" href="style.css">
 
   <style>
-    /* 主要寬度與卡片 */
+    /* 這裡只放少量補強，主要樣式來自 style.css */
     .card-wrap{ max-width:1180px; margin:40px auto; }
     .card-wrap .card{ max-width:100% !important; margin:16px 0; }
-
-    /* tabs 與小字 */
     .tabbar{display:flex;flex-wrap:wrap;gap:.5rem;margin:8px 0 16px}
     .tabbar .btn{border-radius:999px}
     .small-note{font-size:.9rem;color:#6b7a90}
     .table td,.table th{vertical-align:middle}
 
-    /* number 隱藏上下箭頭 */
-    .card-wrap input[type=number]::-webkit-outer-spin-button,
-    .card-wrap input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0; }
-    .card-wrap input[type=number]{ -moz-appearance:textfield; }
-
-    /* 每週規則欄寬（避免要拉橫向捲軸） */
-    #tblDaily th, #tblDaily td{ white-space: normal; }
-    #tblDaily .td-limit   { width:80px;  }
-    #tblDaily .td-start   { width:90px;  }
-    #tblDaily .td-action  { width:96px;  }
-    #tblDaily .td-time    { width:200px; }
-    #tblDaily .td-limit  .form-control{ max-width:64px; text-align:center; padding:.25rem .4rem; }
-    #tblDaily .td-start  .form-control{ max-width:72px; text-align:center; padding:.25rem .4rem; }
-    #tblDaily .td-time   .form-control{ width:100%; padding:.25rem .5rem; }
-
-    /* 今天/明天名單的表格維持不換行，避免擠爆 */
-    #tblToday th,#tblToday td,
-    #tblTomorrow th,#tblTomorrow td{ white-space: nowrap; }
+    /* 今天/明天名單保持不換行避免擠爆（style.css 已有 #tblToday，這裡也補 #tblTomorrow） */
+    #tblTomorrow th,#tblTomorrow td{ white-space:nowrap; }
   </style>
 </head>
 <body>
@@ -48,8 +30,8 @@
       <div class="logo">＋</div>
       <h1>後台登入</h1>
     </div>
-    <input id="acc" class="form-control mb-2" placeholder="帳號">
-    <input id="pw" type="password" class="form-control mb-3" placeholder="管理密碼">
+    <input id="acc" class="form-control mb-2" placeholder="帳號" autocomplete="username">
+    <input id="pw" type="password" class="form-control mb-3" placeholder="管理密碼" autocomplete="current-password">
     <button id="btnLoginPW" class="btn btn-outline-secondary w-100">登入</button>
   </div>
 </div>
@@ -71,10 +53,10 @@
 
     <!-- Tabs -->
     <div class="tabbar">
-      <button class="btn btn-main"                id="tabBtnToday"     data-tab="tab-today">今天名單</button>
-      <button class="btn btn-outline-secondary"   id="tabBtnTomorrow"  data-tab="tab-tomorrow">明天名單</button>
-      <button class="btn btn-outline-secondary"   id="tabBtnSettings"  data-tab="tab-settings">預約設定</button>
-      <button class="btn btn-outline-secondary"   id="tabBtnSpecial"   data-tab="tab-special">臨時異動</button>
+      <button class="btn btn-main"              id="tabBtnToday"     data-tab="tab-today">今天名單</button>
+      <button class="btn btn-outline-secondary" id="tabBtnTomorrow"  data-tab="tab-tomorrow">明天名單</button>
+      <button class="btn btn-outline-secondary" id="tabBtnSettings"  data-tab="tab-settings">預約設定</button>
+      <button class="btn btn-outline-secondary" id="tabBtnSpecial"   data-tab="tab-special">臨時異動</button>
     </div>
 
     <!-- ====== 今天名單 ====== -->
@@ -96,13 +78,13 @@
             <thead>
               <tr>
                 <th>診別</th><th>時段</th><th>號碼</th><th>姓名</th><th>生日</th>
-                <th>身分證</th><th>電話</th><th>建立時間</th><th style="width:90px;">操作</th>
+                <th>身分證</th><th>電話</th><th>建立時間</th><th style="width:110px;">操作</th>
               </tr>
             </thead>
             <tbody></tbody>
           </table>
         </div>
-        <div class="small-note">註：取消會直接在試算表 I 欄標記 TRUE。</div>
+        <div class="small-note">註：取消會直接在試算表 I 欄標記 TRUE（或依後端設定）。</div>
       </div>
     </section>
 
@@ -125,13 +107,13 @@
             <thead>
               <tr>
                 <th>診別</th><th>時段</th><th>號碼</th><th>姓名</th><th>生日</th>
-                <th>身分證</th><th>電話</th><th>建立時間</th><th style="width:90px;">操作</th>
+                <th>身分證</th><th>電話</th><th>建立時間</th><th style="width:110px;">操作</th>
               </tr>
             </thead>
             <tbody></tbody>
           </table>
         </div>
-        <div class="small-note">註：取消會直接在試算表 I 欄標記 TRUE。</div>
+        <div class="small-note">註：取消會直接在試算表 I 欄標記 TRUE（或依後端設定）。</div>
       </div>
     </section>
 
@@ -194,7 +176,7 @@
             <tbody></tbody>
           </table>
         </div>
-        <div class="small-note">時間格式示例：08:30~11:30</div>
+        <div class="small-note">時間格式：HH:MM~HH:MM（例：08:30~11:30）</div>
       </div>
 
       <div class="card" id="sheetsCard" style="display:none;">
@@ -238,7 +220,7 @@
         <div class="table-responsive">
           <table class="table table-striped" id="tbl">
             <thead>
-            <tr><th>日期</th><th>早診</th><th>午診</th><th>晚診</th><th>備註</th><th style="width:140px;">操作</th></tr>
+              <tr><th>日期</th><th>早診</th><th>午診</th><th>晚診</th><th>備註</th><th style="width:160px;">操作</th></tr>
             </thead>
             <tbody></tbody>
           </table>
@@ -252,8 +234,35 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 <script>
-/* ====== GAS endpoint（與你 query 同一支） ====== */
+/* ====== GAS endpoint（與前台同一支） ====== */
 const API = "https://script.google.com/macros/s/AKfycbzOm7nUXPcEKcCejkSHHKrfJzS3Fv7h9LJS5VVpTNMZ-sALQD3iAm9puykRqzxdsAn6/exec";
+
+/* ======（沿用前台）reCAPTCHA v3：後台主要用在取消動作以相容嚴格模式 ====== */
+const RECAPTCHA_SITE_KEY = "6LdqprArAAAAACpuAXemZUH3KNER1t1iw07YjGHu";
+let recaptchaLoaded=false, recaptchaLoading=null;
+function loadRecaptcha(){
+  if(!RECAPTCHA_SITE_KEY) return Promise.resolve();
+  if(recaptchaLoaded) return Promise.resolve();
+  if(recaptchaLoading) return recaptchaLoading;
+  recaptchaLoading = new Promise((resolve,reject)=>{
+    const s=document.createElement('script');
+    s.src='https://www.google.com/recaptcha/api.js?render='+encodeURIComponent(RECAPTCHA_SITE_KEY);
+    s.async=true; s.defer=true;
+    s.onload=()=>{recaptchaLoaded=true;resolve();};
+    s.onerror=()=>reject(new Error('recaptcha_load_fail'));
+    document.head.appendChild(s);
+  });
+  return recaptchaLoading;
+}
+async function getRecaptchaToken(action){ // action: 'admin_cancel' 等
+  try{
+    if(!RECAPTCHA_SITE_KEY) return '';
+    await loadRecaptcha();
+    return await new Promise(res=>{
+      grecaptcha.ready(()=> grecaptcha.execute(RECAPTCHA_SITE_KEY,{action: action||'admin'}).then(t=>res(t)).catch(()=>res('')));
+    });
+  }catch(_){ return ''; }
+}
 
 /* ====== DOM ====== */
 const loginBox   = document.getElementById('login');
@@ -282,18 +291,20 @@ function switchTab(id){
     b.classList.toggle('btn-outline-secondary', !active);
   });
   Object.entries(views).forEach(([k,el])=> el.style.display = (k===id?'block':'none'));
+  // URL hash（可直接分享/重整留在同分頁）
+  try{ history.replaceState(null,'','#'+id); }catch(_){}
 }
 
 /* token */
 let ADMIN_TOKEN = sessionStorage.getItem('ADMIN_TOKEN') || "";
 
 /* helpers */
-function showApp(){ loginBox.style.display="none"; appBox.style.display="block"; switchTab('tab-today'); loadToday(); }
+function showApp(){ loginBox.style.display="none"; appBox.style.display="block"; const initHash = (location.hash||'').replace('#','') || 'tab-today'; switchTab(initHash); if(initHash==='tab-today'){loadToday();} }
 function showLogin(){ appBox.style.display="none"; loginBox.style.display="block"; }
 function assertAuthed(){ if(!ADMIN_TOKEN){ showLogin(); throw new Error('no token'); } }
 function ymdLocal(d){ const y=d.getFullYear(),m=('0'+(d.getMonth()+1)).slice(-2),da=('0'+d.getDate()).slice(-2); return `${y}-${m}-${da}`; }
 
-/* ====== 把回傳統一整理成好用的物件/陣列 ====== */
+/* 統一整理 */
 function asObj(payload){
   try{ return typeof payload==='string' ? JSON.parse(payload) : (payload||{}); }
   catch{ return {}; }
@@ -308,42 +319,30 @@ function asArr(payload){
 }
 const VALID_WD = new Set(['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday']);
 
-/* ====== 生日格式化（民國年） ====== */
-/** 顯示模式（此專案固定民國年）：'minguo' or 'gregorian' */
+/* 生日顯示（民國年） */
 const BIRTHDAY_MODE = 'minguo';
 function pad2(n){ return n<10 ? '0'+n : ''+n; }
-/** 盡可能把任何生日輸入轉成 Date：支援 Date、字串(YYYY-MM-DD/YYYY/MM/DD/瀏覽器字串)、Sheets 日期序號 */
 function parseDateLike(v){
   if(!v && v!==0) return null;
   if(v instanceof Date) return isNaN(v) ? null : v;
-
-  if(typeof v === 'number'){ // Google Sheets serial number (epoch 1899-12-30)
+  if(typeof v === 'number'){ // Google Sheets serial
     const ms = (v - 25569) * 86400 * 1000;
     const d  = new Date(ms);
     return isNaN(d) ? null : d;
   }
-
   if(typeof v === 'string'){
     const s = v.trim();
     const m = s.match(/^(\d{4})[-\/](\d{1,2})[-\/](\d{1,2})$/);
-    if(m){
-      const d = new Date(Number(m[1]), Number(m[2])-1, Number(m[3]));
-      return isNaN(d) ? null : d;
-    }
-    const d = new Date(s);
-    return isNaN(d) ? null : d;
+    if(m){ const d=new Date(+m[1], +m[2]-1, +m[3]); return isNaN(d)?null:d; }
+    const d = new Date(s); return isNaN(d)?null:d;
   }
   return null;
 }
-/** 依模式輸出生日字串（民國：YYY-MM-DD；西元：YYYY-MM-DD） */
 function fmtBirthday(v){
   const d = parseDateLike(v);
   if(!d) return v ?? '';
   const y = d.getFullYear(), m = pad2(d.getMonth()+1), da = pad2(d.getDate());
-  if(BIRTHDAY_MODE === 'minguo'){
-    const my = y - 1911; // 民國年
-    return `${my}-${m}-${da}`; // 例如 103-02-11
-  }
+  if(BIRTHDAY_MODE === 'minguo'){ return `${y-1911}-${m}-${da}`; }
   return `${y}-${m}-${da}`;
 }
 
@@ -357,6 +356,8 @@ btnLoginPW.onclick = async () => {
     if(r.data?.ok){
       ADMIN_TOKEN = r.data.token;
       sessionStorage.setItem('ADMIN_TOKEN', ADMIN_TOKEN);
+      // 預載 reCAPTCHA 腳本（若啟用嚴格模式的話，後台取消也能順利）
+      loadRecaptcha().catch(()=>{});
       showApp();
     }else{
       alert(r.data?.message || '帳號或密碼錯誤');
@@ -366,10 +367,20 @@ btnLoginPW.onclick = async () => {
     alert('登入失敗');
   }
 };
-
-/* 登出 / 匯出 */
 logoutBtn.onclick = () => { ADMIN_TOKEN=""; sessionStorage.removeItem('ADMIN_TOKEN'); showLogin(); };
-exportBtn.onclick = ()=>{ assertAuthed(); window.open(`${API}?action=export&token=${encodeURIComponent(ADMIN_TOKEN)}`,'_blank'); };
+
+/* 匯出 CSV：加上載入狀態 */
+exportBtn.onclick = async ()=>{
+  assertAuthed();
+  const txt = exportBtn.textContent;
+  try{
+    exportBtn.disabled = true;
+    exportBtn.textContent = '匯出中…';
+    window.open(`${API}?action=export&token=${encodeURIComponent(ADMIN_TOKEN)}&t=${Date.now()}`,'_blank');
+  }finally{
+    setTimeout(()=>{ exportBtn.disabled=false; exportBtn.textContent=txt; }, 800);
+  }
+};
 
 /* 綁定 tabs */
 [tabBtnToday,tabBtnTomorrow,tabBtnSettings,tabBtnSpecial].forEach(btn=>{
@@ -424,7 +435,10 @@ function renderDay(container, data){
         <td>${x.pid||''}</td>
         <td>${x.phone||''}</td>
         <td>${x.createdAt||''}</td>
-        <td><button class="btn btn-outline-danger btn-sm btn-round" onclick="cancelByRow(${x.id})">取消</button></td>
+        <td class="text-nowrap">
+          <button class="btn btn-outline-danger btn-sm btn-round me-1" onclick="cancelByRow(${x.id})">取消</button>
+          <button class="btn btn-outline-secondary btn-sm btn-round" onclick="copyRcpt(${x.id})">複製憑證</button>
+        </td>
       </tr>
     `);
   });
@@ -442,15 +456,55 @@ async function loadTomorrow(){
   const r = await axios.get(API,{ params:{ action:'adminDay', date: ymd, token: ADMIN_TOKEN, t:Date.now() }});
   renderDay({infoEl:tomorrowInfo, statsEl:tomorrowStats, tbodyEl:tblTomorrow}, asObj(r.data));
 }
+
+/* 取消（相容嚴格模式：優先帶 id + token + recaptcha；若後端要求 receipt 會提示貼上） */
 async function cancelByRow(id){
   if(!confirm('確定要取消這筆預約嗎？')) return;
-  assertAuthed();
-  await axios.get(API,{ params:{ action:'cancel', id, token: ADMIN_TOKEN }});
-  // 同步刷新兩個分頁
-  if(views['tab-today'].style.display!=='none') await loadToday();
-  if(views['tab-tomorrow'].style.display!=='none') await loadTomorrow();
+  try{
+    assertAuthed();
+    const recaptchaToken = await getRecaptchaToken('admin_cancel');
+    let resp = await axios.get(API,{ params:{ action:'cancel', id, token: ADMIN_TOKEN, recaptchaToken, t: Date.now() }});
+
+    // 如果後端回覆需要 receipt，讓管理者貼上（有些情境可能由櫃檯存有憑證字串）
+    if(!(resp.data && (resp.data.ok || resp.data.success))){
+      const msg = (resp.data && (resp.data.message||resp.data.error)) || '';
+      if(/憑證|receipt|unauthorized/i.test(msg)){
+        const rcpt = prompt('此筆需要預約憑證（receipt）。\n請貼上憑證字串：');
+        if(rcpt && rcpt.trim()){
+          resp = await axios.get(API,{ params:{ action:'cancel', id, receipt: rcpt.trim(), token: ADMIN_TOKEN, recaptchaToken, t: Date.now() }});
+        }
+      }
+    }
+
+    if(resp.data && (resp.data.ok || resp.data.success)){
+      alert(resp.data.message || '已取消。');
+      if(views['tab-today'].style.display!=='none') await loadToday();
+      if(views['tab-tomorrow'].style.display!=='none') await loadTomorrow();
+    }else{
+      alert((resp.data && resp.data.message) || '取消失敗');
+    }
+  }catch(e){
+    console.error(e);
+    alert('取消失敗或尚未登入');
+  }
 }
 window.cancelByRow = cancelByRow;
+
+/* 複製憑證（如果後端在 admin 清單有提供） */
+async function copyRcpt(id){
+  try{
+    assertAuthed();
+    const r = await axios.get(API,{ params:{ action:'adminOne', id, token: ADMIN_TOKEN, t: Date.now() }});
+    const rcpt = r?.data?.receipt || r?.data?.rcpt || '';
+    if(!rcpt){ alert('找不到此筆的憑證'); return; }
+    await navigator.clipboard.writeText(String(rcpt));
+    alert('已複製預約憑證（receipt）');
+  }catch(e){
+    console.error(e);
+    alert('複製失敗或無憑證');
+  }
+}
+window.copyRcpt = copyRcpt;
 
 /* ====== 預約期限 ====== */
 const winInfo = document.getElementById('winInfo');
@@ -487,30 +541,34 @@ const tblDaily = document.getElementById('tblDaily').querySelector('tbody');
 async function loadDaily(){
   assertAuthed();
   const r = await axios.get(API,{ params:{ action:'dailyGet', token: ADMIN_TOKEN, t:Date.now() }});
-  const rows = asArr(r.data).filter(w => VALID_WD.has(w.weekdayEn)); // 濾掉試算表表頭那一行
+  const rows = asArr(r.data).filter(w => VALID_WD.has(w.weekdayEn));
   tblDaily.innerHTML = '';
   rows.forEach(w=>{
     const id = `wd_${w.weekdayEn}`;
     tblDaily.insertAdjacentHTML('beforeend', `
       <tr id="${id}">
         <td>星期${w.weekdayZh||''}<div class="small-note">${w.weekdayEn}</div></td>
-        <td class="td-limit"><input class="form-control form-control-sm" type="number" inputmode="numeric" value="${w.limitE||0}" data-k="limitE"></td>
-        <td class="td-limit"><input class="form-control form-control-sm" type="number" inputmode="numeric" value="${w.limitN||0}" data-k="limitN"></td>
-        <td class="td-limit"><input class="form-control form-control-sm" type="number" inputmode="numeric" value="${w.limitL||0}" data-k="limitL"></td>
-        <td class="td-time"><input class="form-control form-control-sm" value="${w.timeE||''}" data-k="timeE"></td>
-        <td class="td-time"><input class="form-control form-control-sm" value="${w.timeN||''}" data-k="timeN"></td>
-        <td class="td-time"><input class="form-control form-control-sm" value="${w.timeL||''}" data-k="timeL"></td>
-        <td class="td-start"><input class="form-control form-control-sm" type="number" inputmode="numeric" value="${w.startNo||1}" data-k="startNo"></td>
-        <td class="td-action"><button class="btn-main btn-sm btn-round" onclick="saveWeek('${w.weekdayEn}')">儲存</button></td>
+        <td><input class="form-control form-control-sm" type="number" inputmode="numeric" value="${w.limitE||0}" data-k="limitE"></td>
+        <td><input class="form-control form-control-sm" type="number" inputmode="numeric" value="${w.limitN||0}" data-k="limitN"></td>
+        <td><input class="form-control form-control-sm" type="number" inputmode="numeric" value="${w.limitL||0}" data-k="limitL"></td>
+        <td><input class="form-control form-control-sm" value="${w.timeE||''}" data-k="timeE" placeholder="08:30~11:30"></td>
+        <td><input class="form-control form-control-sm" value="${w.timeN||''}" data-k="timeN" placeholder="14:00~17:00"></td>
+        <td><input class="form-control form-control-sm" value="${w.timeL||''}" data-k="timeL" placeholder="18:00~20:30"></td>
+        <td><input class="form-control form-control-sm" type="number" inputmode="numeric" value="${w.startNo||1}" data-k="startNo"></td>
+        <td><button class="btn-main btn-sm btn-round" onclick="saveWeek('${w.weekdayEn}')">儲存</button></td>
       </tr>
     `);
   });
 }
+function isTimeRange(s){ return /^\s*\d{2}:\d{2}\s*~\s*\d{2}:\d{2}\s*$/.test(String(s||'')); }
 async function saveWeek(wdEn){
   assertAuthed();
   const tr = document.getElementById(`wd_${wdEn}`);
   const q = { action:'dailySet', token: ADMIN_TOKEN, wd: wdEn };
   tr.querySelectorAll('input').forEach(i=>{ q[i.dataset.k]=i.value; });
+  if(q.timeE && !isTimeRange(q.timeE)) return alert('早診時間格式錯誤');
+  if(q.timeN && !isTimeRange(q.timeN)) return alert('午診時間格式錯誤');
+  if(q.timeL && !isTimeRange(q.timeL)) return alert('晚診時間格式錯誤');
   const r = await axios.get(API,{ params:q });
   if(!(r.data && r.data.ok)) alert('儲存失敗');
 }
@@ -563,7 +621,7 @@ async function loadSpecials(){
       <td>${x.午診上限||0}</td>
       <td>${x.晚診上限||0}</td>
       <td>${x.備註||""}</td>
-      <td>
+      <td class="text-nowrap">
         <button class="btn btn-warning btn-sm me-1 btn-round" onclick="editRow('${x.id}')">編輯</button>
         <button class="btn btn-danger btn-sm btn-round" onclick="delRow('${x.id}')">刪除</button>
       </td></tr>`);
@@ -642,10 +700,8 @@ async function loadSheetLinks(){
   }
 }
 
-/* 已有 token 直接進入 */
-if(ADMIN_TOKEN){ showApp(); }
+/* 已有 token 直接進入（並預載 reCAPTCHA 腳本） */
+if(ADMIN_TOKEN){ loadRecaptcha().catch(()=>{}); showApp(); }
 </script>
 </body>
 </html>
-
-
