@@ -8,31 +8,15 @@
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 
-<!-- LIFF SDK -->
-<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-<script>
-(async () => {
-  try {
-    await liff.init({ liffId: '2007979306-0gl4PKb1' });
-    if (liff.isInClient() && !liff.isLoggedIn()) {
-      liff.login({ redirectUri: location.href });
-      return;
-    }
-    document.documentElement.classList.add('liff-ready');
-  } catch (e) {
-    console.error('LIFF init fail:', e);
-  }
-})();
-</script>
-
 <!-- CryptoJS (AES) -->
 <script src="https://cdn.jsdelivr.net/npm/crypto-js@4.2.0/crypto-js.min.js"></script>
+
 <script>
-// === 參數 ===
-const API = "https://script.google.com/macros/s/AKfycbxkWj6d1K6ejAn0lDZMdfWmIAejq6sKdytZTioZmSC2hqf5fq3Z2XnuNpulw8AROXtO/exec";
+/* === 參數 === */
+const API = "https://script.google.com/macros/s/AKfycbwh6P3SksU1Z90-PehRpk_09PaDw6IreoIaelD7yp7s4WEE5PRxzeDCFuhOZI5BQ_hi/exec";
 const AES_KEY = "A2x5fT9qR7nC1vB8mK3pZ6sD4uH0yW2j";
 
-// === AES ===
+/* === AES === */
 function aesEnc(payload, ttlMs = 10 * 60 * 1000){
   const obj = { ...payload, exp: Date.now() + ttlMs };
   return encodeURIComponent(CryptoJS.AES.encrypt(JSON.stringify(obj), AES_KEY).toString());
@@ -45,34 +29,33 @@ function aesDec(v){
   return data;
 }
 
-// === URL 工具（支援 liff.state） ===
-function getSearchParamsAnywhere(){
-  const p = new URLSearchParams(location.search);
-  const state = p.get('liff.state');
-  if(state){
-    const u = new URL(state, location.origin);
-    return new URLSearchParams(u.search);
-  }
-  return p;
+/* === URL 工具 === */
+function getSearchParams(){
+  return new URLSearchParams(location.search);
 }
-// 清掉位址列參數（避免密文殘留）
+/* 清掉位址列參數（避免密文殘留） */
 function scrubUrl(newPathName){
   const base = newPathName || location.pathname;
   history.replaceState({}, "", base);
 }
 
-// === 日期工具 ===
+/* === 日期工具 === */
 function pad2(n){return n<10?'0'+n:String(n);}
-function toYMD(d){ const z=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate(),1,0,0));
-  return `${z.getUTCFullYear()}-${pad2(z.getUTCMonth()+1)}-${pad2(z.getUTCDate())}`; }
+function toYMD(d){
+  const z=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate(),1,0,0));
+  return `${z.getUTCFullYear()}-${pad2(z.getUTCMonth()+1)}-${pad2(z.getUTCDate())}`;
+}
 function normalizeYMD(input){
   if(!input) return '';
-  if(typeof input==='string'){ if(/^\d{4}-\d{2}-\d{2}$/.test(input)) return input;
-    const d=new Date(input); return isNaN(d)?'':toYMD(d); }
+  if(typeof input==='string'){
+    if(/^\d{4}-\d{2}-\d{2}$/.test(input)) return input;
+    const d=new Date(input); return isNaN(d)?'':toYMD(d);
+  }
   const d=new Date(input); return isNaN(d)?'':toYMD(d);
 }
 function weekdayZhFromYMD(ymd){
-  const d=new Date(ymd+'T09:00:00+08:00'); return ['日','一','二','三','四','五','六'][d.getDay()]||'';
+  const d=new Date(ymd+'T09:00:00+08:00');
+  return ['日','一','二','三','四','五','六'][d.getDay()]||'';
 }
 function fmtTsTW(input){
   if(!input) return '';
@@ -99,6 +82,7 @@ function guessTimeBySlot(slot){
   .title-row .txt{ font-weight:800; font-size:36px; color:#18364d; }
   .muted{ color:#6b7b8c; }
   .strong-line{ font-weight:700; color:#1e3c53; }
+
   .btn-main{ background:#3b7096; color:#fff; border:none; border-radius:12px; padding:.8rem 1.25rem; font-weight:700; }
   .btn-main:hover{ background:#2e5a79; color:#fff; }
   .btn-ghost{ background:#fff; color:#3b7096; border:1px solid #c9d6e2; border-radius:12px; padding:.8rem 1.25rem; font-weight:700; }
@@ -133,15 +117,15 @@ function guessTimeBySlot(slot){
       <div>請在預約的門診時間內報到，可按「看診進度」查門診叫號，過號則須等待現場安排叫名字，逾期自動取消。</div>
     </div>
 
+    <!-- 返回 / 查詢 -->
     <div class="d-flex justify-content-center gap-2 mb-3">
-      <a class="btn btn-main flex-fill" href="index.html" id="homeBtn">返回預約首頁</a>
+      <a class="btn btn-main flex-fill" href="index.html">返回預約首頁</a>
       <a class="btn btn-ghost flex-fill" href="query.html">查詢/取消預約</a>
     </div>
 
-    <!-- 分享 / 關閉 -->
-    <div class="d-flex justify-content-center gap-2 mb-2">
-      <button id="shareBtn" class="btn btn-ghost flex-fill">📤 分享</button>
-      <button id="closeBtn" class="btn btn-ghost flex-fill">❌ 關閉視窗</button>
+    <!-- ✅ 僅留一顆置中的分享 -->
+    <div class="text-center mb-2">
+      <button id="shareBtn" class="btn btn-ghost">📤 分享</button>
     </div>
 
     <div id="filledAt" class="muted small"></div>
@@ -155,56 +139,18 @@ const mainInfo  = document.getElementById('mainInfo');
 const lineNameNo= document.getElementById('lineNameNo');
 const filledAt  = document.getElementById('filledAt');
 const shareBtn  = document.getElementById('shareBtn');
-const closeBtn  = document.getElementById('closeBtn');
-const homeBtn   = document.getElementById('homeBtn');
 
-// ===== 關閉視窗（頂層就綁好 + 多重退路） =====
-closeBtn.addEventListener('click', onClose);
-homeBtn.addEventListener('click', e=>{
-  // 在 LIFF 內按「返回預約首頁」→ 直接關閉回聊天室；非 LIFF 則照預設連結回首頁
-  if (window.liff && typeof liff.isInClient === 'function' && liff.isInClient()) {
-    e.preventDefault();
-    try { liff.closeWindow(); } catch(_) { safeFallback(); }
-  }
-});
-function onClose(e){
-  e.preventDefault();
-  // 1) LIFF 內：嘗試關閉
-  if (window.liff && typeof liff.isInClient === 'function' && liff.isInClient()) {
-    try {
-      liff.closeWindow();
-      // 若未成功關閉（極少數狀況），400ms 後啟動退路
-      setTimeout(() => {
-        if (!document.hidden && !document.webkitHidden) safeFallback();
-      }, 400);
-      return;
-    } catch(_) { /* 繼續退路 */ }
-  }
-  // 2) 外部瀏覽器或失敗：退路
-  safeFallback();
-}
-function safeFallback(){
-  // 先嘗試回上一頁；沒有 history 就回首頁
-  if (history.length > 1) {
-    history.back();
-    // 防止 back 失敗，300ms 後硬導回首頁
-    setTimeout(()=> location.replace('index.html'), 300);
-  } else {
-    location.replace('index.html');
-  }
-}
-
-// ===== 載入動畫點點 =====
+/* 載入動畫點點 */
 let dotTimer = setInterval(()=>{
   $dots.textContent = $dots.textContent === '...' ? '.' : $dots.textContent + '.';
   if($dots.textContent.length > 3) $dots.textContent = '.';
 }, 340);
 
-// ===== 主流程 =====
+/* 主流程 */
 (async function init(){
   try{
     // 取 id：cipher > id > sessionStorage
-    const qs = getSearchParamsAnywhere();
+    const qs = getSearchParams();
     let id = null;
     if (qs.get('cipher')) {
       try { id = aesDec(qs.get('cipher')).id; } catch(e) {}
@@ -217,6 +163,7 @@ let dotTimer = setInterval(()=>{
     // 取得後清掉網址參數
     scrubUrl(location.pathname);
 
+    // 詳細資料
     const r = await axios.get(API, { params:{ action:'detail', id } });
     const d = r.data || {};
 
@@ -231,26 +178,24 @@ let dotTimer = setInterval(()=>{
 
     mainInfo.textContent = `${ymd} 星期${wk}（${d.slot||''}） ${timeRange||''}`;
     lineNameNo.textContent = `姓名：${d.name||''}，號碼：${d.num||''} 號。`;
-    filledAt.textContent   = d.time ? fmtTsTW(d.time) : '';
+    filledAt.textContent   = d.submittedAt ? fmtTsTW(d.submittedAt) : '';
 
-    // 分享文字（不含任何網址）
+    // 分享純文字（沒有任何網址）
     const shareText =
 `✔️診所門診預約成功！
 
 ${ymd} 星期${wk}（${d.slot||''}） ${timeRange||''}
-
 姓名：${d.name||''}，號碼：${d.num||''} 號。
-如需查詢或取消，請至「查詢／取消預約」頁，輸入您的身分證字號即可。
+
+如需查詢或取消，可至「查詢／取消預約」頁，輸入您的身分證字號即可。
 請在預約的門診時間內到場報到，過號則須等待現場安排叫名字，逾期自動取消。`;
 
     shareBtn.onclick = async ()=>{
       try{
-        if (window.liff && typeof liff.isInClient === 'function' && liff.isInClient() && liff.isApiAvailable('shareTargetPicker')) {
-          await liff.shareTargetPicker([{ type:'text', text: shareText }]);
-        } else if (navigator.share) {
-          await navigator.share({ text: shareText });
+        if (navigator.share) {
+          await navigator.share({ text: shareText });        // 行動裝置優先
         } else {
-          await navigator.clipboard.writeText(shareText);
+          await navigator.clipboard.writeText(shareText);    // 桌機或不支援就複製
           alert('已複製分享內容！');
         }
       }catch(_){}
@@ -267,4 +212,3 @@ ${ymd} 星期${wk}（${d.slot||''}） ${timeRange||''}
 </script>
 </body>
 </html>
-
