@@ -9,32 +9,32 @@
   <link rel="stylesheet" href="style.css">
 
   <style>
+    /* 主要寬度與卡片 */
     .card-wrap{ max-width:1180px; margin:40px auto; }
     .card-wrap .card{ max-width:100% !important; margin:16px 0; }
 
+    /* tabs 與小字 */
     .tabbar{display:flex;flex-wrap:wrap;gap:.5rem;margin:8px 0 16px}
     .tabbar .btn{border-radius:999px}
     .small-note{font-size:.9rem;color:#6b7a90}
     .table td,.table th{vertical-align:middle}
 
+    /* number 隱藏上下箭頭 */
     .card-wrap input[type=number]::-webkit-outer-spin-button,
     .card-wrap input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0; }
     .card-wrap input[type=number]{ -moz-appearance:textfield; }
 
+    /* 每週規則欄寬（避免要拉橫向捲軸） */
     #tblDaily th, #tblDaily td{ white-space: normal; }
     #tblDaily .td-limit   { width:80px;  }
     #tblDaily .td-start   { width:90px;  }
     #tblDaily .td-action  { width:96px;  }
     #tblDaily .td-time    { width:200px; }
-
     #tblDaily .td-limit  .form-control{ max-width:64px; text-align:center; padding:.25rem .4rem; }
     #tblDaily .td-start  .form-control{ max-width:72px; text-align:center; padding:.25rem .4rem; }
     #tblDaily .td-time   .form-control{ width:100%; padding:.25rem .5rem; }
 
-    .no-spinner::-webkit-outer-spin-button,
-    .no-spinner::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0; }
-    .no-spinner{ -moz-appearance:textfield; }
-
+    /* 今天/明天名單的表格維持不換行，避免擠爆 */
     #tblToday th,#tblToday td,
     #tblTomorrow th,#tblTomorrow td{ white-space: nowrap; }
   </style>
@@ -252,7 +252,7 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 <script>
-/* ====== GAS endpoint ====== */
+/* ====== GAS endpoint（與你 query 同一支） ====== */
 const API = "https://script.google.com/macros/s/AKfycbwh6P3SksU1Z90-PehRpk_09PaDw6IreoIaelD7yp7s4WEE5PRxzeDCFuhOZI5BQ_hi/exec";
 
 /* ====== DOM ====== */
@@ -293,13 +293,28 @@ function showLogin(){ appBox.style.display="none"; loginBox.style.display="block
 function assertAuthed(){ if(!ADMIN_TOKEN){ showLogin(); throw new Error('no token'); } }
 function ymdLocal(d){ const y=d.getFullYear(),m=('0'+(d.getMonth()+1)).slice(-2),da=('0'+d.getDate()).slice(-2); return `${y}-${m}-${da}`; }
 
+/* ====== 把回傳統一整理成好用的物件/陣列 ====== */
+function asObj(payload){
+  try{ return typeof payload==='string' ? JSON.parse(payload) : (payload||{}); }
+  catch{ return {}; }
+}
+function asArr(payload){
+  try{ if(typeof payload==='string') payload = JSON.parse(payload); }catch{}
+  if(Array.isArray(payload)) return payload;
+  if(Array.isArray(payload?.rows))  return payload.rows;
+  if(Array.isArray(payload?.items)) return payload.items;
+  if(Array.isArray(payload?.data))  return payload.data;
+  return [];
+}
+const VALID_WD = new Set(['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday']);
+
 /* ====== Auth ====== */
 btnLoginPW.onclick = async () => {
   try{
     const a = (acc.value||'').trim();
     const p = (pw.value||'').trim();
     if(!a || !p){ pw.classList.add('shake'); setTimeout(()=>pw.classList.remove('shake'),350); return; }
-    const r = await axios.get(API, { params:{ action:'adminLogin', acc:a, pw:p }});
+    const r = await axios.get(API, { params:{ action:'adminLogin', acc:a, pw:p, t:Date.now() }});
     if(r.data?.ok){
       ADMIN_TOKEN = r.data.token;
       sessionStorage.setItem('ADMIN_TOKEN', ADMIN_TOKEN);
@@ -347,7 +362,7 @@ function renderDay(container, data){
   infoEl.textContent = `${data.date || ''}　${data.weekday || ''}`;
 
   statsEl.innerHTML = '';
-  (data.slots||[]).forEach(s=>{
+  asArr(data.slots).forEach(s=>{
     const tag = s.label==='早診'?'tag-early':(s.label==='午診'?'tag-noon':'tag-night');
     statsEl.insertAdjacentHTML('beforeend', `
       <div class="col-12 col-md-4"><div class="card">
@@ -359,7 +374,7 @@ function renderDay(container, data){
   });
 
   tbodyEl.innerHTML = '';
-  (data.items||[]).forEach(x=>{
+  asArr(data.items).forEach(x=>{
     tbodyEl.insertAdjacentHTML('beforeend', `
       <tr>
         <td>${x.slot||''}</td>
@@ -378,21 +393,21 @@ function renderDay(container, data){
 
 async function loadToday(){
   assertAuthed();
-  const r = await axios.get(API,{ params:{ action:'adminToday', token: ADMIN_TOKEN }});
-  renderDay({infoEl:todayInfo, statsEl:todayStats, tbodyEl:tblToday}, r.data || {});
+  const r = await axios.get(API,{ params:{ action:'adminToday', token: ADMIN_TOKEN, t:Date.now() }});
+  renderDay({infoEl:todayInfo, statsEl:todayStats, tbodyEl:tblToday}, asObj(r.data));
 }
 async function loadTomorrow(){
   assertAuthed();
   const d = new Date(); d.setDate(d.getDate()+1);
   const ymd = ymdLocal(d);
-  const r = await axios.get(API,{ params:{ action:'adminDay', date: ymd, token: ADMIN_TOKEN }});
-  renderDay({infoEl:tomorrowInfo, statsEl:tomorrowStats, tbodyEl:tblTomorrow}, r.data || {});
+  const r = await axios.get(API,{ params:{ action:'adminDay', date: ymd, token: ADMIN_TOKEN, t:Date.now() }});
+  renderDay({infoEl:tomorrowInfo, statsEl:tomorrowStats, tbodyEl:tblTomorrow}, asObj(r.data));
 }
 async function cancelByRow(id){
   if(!confirm('確定要取消這筆預約嗎？')) return;
   assertAuthed();
   await axios.get(API,{ params:{ action:'cancel', id, token: ADMIN_TOKEN }});
-  // 同步刷新兩個分頁，避免互相不同步
+  // 同步刷新兩個分頁
   if(views['tab-today'].style.display!=='none') await loadToday();
   if(views['tab-tomorrow'].style.display!=='none') await loadTomorrow();
 }
@@ -410,8 +425,8 @@ document.getElementById('btnWinSet').onclick   = setWin;
 
 async function loadWindow(){
   assertAuthed();
-  const r = await axios.get(API,{ params:{ action:'adminWindow', token: ADMIN_TOKEN }});
-  const d = r.data || {};
+  const r = await axios.get(API,{ params:{ action:'adminWindow', token: ADMIN_TOKEN, t:Date.now() }});
+  const d = asObj(r.data);
   winStart.value = d.start ?? 2;
   winEnd.value   = d.end ?? 14;
   winInfo.textContent = `目前：起始 D+${winStart.value}（${d.startDate||''}）～ 結束 D+${winEnd.value}（${d.endDate||''}）`;
@@ -432,9 +447,8 @@ async function adjustWin(ds,de){
 const tblDaily = document.getElementById('tblDaily').querySelector('tbody');
 async function loadDaily(){
   assertAuthed();
-  const r = await axios.get(API,{ params:{ action:'dailyGet', token: ADMIN_TOKEN }});
-  const valid = new Set(['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday']);
-  const rows = (r.data || []).filter(w => valid.has(w.weekdayEn));   // ← 只保留真實星期，濾掉第一行「星期」
+  const r = await axios.get(API,{ params:{ action:'dailyGet', token: ADMIN_TOKEN, t:Date.now() }});
+  const rows = asArr(r.data).filter(w => VALID_WD.has(w.weekdayEn)); // 濾掉試算表表頭那一行
   tblDaily.innerHTML = '';
   rows.forEach(w=>{
     const id = `wd_${w.weekdayEn}`;
@@ -463,7 +477,7 @@ async function saveWeek(wdEn){
 }
 window.saveWeek = saveWeek;
 
-/* ====== special_limit ====== */
+/* ====== special_limit（臨時異動） ====== */
 const newDate    = document.getElementById('newDate');
 const neEarly    = document.getElementById('neEarly');
 const neNoon     = document.getElementById('neNoon');
@@ -500,9 +514,10 @@ addBtn.onclick = async () => {
 
 async function loadSpecials(){
   assertAuthed();
-  const r = await axios.get(API,{ params:{ action:'adminGet', token: ADMIN_TOKEN }});
+  const r = await axios.get(API,{ params:{ action:'adminGet', token: ADMIN_TOKEN, t:Date.now() }});
+  const arr = asArr(r.data);
   const tbody=tbl.querySelector('tbody'); tbody.innerHTML="";
-  (r.data||[]).forEach(x=>{
+  arr.forEach(x=>{
     tbody.insertAdjacentHTML('beforeend', `<tr>
       <td>${x.日期}</td>
       <td>${x.早診上限||0}</td>
@@ -530,7 +545,7 @@ async function delRow(id){
 async function editRow(id){
   assertAuthed();
   const d=await axios.get(API,{ params:{ action:'adminOne', id, token: ADMIN_TOKEN }});
-  const f=d.data;
+  const f=asObj(d.data);
   const html = `<div class="modal fade" id="editM">
   <div class="modal-dialog"><div class="modal-content">
    <div class="modal-header">
@@ -569,16 +584,15 @@ window.delRow  = delRow;
 /* ====== 試算表捷徑 ====== */
 const sheetsCard = document.getElementById('sheetsCard');
 const sheetBtns  = document.getElementById('sheetBtns');
-const favOrder = ['預約名單','daily_limit','special_limit','預約期限'];
-const favIdx = (name)=>{ const i=favOrder.indexOf(name); return i<0?999:i; };
-
 async function loadSheetLinks(){
   try{
     assertAuthed();
-    const r = await axios.get(API,{ params:{ action:'sheetLinks', token: ADMIN_TOKEN }});
-    const { id, sheets=[] } = r.data || {};
+    const r = await axios.get(API,{ params:{ action:'sheetLinks', token: ADMIN_TOKEN, t:Date.now() }});
+    const data = asObj(r.data);
+    const id = data.id;
+    const sheets = asArr(data.sheets);
     if(!id || !sheets.length){ sheetsCard.style.display='none'; return; }
-    sheets.sort((a,b)=>{ const fa=favIdx(a.name), fb=favIdx(b.name); return fa===fb ? a.name.localeCompare(b.name,'zh-Hant') : fa-fb; });
+    sheets.sort((a,b)=> a.name.localeCompare(b.name,'zh-Hant'));
     sheetBtns.innerHTML = sheets.map(s=>`
       <a class="sheet-chip text-decoration-none" target="_blank" rel="noopener"
          href="https://docs.google.com/spreadsheets/d/${id}/edit#gid=${s.gid}">${s.name}</a>`).join('');
@@ -594,4 +608,3 @@ if(ADMIN_TOKEN){ showApp(); }
 </script>
 </body>
 </html>
-
