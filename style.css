@@ -18,7 +18,6 @@ html,body{
 }
 
 /* ====== 共用卡片與抬頭 ====== */
-/* ====== 共用卡片與抬頭 ====== */
 .card{
   max-width:560px;
   margin:40px auto;
@@ -37,13 +36,10 @@ html,body{
   display:flex; align-items:center; justify-content:center;
   background:var(--main); color:#fff; font-size:32px; font-weight:800;
 }
-
 h1,h2,h3,h4,h5{ color:var(--main); font-weight:700; margin:0; }
 
 /* 🔵 調整標題大小 */
-.header h1 {
-  font-size:20px;
-}
+.header h1 { font-size:20px; }
 
 /* ====== 表單、按鈕 ====== */
 .form-control, .form-select{
@@ -73,14 +69,13 @@ h1,h2,h3,h4,h5{ color:var(--main); font-weight:700; margin:0; }
 
 /* ====== Admin 專屬：寬版卡片、桌面表格 ====== */
 .card-wrap{
-  max-width:980px; margin:40px auto; background:var(--card-bg);
+  max-width:1180px; /* 建議寬一點，欄位不擠；想回 980 也可 */
+  margin:40px auto; background:var(--card-bg);
   border-radius:16px; box-shadow:0 12px 32px rgba(18,38,63,.06);
   padding:24px 24px 28px;
 }
 .card-head{ display:flex; align-items:center; gap:12px; margin-bottom:16px; }
-.card-head .logo{
-  width:44px; height:44px; font-size:24px;
-}
+.card-head .logo{ width:44px; height:44px; font-size:24px; }
 .subtitle{ color:var(--muted); margin-top:-4px; }
 
 /* 表格美化（Admin） */
@@ -122,39 +117,14 @@ h1,h2,h3,h4,h5{ color:var(--main); font-weight:700; margin:0; }
 }
 
 /* ===== success：三段大字（等同 fs-5 mb-4） ===== */
-/* 三行的 id：#dateLine、#timeLine、#lineNameNo */
-#dateLine,
-#timeLine,
-#lineNameNo{
-  font-size: 1.25rem;   /* 等同 Bootstrap fs-5 */
-  margin-bottom: 1.5rem;/* 等同 Bootstrap mb-4 */
-  font-weight: 700;     /* 與 strong-line 對齊的粗體 */
-  color: #1e3c53;       /* 與 strong-line 顏色一致 */
+#dateLine, #timeLine, #lineNameNo{
+  font-size: 1.25rem;  margin-bottom: 1.5rem; font-weight: 700; color: #1e3c53;
 }
-
-/* 若想在超小螢幕略縮字，可開啟這段 */
 @media (max-width: 360px){
-  #dateLine,
-  #timeLine,
-  #lineNameNo{
-    font-size: 1.1rem;
-  }
+  #dateLine, #timeLine, #lineNameNo{ font-size: 1.1rem; }
 }
+#mainInfo { font-size: 1.25rem; line-height: 1.5; white-space: nowrap; }
+@media (max-width: 420px){ #mainInfo { white-space: normal; text-align: center; } }
 
-/* 主資訊：維持大字，但避免過度壓縮 */
-#mainInfo {
-  font-size: 1.25rem;   /* 基本字級 = fs-5 (20px) */
-  line-height: 1.5;
-  white-space: nowrap;  /* 預設不換行 */
-}
-
-/* 如果螢幕太窄，允許換行避免字太小 */
-@media (max-width: 420px){
-  #mainInfo {
-    white-space: normal;   /* 小螢幕允許自動換行 */
-    text-align: center;
-  }
-}
-
-
-
+/* 補：今天名單欄位預設不換行（避免擠爆） */
+#tblToday th,#tblToday td{ white-space: nowrap; }
