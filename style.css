@@ -12,11 +12,9 @@ html,body{
 
 /* ====== 共用卡片與抬頭 ====== */
 .card{
-  /* 取消全域 560px 限制，讓內容頁可變寬 */
   margin:40px auto; padding:28px; border-radius:20px; background:var(--card-bg);
   box-shadow:0 12px 32px rgba(18,38,63,.08);
 }
-/* 只有登入頁要窄卡片 */
 .login-card .card{ max-width:560px; }
 
 .header{ display:flex; align-items:center; justify-content:center; gap:12px; margin-bottom:16px; }
@@ -36,13 +34,13 @@ h1,h2,h3,h4,h5{ color:var(--main); font-weight:700; margin:0; }
 .list-row{ display:grid; grid-template-columns:1.1fr .9fr .7fr 1fr 1fr .6fr .6fr; gap:.5rem; align-items:center; }
 .list-head{ font-weight:700; color:#27485f; margin-bottom:.5rem; }
 
-/* ====== Loading 遮罩 ====== */
+/* ====== Loading 遮罩（前台/成功/查詢） ====== */
 #mask,#ing,#loading{ position:fixed; inset:0; display:none; align-items:center; justify-content:center; background:rgba(255,255,255,.88); z-index:9999; font-size:18px; color:#2e5a79; backdrop-filter:blur(2px); }
 #dots{ display:inline-block; width:2ch; text-align:left; }
 
 /* ====== Admin：外框 ====== */
 .card-wrap{
-  max-width:1180px;   /* 放寬中間卡片 */
+  max-width:1180px;
   margin:40px auto; background:var(--card-bg);
   border-radius:16px; box-shadow:0 12px 32px rgba(18,38,63,.06);
   padding:24px 24px 28px;
@@ -60,6 +58,7 @@ h1,h2,h3,h4,h5{ color:var(--main); font-weight:700; margin:0; }
 /* 標籤色塊 */
 .tag{ display:inline-block; width:12px; height:12px; border-radius:50%; margin-right:6px; }
 .tag-early{ background:#41a647; } .tag-noon{ background:#f9a825; } .tag-night{ background:#2196f3; }
+
 .badge-tag{ border-radius:999px; padding:.35rem .6rem; font-weight:700; }
 .badge-early{ background:#e9f7ef; color:#2c7a45; } .badge-noon{ background:#fff7e6; color:#a76b02; } .badge-night{ background:#e7f2ff; color:#215ea8; }
 
@@ -91,16 +90,10 @@ h1,h2,h3,h4,h5{ color:var(--main); font-weight:700; margin:0; }
 .card-wrap input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0; }
 .card-wrap input[type=number]{ -moz-appearance:textfield; appearance:textfield; }
 
-/* =========================
-   每週規則（daily_limit）寬度修正
-   ========================= */
-
-/* 讓表格用自動排版，避免硬撐寬度 */
+/* 每週規則（daily_limit）寬度修正 */
 #tblDaily{ table-layout:auto; }
-/* 允許儲存格自動換行（先前若設過 nowrap，這裡覆蓋回去） */
 #tblDaily th, #tblDaily td{ white-space:normal; }
 
-/* 數字上限欄（早/午/晚）＋ 起始號：兩位數固定窄寬 */
 #tblDaily input[data-k="limitE"],
 #tblDaily input[data-k="limitN"],
 #tblDaily input[data-k="limitL"],
@@ -108,13 +101,13 @@ h1,h2,h3,h4,h5{ color:var(--main); font-weight:700; margin:0; }
   width:72px; min-width:72px; max-width:72px;
   text-align:center; padding-left:.5rem; padding-right:.5rem;
 }
-
-/* 三個時間欄位：給固定合理寬度（避免太寬導致捲動） */
 #tblDaily input[data-k="timeE"],
 #tblDaily input[data-k="timeN"],
 #tblDaily input[data-k="timeL"]{
-  width:200px; min-width:180px; max-width:220px;
+  width:180px; max-width:200px;
 }
-
-/* 操作欄固定寬度，避免壓縮其它欄 */
-#tblDaily th:last-child, #tblDaily td:last-child{ width:90px; white-space:nowrap; }
+.sheet-chip{
+  display:inline-block; padding:.45rem .7rem; border:1px solid var(--line); border-radius:999px;
+  background:#fff; color:#2a4a61; text-decoration:none!important;
+}
+.sheet-chip:hover{ background:#f7f9fb; }
