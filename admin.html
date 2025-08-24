@@ -10,7 +10,6 @@
   <!-- LIFF SDK -->
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   <script>
-  // 你的 LIFF ID（不含 -gl 之後的 channelId；這個就是完整 LIFF ID）
   const LIFF_ID = '2007979306-0gl4PKb1';
   (async () => {
     try {
@@ -21,6 +20,12 @@
     }
   })();
   </script>
+
+  <style>
+    /* 小幅美化捷徑按鈕 */
+    .sheet-chip{border-radius:14px;border:1px solid #c9d6e2;padding:.55rem .9rem;font-weight:600}
+    .sheet-chip:hover{background:#f4f8fb;border-color:#b9c8d6}
+  </style>
 </head>
 <body>
 
@@ -34,7 +39,6 @@
 
     <!-- LINE 登入 -->
     <button id="btnLoginLINE" class="btn-main w-100 mb-2">使用 LINE 登入</button>
-
     <div class="text-center text-muted my-2">— 或 —</div>
 
     <!-- 管理密碼登入（後備） -->
@@ -57,6 +61,13 @@
         <button id="exportBtn" class="btn btn-outline-secondary btn-round btn-sm">匯出今日起預約名單</button>
         <button id="logoutBtn"  class="btn-main btn-round btn-sm">登出</button>
       </div>
+    </div>
+
+    <!-- ✅ 試算表捷徑 -->
+    <div class="card mb-4" id="sheetsCard" style="display:none;">
+      <h5 class="mb-2">試算表捷徑</h5>
+      <div id="sheetBtns" class="d-flex flex-wrap gap-2"></div>
+      <div class="text-muted small mt-2">（需有該試算表權限；將在新分頁開啟）</div>
     </div>
 
     <!-- 新增區塊 -->
@@ -168,6 +179,10 @@ const neNoonLimit = document.getElementById('neNoonLimit');
 const neNightLimit= document.getElementById('neNightLimit');
 const neNote     = document.getElementById('neNote');
 
+// ✅ 試算表捷徑 DOM
+const sheetsCard = document.getElementById('sheetsCard');
+const sheetBtns  = document.getElementById('sheetBtns');
+
 // session token（1hr）
 let ADMIN_TOKEN = sessionStorage.getItem('ADMIN_TOKEN') || "";
 
@@ -175,6 +190,8 @@ let ADMIN_TOKEN = sessionStorage.getItem('ADMIN_TOKEN') || "";
 function showApp(){ loginBox.style.display="none"; appBox.style.display="block"; load(); }
 function showLogin(){ appBox.style.display="none"; loginBox.style.display="block"; }
 function assertAuthed(){ if(!ADMIN_TOKEN){ showLogin(); throw new Error('no token'); } }
+const favOrder = ['預約名單','daily_limit','special_limit','預約期限'];
+function favIdx(name){ const i=favOrder.indexOf(name); return i<0?999:i; }
 
 // ---- LINE login ----
 btnLoginLINE.onclick = async () => {
@@ -199,7 +216,7 @@ btnLoginLINE.onclick = async () => {
   }
 };
 
-// ---- password login（後備，不在前端寫死任何值） ----
+// ---- password login（後備） ----
 btnLoginPW.onclick = async () => {
   try{
     const a = (acc.value||'').trim();
@@ -227,9 +244,12 @@ logoutBtn.onclick = () => {
   showLogin();
 };
 
-// ---- Load table ----
+// ---- Load table + sheet links ----
 async function load(){
   assertAuthed();
+  await Promise.all([loadSpecials(), loadSheetLinks()]);
+}
+async function loadSpecials(){
   const r = await axios.get(API,{ params:{ action:'adminGet', token: ADMIN_TOKEN }});
   const tbody=tbl.querySelector('tbody'); tbody.innerHTML="";
   (r.data||[]).forEach(x=>{
@@ -244,6 +264,28 @@ async function load(){
         <button class="btn btn-danger btn-sm btn-round" onclick="delRow('${x.id}')">刪除</button>
       </td></tr>`;
   })
+}
+async function loadSheetLinks(){
+  try{
+    const r = await axios.get(API,{ params:{ action:'sheetLinks', token: ADMIN_TOKEN }});
+    const { id, sheets=[] } = r.data || {};
+    if(!id || !sheets.length){ sheetsCard.style.display='none'; return; }
+    // 排序：常用在前（favOrder），其餘依名稱
+    sheets.sort((a,b)=>{
+      const fa = favIdx(a.name), fb = favIdx(b.name);
+      return fa===fb ? a.name.localeCompare(b.name,'zh-Hant') : fa - fb;
+    });
+    sheetBtns.innerHTML = sheets.map(s=>(
+      `<a class="sheet-chip text-decoration-none" target="_blank" rel="noopener"
+          href="https://docs.google.com/spreadsheets/d/${id}/edit#gid=${s.gid}">
+        ${s.name}
+       </a>`
+    )).join('');
+    sheetsCard.style.display='block';
+  }catch(e){
+    console.warn('sheetLinks 失敗：', e);
+    sheetsCard.style.display='none';
+  }
 }
 
 // ---- add ----
