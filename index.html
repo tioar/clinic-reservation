@@ -9,22 +9,53 @@
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
-<!-- 🔐 CryptoJS (AES) -->
+<!-- 🔐 CryptoJS (AES) 只做遮蔽用 -->
 <script src="https://cdn.jsdelivr.net/npm/crypto-js@4.2.0/crypto-js.min.js"></script>
-<script>
-/* 前端僅作遮蔽用；若未來要更安全，可改後端簽發短效 token */
-const AES_KEY = "A2x5fT9qR7nC1vB8mK3pZ6sD4uH0yW2j";
 
-function aesEnc(payload, ttlMs = 10 * 60 * 1000) { // 預設10分鐘
+<script>
+/* === 後端 API === */
+const API = "https://script.google.com/macros/s/AKfycbwcFFufoRxG4VCPZ4idGl5AlNTIDP6PNa8-rHOftti-faXAIPYo7osbiRQwUo8Z6oB-/exec";
+
+/* === 可選：reCAPTCHA v3 Site Key（有就填；沒填就自動略過） === */
+const RECAPTCHA_SITE_KEY = ""; // 例： "6Lcxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+
+/* 動態載入 reCAPTCHA（若有設定 SITE KEY） */
+let recaptchaLoaded = false, recaptchaLoading = null;
+function loadRecaptcha(){
+  if (!RECAPTCHA_SITE_KEY) return Promise.resolve();
+  if (recaptchaLoaded) return Promise.resolve();
+  if (recaptchaLoading) return recaptchaLoading;
+  recaptchaLoading = new Promise((resolve, reject)=>{
+    const s = document.createElement("script");
+    s.src = "https://www.google.com/recaptcha/api.js?render=" + encodeURIComponent(RECAPTCHA_SITE_KEY);
+    s.async = true; s.defer = true;
+    s.onload = ()=>{ recaptchaLoaded = true; resolve(); };
+    s.onerror = ()=> reject(new Error("recaptcha_load_fail"));
+    document.head.appendChild(s);
+  });
+  return recaptchaLoading;
+}
+async function getRecaptchaToken(){
+  try{
+    if (!RECAPTCHA_SITE_KEY) return "";
+    await loadRecaptcha();
+    return await new Promise(res=>{
+      grecaptcha.ready(()=> grecaptcha.execute(RECAPTCHA_SITE_KEY, {action:"submit"}).then(token=>res(token)).catch(()=>res("")));
+    });
+  }catch(_){ return ""; }
+}
+
+/* === AES 遮蔽（傳 success 用） === */
+const AES_KEY = "A2x5fT9qR7nC1vB8mK3pZ6sD4uH0yW2j";
+function aesEnc(payload, ttlMs = 10 * 60 * 1000){
   const obj = { ...payload };
   if (ttlMs && Number.isFinite(ttlMs)) obj.exp = Date.now() + ttlMs;
-  const plain = JSON.stringify(obj);
-  const cipher = CryptoJS.AES.encrypt(plain, AES_KEY).toString(); // base64
+  const cipher = CryptoJS.AES.encrypt(JSON.stringify(obj), AES_KEY).toString();
   return encodeURIComponent(cipher);
 }
-function aesDec(cipherParam) {
+function aesDec(cipherParam){
   const bytes = CryptoJS.AES.decrypt(decodeURIComponent(cipherParam), AES_KEY);
-  const text  = bytes.toString(CryptoJS.enc.Utf8);
+  const text = bytes.toString(CryptoJS.enc.Utf8);
   if (!text) throw new Error("DECRYPT_FAIL");
   const data = JSON.parse(text);
   if (data.exp && Date.now() > data.exp) throw new Error("TOKEN_EXPIRED");
@@ -48,9 +79,7 @@ function aesDec(cipherParam) {
   </div>
 
   <!-- 錯誤訊息列（預設隱藏） -->
-  <div id="errBar" class="alert alert-danger d-none" role="alert" style="margin-top:-8px;">
-    重複預約，請檢查預約資料
-  </div>
+  <div id="errBar" class="alert alert-danger d-none" role="alert" style="margin-top:-8px;"></div>
 
   <div class="mb-3">
     <label class="form-label">預約日期 *</label>
@@ -118,10 +147,7 @@ function aesDec(cipherParam) {
 </div>
 
 <script>
-/* 與 success / query 同一支 GAS */
-const API = "https://script.google.com/macros/s/AKfycbw-Gp6gD3UzWslMoSXDhFrxwyYvZeRY-6HJVN1v0wNiulD9nWQm7IAEuoy6NlfClJvk/exec";
-
-/* 小工具 */
+/* 元件 */
 const el = id => document.getElementById(id);
 const $date     = el('date');
 const $slot     = el('slot');
@@ -136,6 +162,7 @@ const $errBar   = el('errBar');
 const $mask     = el('mask');
 const $dots     = el('dots');
 
+/* 遮罩動畫 */
 let dotTimer=null;
 function showMask(txt){
   $mask.firstChild.nodeValue = (txt||'預約中請稍等，請勿關閉或重新整理頁面');
@@ -148,12 +175,9 @@ function showMask(txt){
 }
 function hideMask(){ if(dotTimer) clearInterval(dotTimer); $mask.style.display='none'; }
 
-function showErr(msg){
-  $errBar.textContent = msg || '重複預約，請檢查預約資料';
-  $errBar.classList.remove('d-none');
-}
+/* UI helpers */
+function showErr(msg='送出失敗，請稍後再試'){ $errBar.textContent = msg; $errBar.classList.remove('d-none'); }
 function clearErr(){ $errBar.classList.add('d-none'); }
-
 function updateWeekday(d){
   if(!d){ $weekday.textContent=''; return; }
   const wtxt=['日','一','二','三','四','五','六'];
@@ -161,7 +185,7 @@ function updateWeekday(d){
   $weekday.textContent = `（星期${wtxt[wd]}）`;
 }
 
-/* 讀取後端「預約期限」作為日期可選範圍；失敗則退回 D+1～D+14 */
+/* 讀取後端「預約期限」作為日期可選範圍；失敗→ D+1～D+14 */
 async function initDateWindow(){
   try{
     const r = await axios.get(API,{ params:{ action:'getWindow' }});
@@ -182,18 +206,29 @@ async function initDateWindow(){
   updateWeekday($date.value);
 }
 
+/* 當日 slot 與（可選）nonce 資訊 */
+let nonceMeta = null;
+
 /* 變更日期→載入診別 */
 $date.addEventListener('change', onDateChange);
 
 async function onDateChange(){
   clearErr();
+  nonceMeta = null;
   const d = $date.value;
   updateWeekday(d);
   $slot.innerHTML = '<option value="">讀取中…</option>';
   try{
-    const r = await axios.get(API,{params:{action:'getSlots',date:d}});
+    const r = await axios.get(API,{ params:{ action:'getSlots', date:d }});
+    // 兼容：可能回傳陣列，或 { slots, nonce, exp, sig, date }
+    const data  = r.data;
+    const slots = Array.isArray(data) ? data : (Array.isArray(data?.slots) ? data.slots : []);
+    if (!Array.isArray(data) && data && data.nonce && data.sig && data.exp){
+      nonceMeta = { nonce: String(data.nonce), sig: String(data.sig), exp: Number(data.exp), date: d };
+    }
+
     let html = '<option value="">請選診別</option>';
-    (r.data||[]).forEach(o=>{
+    slots.forEach(o=>{
       const limit  = Number(o.limit)||0;
       const used   = Number(o.used)||0;
       const remain = Math.max(0, limit-used);
@@ -206,7 +241,7 @@ async function onDateChange(){
                  </option>`;
       }
     });
-    if (html === '<option value="">請選診別</option>' && (!r.data || r.data.length === 0)){
+    if (html === '<option value="">請選診別</option>' && (!slots || slots.length === 0)){
       html = '<option value="">當天未開放</option>';
     }
     $slot.innerHTML = html;
@@ -232,7 +267,7 @@ el('showNotice').onclick = e=>{
   new bootstrap.Modal(el('noticeModal')).show();
 };
 
-/* 送出（在前端顯示錯誤，不跳 success） */
+/* 送出（顯示錯誤於本頁，不跳 success） */
 let submitting=false;
 $submit.onclick = async ()=>{
   if(submitting) return;
@@ -260,9 +295,22 @@ $submit.onclick = async ()=>{
     $submit.disabled=true;
     showMask();
 
-    const r = await axios.get(API,{params:{
-      action:'submit', date:d, slot:s, name:n, birthday:b, id:id, phone:ph
-    }});
+    // 可能需要的 token（伺服器未啟用也無妨）
+    const recaptchaToken = await getRecaptchaToken();
+
+    const params = {
+      action:'submit',
+      date:d, slot:s, name:n, birthday:b, id:id, phone:ph,
+      recaptchaToken
+    };
+    // 如果有收到 nonce，就帶上
+    if (nonceMeta && nonceMeta.date === d){
+      params.nonce = nonceMeta.nonce;
+      params.sig   = nonceMeta.sig;
+      params.exp   = nonceMeta.exp;
+    }
+
+    const r = await axios.get(API,{ params });
 
     if(!r.data?.ok){
       const code = r.data?.error || '';
@@ -270,6 +318,14 @@ $submit.onclick = async ()=>{
         showErr('重複預約，請檢查預約資料');
       }else if(code === 'full'){
         showErr('名額已滿，請改選其他時段或日期');
+      }else if(code === 'out_of_window'){
+        showErr(r.data?.message || '超出可預約期間');
+      }else if(code === 'robot'){
+        showErr('驗證未通過，請再試一次');
+      }else if(code === 'bad_nonce'){
+        showErr('頁面逾時，請重新選擇日期與診別再送出');
+      }else if(code === 'slow_down'){
+        showErr('操作過於頻繁，請稍後再試');
       }else{
         showErr(r.data?.message || '送出失敗，請稍後再試');
       }
@@ -289,8 +345,6 @@ $submit.onclick = async ()=>{
     const successUrl = new URL('success.html', baseDir);
     const cipher = aesEnc({ id: idFromApi }); // 10 分鐘有效
     successUrl.searchParams.set('cipher', cipher);
-
-    /* 🚀 直接導向 success */
     location.assign(successUrl.href);
 
   }catch(e){
@@ -303,14 +357,12 @@ $submit.onclick = async ()=>{
   }
 };
 
-/* 初始化：讀取後端視窗 → 載入該日診別 */
+/* 初始化：載視窗→載當日 slot；若設定了 reCAPTCHA，先載入腳本 */
 (async () => {
+  try{ await loadRecaptcha(); }catch(_){}
   await initDateWindow();
   onDateChange();
 })();
 </script>
 </body>
 </html>
-
-
-
