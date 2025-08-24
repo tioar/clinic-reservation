@@ -55,9 +55,10 @@
 
 <script>
 // ===== 設定 =====
+// ⚠️ 換成同一支 GAS URL
 const API = "https://script.google.com/macros/s/AKfycbz-OLvUKfEIKXprDy3apd6zV8FXjTYic_2ltNu2F4iwSNTph09shmp8WKQlj3IL_dZD/exec";
 
-// ✅ reCAPTCHA v3 Site Key（留空字串會自動略過）
+// ✅ 你的 reCAPTCHA v3 Site Key（留空字串會自動略過）
 const RECAPTCHA_SITE_KEY = "6LdqprArAAAAACpuAXemZUH3KNER1t1iw07YjGHu";
 
 // 動態載入 / 取得 token
@@ -196,7 +197,7 @@ async function cancelOne(item, pid){
     const localRcpt = sessionStorage.getItem('rcpt:'+item.id) || '';
     let resp = await axios.get(API,{ params:{ action:'cancel', id: item.id, receipt: localRcpt, recaptchaToken, t: Date.now() }});
 
-    // 若缺憑證或失敗，再試：貼上 receipt
+    // 若缺憑證或失敗，再試：以身分證批量取消（後端允許時）
     if(!(resp.data && (resp.data.ok || resp.data.success))){
       const msg = (resp.data && (resp.data.message||resp.data.error)) || '';
       if(/憑證|receipt|unauthorized/i.test(msg)){
@@ -208,7 +209,7 @@ async function cancelOne(item, pid){
       }
     }
 
-    // 仍未成功 → 相容舊法：以身分證批量取消（後端允許時）
+    // 若仍沒成功，再退回用身分證取消（相容舊法）
     if(!(resp.data && (resp.data.ok || resp.data.success))){
       resp = await axios.get(API,{ params:{ action:'cancel', idnum: pid, recaptchaToken, t: Date.now() }});
     }
@@ -241,4 +242,3 @@ loadRecaptcha().catch(()=>{});
 </script>
 </body>
 </html>
-
