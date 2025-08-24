@@ -13,39 +13,39 @@
 <script src="https://cdn.jsdelivr.net/npm/crypto-js@4.2.0/crypto-js.min.js"></script>
 
 <script>
-/* === 後端 API === */
-const API = "https://script.google.com/macros/s/AKfycbwcFFufoRxG4VCPZ4idGl5AlNTIDP6PNa8-rHOftti-faXAIPYo7osbiRQwUo8Z6oB-/exec";
+/* === 後端 API（請與 success / query 同一支） === */
+const API = "https://script.google.com/macros/s/AKfycbzOm7nUXPcEKcCejkSHHKrfJzS3Fv7h9LJS5VVpTNMZ-sALQD3iAm9puykRqzxdsAn6/exec";
 
 /* === 可選：reCAPTCHA v3 Site Key（有就填；沒填就自動略過） === */
-const RECAPTCHA_SITE_KEY = "6LdqprArAAAAACpuAXemZUH3KNER1t1iw07YjGHu"; // 例： "6Lcxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+const RECAPTCHA_SITE_KEY = "6LdqprArAAAAACpuAXemZUH3KNER1t1iw07YjGHu";
 
-/* 動態載入 reCAPTCHA（若有設定 SITE KEY） */
-let recaptchaLoaded = false, recaptchaLoading = null;
+/* 動態載入 reCAPTCHA */
+let recaptchaLoaded=false, recaptchaLoading=null;
 function loadRecaptcha(){
-  if (!RECAPTCHA_SITE_KEY) return Promise.resolve();
-  if (recaptchaLoaded) return Promise.resolve();
-  if (recaptchaLoading) return recaptchaLoading;
-  recaptchaLoading = new Promise((resolve, reject)=>{
-    const s = document.createElement("script");
-    s.src = "https://www.google.com/recaptcha/api.js?render=" + encodeURIComponent(RECAPTCHA_SITE_KEY);
-    s.async = true; s.defer = true;
-    s.onload = ()=>{ recaptchaLoaded = true; resolve(); };
-    s.onerror = ()=> reject(new Error("recaptcha_load_fail"));
+  if(!RECAPTCHA_SITE_KEY) return Promise.resolve();
+  if(recaptchaLoaded) return Promise.resolve();
+  if(recaptchaLoading) return recaptchaLoading;
+  recaptchaLoading = new Promise((resolve,reject)=>{
+    const s=document.createElement("script");
+    s.src="https://www.google.com/recaptcha/api.js?render="+encodeURIComponent(RECAPTCHA_SITE_KEY);
+    s.async=true; s.defer=true;
+    s.onload=()=>{recaptchaLoaded=true;resolve();};
+    s.onerror=()=>reject(new Error("recaptcha_load_fail"));
     document.head.appendChild(s);
   });
   return recaptchaLoading;
 }
 async function getRecaptchaToken(){
   try{
-    if (!RECAPTCHA_SITE_KEY) return "";
+    if(!RECAPTCHA_SITE_KEY) return "";
     await loadRecaptcha();
     return await new Promise(res=>{
-      grecaptcha.ready(()=> grecaptcha.execute(RECAPTCHA_SITE_KEY, {action:"submit"}).then(token=>res(token)).catch(()=>res("")));
+      grecaptcha.ready(()=> grecaptcha.execute(RECAPTCHA_SITE_KEY,{action:"submit"}).then(t=>res(t)).catch(()=>res("")));
     });
   }catch(_){ return ""; }
 }
 
-/* === AES 遮蔽（傳 success 用） === */
+/* === AES 遮蔽（傳給 success 用；非安全機制） === */
 const AES_KEY = "A2x5fT9qR7nC1vB8mK3pZ6sD4uH0yW2j";
 function aesEnc(payload, ttlMs = 10 * 60 * 1000){
   const obj = { ...payload };
@@ -55,7 +55,7 @@ function aesEnc(payload, ttlMs = 10 * 60 * 1000){
 }
 function aesDec(cipherParam){
   const bytes = CryptoJS.AES.decrypt(decodeURIComponent(cipherParam), AES_KEY);
-  const text = bytes.toString(CryptoJS.enc.Utf8);
+  const text  = bytes.toString(CryptoJS.enc.Utf8);
   if (!text) throw new Error("DECRYPT_FAIL");
   const data = JSON.parse(text);
   if (data.exp && Date.now() > data.exp) throw new Error("TOKEN_EXPIRED");
@@ -267,7 +267,7 @@ el('showNotice').onclick = e=>{
   new bootstrap.Modal(el('noticeModal')).show();
 };
 
-/* 送出（顯示錯誤於本頁，不跳 success） */
+/* 送出（顯示錯誤於本頁，不跳 success 前先處理） */
 let submitting=false;
 $submit.onclick = async ()=>{
   if(submitting) return;
@@ -295,7 +295,7 @@ $submit.onclick = async ()=>{
     $submit.disabled=true;
     showMask();
 
-    // 可能需要的 token（伺服器未啟用也無妨）
+    // 可能需要的 token（後端未啟用也不影響）
     const recaptchaToken = await getRecaptchaToken();
 
     const params = {
@@ -303,7 +303,7 @@ $submit.onclick = async ()=>{
       date:d, slot:s, name:n, birthday:b, id:id, phone:ph,
       recaptchaToken
     };
-    // 如果有收到 nonce，就帶上
+    // 若有 nonce（開啟 REQUIRE_NONCE 時）
     if (nonceMeta && nonceMeta.date === d){
       params.nonce = nonceMeta.nonce;
       params.sig   = nonceMeta.sig;
@@ -339,11 +339,18 @@ $submit.onclick = async ()=>{
       return;
     }
 
+    // ✅ 取回 receipt（若後端啟用 REQUIRE_RECEIPT）
+    const receipt = r?.data?.receipt || r?.data?.rcpt || '';
+    if (receipt) {
+      try { sessionStorage.setItem('rcpt:'+String(idFromApi), String(receipt)); } catch(_){}
+    }
+
     sessionStorage.setItem('lastBookingId', String(idFromApi));
 
+    // 帶 id +（可選）receipt 給 success.html
     const baseDir = new URL('.', location.href);
     const successUrl = new URL('success.html', baseDir);
-    const cipher = aesEnc({ id: idFromApi }); // 10 分鐘有效
+    const cipher = aesEnc({ id: idFromApi, rcpt: receipt }); // ← 把 receipt 一起包進去
     successUrl.searchParams.set('cipher', cipher);
     location.assign(successUrl.href);
 
@@ -366,4 +373,3 @@ $submit.onclick = async ()=>{
 </script>
 </body>
 </html>
-
