@@ -12,7 +12,7 @@
 <script src="https://cdn.jsdelivr.net/npm/crypto-js@4.2.0/crypto-js.min.js"></script>
 
 <script>
-/* === 後端 API === */
+/* === 後端 API（⚠️請與 index.html / query.html 完全一致） === */
 const API = "https://script.google.com/macros/s/AKfycbzOm7nUXPcEKcCejkSHHKrfJzS3Fv7h9LJS5VVpTNMZ-sALQD3iAm9puykRqzxdsAn6/exec";
 
 /* === AES（遮蔽，不等於安全） === */
@@ -128,10 +128,12 @@ let dotTimer = setInterval(()=>{
       try {
         const obj = aesDec(p.get('cipher'));
         id = obj.id || obj.bookingId || null;
-        receipt = obj.receipt || '';
+        // 同時接受 receipt / rcpt 兩種鍵名
+        receipt = obj.receipt || obj.rcpt || '';
       } catch(_) {}
     }
     if (!id && p.get('id')) id = p.get('id');
+    if (!id) id = sessionStorage.getItem('lastBookingId') || null;
     if (!receipt && id) receipt = sessionStorage.getItem('rcpt:'+id) || '';
 
     if (!id){
