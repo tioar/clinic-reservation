@@ -55,10 +55,9 @@
 
 <script>
 // ===== 設定 =====
-// ⚠️ 換成同一支 GAS URL
 const API = "https://script.google.com/macros/s/AKfycbzOm7nUXPcEKcCejkSHHKrfJzS3Fv7h9LJS5VVpTNMZ-sALQD3iAm9puykRqzxdsAn6/exec";
 
-// ✅ 你的 reCAPTCHA v3 Site Key（留空字串會自動略過）
+// ✅ reCAPTCHA v3 Site Key（留空字串會自動略過）
 const RECAPTCHA_SITE_KEY = "6LdqprArAAAAACpuAXemZUH3KNER1t1iw07YjGHu";
 
 // 動態載入 / 取得 token
@@ -197,9 +196,8 @@ async function cancelOne(item, pid){
     const localRcpt = sessionStorage.getItem('rcpt:'+item.id) || '';
     let resp = await axios.get(API,{ params:{ action:'cancel', id: item.id, receipt: localRcpt, recaptchaToken, t: Date.now() }});
 
-    // 若缺憑證或失敗，再試：以身分證批量取消（後端允許時）
+    // 若缺憑證或失敗，再試：貼上 receipt
     if(!(resp.data && (resp.data.ok || resp.data.success))){
-      // 如果後端回「缺少憑證」，讓使用者貼上
       const msg = (resp.data && (resp.data.message||resp.data.error)) || '';
       if(/憑證|receipt|unauthorized/i.test(msg)){
         const rcpt = prompt('此筆需要預約憑證（receipt）。\n請貼上憑證字串：');
@@ -210,7 +208,7 @@ async function cancelOne(item, pid){
       }
     }
 
-    // 若仍沒成功，再退回用身分證取消（相容舊法）
+    // 仍未成功 → 相容舊法：以身分證批量取消（後端允許時）
     if(!(resp.data && (resp.data.ok || resp.data.success))){
       resp = await axios.get(API,{ params:{ action:'cancel', idnum: pid, recaptchaToken, t: Date.now() }});
     }
