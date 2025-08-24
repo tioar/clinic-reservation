@@ -84,36 +84,36 @@ function aesDec(cipherParam){
   <div class="mb-3">
     <label class="form-label">預約日期 *</label>
     <div class="d-flex align-items-center flex-nowrap">
-      <input type="date" id="date" class="form-control" style="max-width:70%;" />
+      <input type="date" id="date" class="form-control" style="max-width:70%;" autocomplete="off" />
       <span id="weekday" class="ms-2"></span>
     </div>
   </div>
 
   <div class="mb-3">
     <label class="form-label">診別 *</label>
-    <select id="slot" class="form-select">
+    <select id="slot" class="form-select" autocomplete="off">
       <option value="">請先選擇日期</option>
     </select>
   </div>
 
   <div class="mb-3">
     <label class="form-label">姓名 *</label>
-    <input type="text" id="name" class="form-control" />
+    <input type="text" id="name" class="form-control" autocomplete="off" />
   </div>
 
   <div class="mb-3">
     <label class="form-label">出生年月日 *</label>
-    <input type="date" id="birthday" class="form-control" />
+    <input type="date" id="birthday" class="form-control" autocomplete="off" />
   </div>
 
   <div class="mb-3">
     <label class="form-label">身分證字號 *</label>
-    <input type="text" id="idnum" class="form-control" maxlength="10" placeholder="A123456789" />
+    <input type="text" id="idnum" class="form-control" maxlength="10" placeholder="A123456789" autocomplete="off" />
   </div>
 
   <div class="mb-3">
     <label class="form-label">連絡電話 *</label>
-    <input type="text" id="phone" class="form-control" maxlength="10" placeholder="0958xxxxxx" />
+    <input type="text" id="phone" class="form-control" maxlength="10" placeholder="0958xxxxxx" inputmode="numeric" autocomplete="off" />
   </div>
 
   <div class="form-check mb-4">
@@ -188,7 +188,7 @@ function updateWeekday(d){
 /* 讀取後端「預約期限」作為日期可選範圍；失敗→ D+1～D+14 */
 async function initDateWindow(){
   try{
-    const r = await axios.get(API,{ params:{ action:'getWindow' }});
+    const r = await axios.get(API,{ params:{ action:'getWindow', t: Date.now() }});
     const start = Number(r.data?.start ?? 1);
     const end   = Number(r.data?.end   ?? 14);
     const today = new Date();
@@ -219,7 +219,7 @@ async function onDateChange(){
   updateWeekday(d);
   $slot.innerHTML = '<option value="">讀取中…</option>';
   try{
-    const r = await axios.get(API,{ params:{ action:'getSlots', date:d }});
+    const r = await axios.get(API,{ params:{ action:'getSlots', date:d, t: Date.now() }});
     // 兼容：可能回傳陣列，或 { slots, nonce, exp, sig, date }
     const data  = r.data;
     const slots = Array.isArray(data) ? data : (Array.isArray(data?.slots) ? data.slots : []);
@@ -259,6 +259,11 @@ $idnum.addEventListener("input",e=>{
 $phone.addEventListener("input",e=>{
   clearErr();
   e.target.value = e.target.value.replace(/\D/g,'').slice(0,10);
+});
+
+/* Enter 快速送出 */
+document.addEventListener('keydown', e=>{
+  if(e.key === 'Enter') $submit.click();
 });
 
 /* 預約須知 */
@@ -301,7 +306,8 @@ $submit.onclick = async ()=>{
     const params = {
       action:'submit',
       date:d, slot:s, name:n, birthday:b, id:id, phone:ph,
-      recaptchaToken
+      recaptchaToken,
+      t: Date.now()
     };
     // 若有 nonce（開啟 REQUIRE_NONCE 時）
     if (nonceMeta && nonceMeta.date === d){
@@ -344,13 +350,12 @@ $submit.onclick = async ()=>{
     if (receipt) {
       try { sessionStorage.setItem('rcpt:'+String(idFromApi), String(receipt)); } catch(_){}
     }
-
     sessionStorage.setItem('lastBookingId', String(idFromApi));
 
     // 帶 id +（可選）receipt 給 success.html
     const baseDir = new URL('.', location.href);
     const successUrl = new URL('success.html', baseDir);
-    const cipher = aesEnc({ id: idFromApi, rcpt: receipt }); // ← 把 receipt 一起包進去
+    const cipher = aesEnc({ id: idFromApi, receipt }); // 用 receipt 這個鍵名
     successUrl.searchParams.set('cipher', cipher);
     location.assign(successUrl.href);
 
