@@ -13,7 +13,7 @@
 <script src="https://cdn.jsdelivr.net/npm/crypto-js@4.2.0/crypto-js.min.js"></script>
 
 <script>
-/* === 後端 API（請與 success / query 同一支） === */
+/* === 後端 API（請與 success / query / admin 同一支） === */
 const API = "https://script.google.com/macros/s/AKfycbz-OLvUKfEIKXprDy3apd6zV8FXjTYic_2ltNu2F4iwSNTph09shmp8WKQlj3IL_dZD/exec";
 
 /* === 可選：reCAPTCHA v3 Site Key（有就填；沒填就自動略過） === */
@@ -272,7 +272,7 @@ el('showNotice').onclick = e=>{
   new bootstrap.Modal(el('noticeModal')).show();
 };
 
-/* 送出（顯示錯誤於本頁，不跳 success 前先處理） */
+/* 送出 */
 let submitting=false;
 $submit.onclick = async ()=>{
   if(submitting) return;
@@ -355,7 +355,7 @@ $submit.onclick = async ()=>{
     // 帶 id +（可選）receipt 給 success.html
     const baseDir = new URL('.', location.href);
     const successUrl = new URL('success.html', baseDir);
-    const cipher = aesEnc({ id: idFromApi, receipt }); // 用 receipt 這個鍵名
+    const cipher = aesEnc({ id: idFromApi, receipt });
     successUrl.searchParams.set('cipher', cipher);
     location.assign(successUrl.href);
 
@@ -378,4 +378,3 @@ $submit.onclick = async ()=>{
 </script>
 </body>
 </html>
-
