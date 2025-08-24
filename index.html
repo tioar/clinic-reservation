@@ -9,28 +9,10 @@
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
-<!-- 🔵 LIFF SDK -->
-<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-<script>
-(async () => {
-  try {
-    await liff.init({ liffId: '2007979306-0gl4PKb1' });
-    // 只在 LINE 內頁時要求登入；一般瀏覽器可直接使用
-    if (liff.isInClient() && !liff.isLoggedIn()) {
-      liff.login({ redirectUri: location.href });
-      return;
-    }
-    document.documentElement.classList.add('liff-ready');
-  } catch (e) {
-    console.error('LIFF init fail:', e);
-  }
-})();
-</script>
-
 <!-- 🔐 CryptoJS (AES) -->
 <script src="https://cdn.jsdelivr.net/npm/crypto-js@4.2.0/crypto-js.min.js"></script>
 <script>
-// 32字元金鑰（前端僅作遮蔽用；日後可改後端簽發短效token）
+/* 前端僅作遮蔽用；若未來要更安全，可改後端簽發短效 token */
 const AES_KEY = "A2x5fT9qR7nC1vB8mK3pZ6sD4uH0yW2j";
 
 function aesEnc(payload, ttlMs = 10 * 60 * 1000) { // 預設10分鐘
@@ -136,10 +118,10 @@ function aesDec(cipherParam) {
 </div>
 
 <script>
-// 👉 與 success / query 同一支 GAS
-const API = "https://script.google.com/macros/s/AKfycbxkWj6d1K6ejAn0lDZMdfWmIAejq6sKdytZTioZmSC2hqf5fq3Z2XnuNpulw8AROXtO/exec";
+/* 與 success / query 同一支 GAS */
+const API = "https://script.google.com/macros/s/AKfycbxTQC7HuYA5HslMXOxWV55-rPqxAn1WDuLA4Tb-NqR4LSWmUrjeLNlddVW-_Eku-4uD/exec";
 
-// 小工具
+/* 小工具 */
 const el = id => document.getElementById(id);
 const $date     = el('date');
 const $slot     = el('slot');
@@ -173,21 +155,35 @@ function showErr(msg){
 function clearErr(){ $errBar.classList.add('d-none'); }
 
 function updateWeekday(d){
+  if(!d){ $weekday.textContent=''; return; }
   const wtxt=['日','一','二','三','四','五','六'];
   const wd = new Date(d+'T00:00:00').getDay();
   $weekday.textContent = `（星期${wtxt[wd]}）`;
 }
 
-// 日期限制（明天～15天內）
-const today=new Date(), min=new Date(today.getTime()+86400000), max=new Date(today.getTime()+15*86400000);
-$date.min=min.toISOString().split("T")[0];
-$date.max=max.toISOString().split("T")[0];
-$date.value = $date.min;
-updateWeekday($date.value);
+/* 讀取後端「預約期限」作為日期可選範圍；失敗則退回 D+1～D+15 */
+async function initDateWindow(){
+  try{
+    const r = await axios.get(API,{ params:{ action:'getWindow' }});
+    const start = Number(r.data?.start ?? 1);
+    const end   = Number(r.data?.end   ?? 15);
+    const today = new Date();
+    const min = new Date(today.getFullYear(), today.getMonth(), today.getDate() + start);
+    const max = new Date(today.getFullYear(), today.getMonth(), today.getDate() + end);
+    $date.min = min.toISOString().split("T")[0];
+    $date.max = max.toISOString().split("T")[0];
+    $date.value = $date.min;
+  }catch(_){
+    const today=new Date(), min=new Date(today.getTime()+86400000), max=new Date(today.getTime()+15*86400000);
+    $date.min=min.toISOString().split("T")[0];
+    $date.max=max.toISOString().split("T")[0];
+    $date.value=$date.min;
+  }
+  updateWeekday($date.value);
+}
 
-// 變更日期→載入診別
+/* 變更日期→載入診別 */
 $date.addEventListener('change', onDateChange);
-onDateChange();
 
 async function onDateChange(){
   clearErr();
@@ -197,7 +193,7 @@ async function onDateChange(){
   try{
     const r = await axios.get(API,{params:{action:'getSlots',date:d}});
     let html = '<option value="">請選診別</option>';
-    r.data.forEach(o=>{
+    (r.data||[]).forEach(o=>{
       const limit  = Number(o.limit)||0;
       const used   = Number(o.used)||0;
       const remain = Math.max(0, limit-used);
@@ -210,7 +206,7 @@ async function onDateChange(){
                  </option>`;
       }
     });
-    if (html === '<option value="">請選診別</option>' && r.data.length === 0){
+    if (html === '<option value="">請選診別</option>' && (!r.data || r.data.length === 0)){
       html = '<option value="">當天未開放</option>';
     }
     $slot.innerHTML = html;
@@ -220,7 +216,7 @@ async function onDateChange(){
   }
 }
 
-// 限制輸入
+/* 輸入限制 */
 $idnum.addEventListener("input",e=>{
   clearErr();
   e.target.value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,10);
@@ -230,13 +226,13 @@ $phone.addEventListener("input",e=>{
   e.target.value = e.target.value.replace(/\D/g,'').slice(0,10);
 });
 
-// 預約須知
+/* 預約須知 */
 el('showNotice').onclick = e=>{
   e.preventDefault();
   new bootstrap.Modal(el('noticeModal')).show();
 };
 
-// 送出（在前端顯示錯誤，不跳 success）
+/* 送出（在前端顯示錯誤，不跳 success） */
 let submitting=false;
 $submit.onclick = async ()=>{
   if(submitting) return;
@@ -247,7 +243,6 @@ $submit.onclick = async ()=>{
   const opt = (si>=0)? $slot.options[si] : null;
   const s  = opt ? (opt.value||'').trim() : '';
 
-  const startNo = opt?.dataset.start || '';
   const n  = ($name.value||'').trim();
   const b  = ($birthday.value||'').trim();
   const id = ($idnum.value||'').trim().toUpperCase();
@@ -269,7 +264,6 @@ $submit.onclick = async ()=>{
       action:'submit', date:d, slot:s, name:n, birthday:b, id:id, phone:ph
     }});
 
-    // 👉 後端若判定重複 / 額滿 / 其他錯誤：在此顯示並停止導頁
     if(!r.data?.ok){
       const code = r.data?.error || '';
       if(code === 'duplicate'){
@@ -282,7 +276,6 @@ $submit.onclick = async ()=>{
       return;
     }
 
-    // ❶ 可靠取得預約代碼
     const idFromApi = r?.data?.id || r?.data?.Id || r?.data?.bookingId || r?.data?.data?.id;
     if (!idFromApi) {
       console.warn('後端未回傳 id，回應為：', r.data);
@@ -290,26 +283,15 @@ $submit.onclick = async ()=>{
       return;
     }
 
-    // ❷ 後備：存在 sessionStorage
     sessionStorage.setItem('lastBookingId', String(idFromApi));
 
-    // ❸ 更保險：用「目前頁面的目錄」當 base，再組出 success 的絕對網址
-    const baseDir = new URL('.', location.href);          // 取得目錄(一定以 / 結尾)
-    const successUrl = new URL('success.html', baseDir);  // -> .../success.html
-    const cipher = aesEnc({ id: idFromApi });             // 10 分鐘有效
+    const baseDir = new URL('.', location.href);
+    const successUrl = new URL('success.html', baseDir);
+    const cipher = aesEnc({ id: idFromApi }); // 10 分鐘有效
     successUrl.searchParams.set('cipher', cipher);
 
-    // ❹ LIFF 內用 LIFF 開，失敗則退回一般導頁；非 LIFF 直接導頁
-    if (window.liff && liff.isInClient()) {
-      try {
-        liff.openWindow({ url: successUrl.href, external: false });
-      } catch (err) {
-        console.warn('liff.openWindow 失敗，改用 location.assign', err);
-        location.assign(successUrl.href);
-      }
-    } else {
-      location.assign(successUrl.href);
-    }
+    /* 🚀 直接導向 success */
+    location.assign(successUrl.href);
 
   }catch(e){
     console.error(e);
@@ -320,7 +302,12 @@ $submit.onclick = async ()=>{
     hideMask();
   }
 };
+
+/* 初始化：讀取後端視窗 → 載入該日診別 */
+(async () => {
+  await initDateWindow();
+  onDateChange();
+})();
 </script>
 </body>
 </html>
-
