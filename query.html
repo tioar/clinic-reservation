@@ -8,19 +8,6 @@
 <link rel="stylesheet" href="style.css" />
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 
-<!-- （可留可拿掉）LIFF SDK：不影響用身分證查詢 -->
-<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-<script>
-(async () => {
-  try {
-    await liff.init({ liffId: '2007979306-0gl4PKb1' });
-    document.documentElement.classList.add('liff-ready');
-  } catch (e) {
-    console.warn('LIFF init fail (不影響查詢)：', e);
-  }
-})();
-</script>
-
 <style>
   .list-row{display:grid;grid-template-columns:1.1fr .9fr .7fr 1fr 1fr .6fr .6fr;gap:.5rem;align-items:center}
   .list-head{font-weight:700;color:#27485f;margin-bottom:.5rem}
@@ -112,7 +99,6 @@ async function queryByPid(){
 
   showing('查詢中請稍等');
   try{
-    // 與 GAS 對齊：action=queryByPid, 參數 idnum
     const r = await axios.get(API,{ params:{ action:'queryByPid', idnum: pid, t: Date.now() }});
     const payload = (typeof r.data === 'string') ? JSON.parse(r.data) : r.data;
 
@@ -162,7 +148,7 @@ function appendRow(item, pid){
   $list.appendChild(row);
 }
 
-// ===== 取消（優先用 row id，失敗再用身分證字號整批取消） =====
+// ===== 取消 =====
 async function cancelOne(item, pid){
   if(item?.canCancel===false) return;
   const ok = confirm(`確認取消：\n${item.date||''}（${item.slot||''}）\n${item.name||''} 第 ${item.num||''} 號？`);
@@ -170,10 +156,10 @@ async function cancelOne(item, pid){
 
   showing('取消中請稍等');
   try{
-    // A. 以 row id 取消
+    // 先用 row id
     let resp = await axios.get(API,{ params:{ action:'cancel', id: item.id, t: Date.now() }});
     if(!(resp.data && (resp.data.ok || resp.data.success))){
-      // B. 後備：以身分證字號取消（會取消該身分所有未取消預約）
+      // 後備：以身分證字號整批取消
       resp = await axios.get(API,{ params:{ action:'cancel', idnum: pid, t: Date.now() }});
     }
 
@@ -196,14 +182,9 @@ $btn.onclick = queryByPid;
 $pid.addEventListener('input', e=>{
   e.target.value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,10);
 });
-
-// Enter 直接查
 $pid.addEventListener('keydown', e=>{
   if(e.key === 'Enter') queryByPid();
 });
 </script>
 </body>
 </html>
-
-
-
