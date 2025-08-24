@@ -12,7 +12,7 @@
 <script src="https://cdn.jsdelivr.net/npm/crypto-js@4.2.0/crypto-js.min.js"></script>
 
 <script>
-/* === 後端 API（⚠️請與 index.html / query.html 完全一致） === */
+/* === 後端 API（⚠️請與 index.html / query.html / admin.html 完全一致） === */
 const API = "https://script.google.com/macros/s/AKfycbz-OLvUKfEIKXprDy3apd6zV8FXjTYic_2ltNu2F4iwSNTph09shmp8WKQlj3IL_dZD/exec";
 
 /* === AES（遮蔽，不等於安全） === */
@@ -87,7 +87,7 @@ function guessTime(slot){ if(!slot) return ''; if(slot.includes('早')) return '
 
     <div class="d-flex justify-content-center align-items-start gap-2 mb-4 notice-text">
       <div style="font-size:20px;line-height:1.1;">⏰</div>
-      <div>請在預約的門診時間內到場報到；過號需等現場安排，逾期自動取消。取消可至「查詢／取消預約」頁，門診當天僅接受電話取消。</div>
+      <div>請在預約的門診時間內報到，可按「看診進度」查門診叫號，過號則須等待現場安排叫名字，逾期自動取消。如需取消預約，可至「查詢／取消預約」頁，門診當天只能以電話取消。</div>
     </div>
 
     <div class="d-flex justify-content-center gap-2 mb-3">
@@ -206,4 +206,3 @@ ${ymd} 星期${wk}（${d.slot||''}） ${timeRange||''}
 </script>
 </body>
 </html>
-
