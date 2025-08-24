@@ -30,14 +30,9 @@ function aesDec(v){
 }
 
 /* === URL 工具 === */
-function getSearchParams(){
-  return new URLSearchParams(location.search);
-}
+function getSearchParams(){ return new URLSearchParams(location.search); }
 /* 清掉位址列參數（避免密文殘留） */
-function scrubUrl(newPathName){
-  const base = newPathName || location.pathname;
-  history.replaceState({}, "", base);
-}
+function scrubUrl(newPathName){ history.replaceState({}, "", newPathName || location.pathname); }
 
 /* === 日期工具 === */
 function pad2(n){return n<10?'0'+n:String(n);}
@@ -75,8 +70,20 @@ function guessTimeBySlot(slot){
 
 <style>
   body{ background:#eaf1f6; font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans TC", "Microsoft JhengHei", Arial, sans-serif; color:#18364d; }
-  .wrap{ max-width:560px; margin:52px auto; padding:0 16px; }
-  .cardx{ background:#fff; border-radius:24px; padding:36px 30px; box-shadow:0 12px 28px rgba(17,45,78,.12); }
+
+  /* ✅ 這裡把卡片加寬（桌機最多 880px；小螢幕吃 94vw） */
+  .wrap{
+    max-width: min(880px, 94vw);
+    margin:52px auto;
+    padding:0 16px;
+  }
+  .cardx{
+    background:#fff;
+    border-radius:24px;
+    padding:36px clamp(24px, 4vw, 44px);  /* 大螢幕左右更舒適，小螢幕不會擠 */
+    box-shadow:0 12px 28px rgba(17,45,78,.12);
+  }
+
   .title-row{ display:flex; align-items:center; justify-content:center; gap:14px; margin-bottom:6px; }
   .title-row .check{ font-size:44px; line-height:1; }
   .title-row .txt{ font-weight:800; font-size:36px; color:#18364d; }
@@ -91,8 +98,16 @@ function guessTimeBySlot(slot){
   #loading{ position:fixed; inset:0; background:rgba(255,255,255,.85); display:flex; align-items:center; justify-content:center; z-index:9999; font-size:18px; color:#2e5a79; backdrop-filter: blur(2px); }
   #dots{ display:inline-block; width:2ch; text-align:left; }
 
-  #mainInfo { font-size: 1.25rem; line-height: 1.5; white-space: nowrap; }
-  @media (max-width: 420px){ #mainInfo { white-space: normal; text-align: center; } }
+  /* ✅ 主要資訊：桌機單行；小螢幕自動換行不溢出 */
+  #mainInfo, #lineNameNo{
+    overflow-wrap:anywhere;
+    word-break:break-word;
+  }
+  #mainInfo{ font-size:1.25rem; line-height:1.5; white-space:nowrap; }
+  @media (max-width: 768px){
+    #mainInfo{ white-space:normal; text-align:center; }
+  }
+
   .notice-text { font-size: 0.9rem; line-height: 1.5; color:#4b5b6b; }
   @media (max-width: 400px){ .notice-text { font-size: 0.85rem; } }
 </style>
@@ -123,7 +138,7 @@ function guessTimeBySlot(slot){
       <a class="btn btn-ghost flex-fill" href="query.html">查詢/取消預約</a>
     </div>
 
-    <!-- ✅ 僅留一顆置中的分享 -->
+    <!-- ✅ 置中的分享（純文字） -->
     <div class="text-center mb-2">
       <button id="shareBtn" class="btn btn-ghost">📤 分享</button>
     </div>
@@ -178,7 +193,7 @@ let dotTimer = setInterval(()=>{
 
     mainInfo.textContent = `${ymd} 星期${wk}（${d.slot||''}） ${timeRange||''}`;
     lineNameNo.textContent = `姓名：${d.name||''}，號碼：${d.num||''} 號。`;
-    filledAt.textContent   = d.submittedAt ? fmtTsTW(d.submittedAt) : '';
+    filledAt.textContent   = d.submittedAt ? fmtTsTW(d.submittedAt) : (d.time ? fmtTsTW(d.time) : '');
 
     // 分享純文字（沒有任何網址）
     const shareText =
@@ -187,7 +202,7 @@ let dotTimer = setInterval(()=>{
 ${ymd} 星期${wk}（${d.slot||''}） ${timeRange||''}
 姓名：${d.name||''}，號碼：${d.num||''} 號。
 
-如需查詢或取消，可至「查詢／取消預約」頁，輸入您的身分證字號即可。
+如需取消，可至「查詢／取消預約」頁，輸入您的身分證字號即可。門診當天只能以電話取消。
 請在預約的門診時間內到場報到，過號則須等待現場安排叫名字，逾期自動取消。`;
 
     shareBtn.onclick = async ()=>{
