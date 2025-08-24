@@ -161,12 +161,12 @@ function updateWeekday(d){
   $weekday.textContent = `（星期${wtxt[wd]}）`;
 }
 
-/* 讀取後端「預約期限」作為日期可選範圍；失敗則退回 D+1～D+15 */
+/* 讀取後端「預約期限」作為日期可選範圍；失敗則退回 D+1～D+14 */
 async function initDateWindow(){
   try{
     const r = await axios.get(API,{ params:{ action:'getWindow' }});
     const start = Number(r.data?.start ?? 1);
-    const end   = Number(r.data?.end   ?? 15);
+    const end   = Number(r.data?.end   ?? 14);
     const today = new Date();
     const min = new Date(today.getFullYear(), today.getMonth(), today.getDate() + start);
     const max = new Date(today.getFullYear(), today.getMonth(), today.getDate() + end);
@@ -311,3 +311,4 @@ $submit.onclick = async ()=>{
 </script>
 </body>
 </html>
+
