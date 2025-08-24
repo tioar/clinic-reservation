@@ -30,6 +30,19 @@
     .table td,.table th{vertical-align:middle}
     .sheet-chip{border-radius:14px;border:1px solid #c9d6e2;padding:.55rem .9rem;font-weight:600}
     .sheet-chip:hover{background:#f4f8fb;border-color:#b9c8d6}
+    /* 只在 admin 頁覆蓋全域 560px 限制 */
+    .card-wrap{ max-width:1180px; }
+    .card-wrap .card{ max-width:100% !important; margin:16px 0; }
+
+    /* 表格、輸入寬度優化 */
+    #tblDaily th, #tblDaily td{ white-space:nowrap; }
+    #tblDaily input.form-control-sm{ min-width:200px; }
+
+    /* 隱藏 number spinner（起始天、結束天等） */
+    .card-wrap input[type=number]::-webkit-outer-spin-button,
+    .card-wrap input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0; }
+    .card-wrap input[type=number]{ -moz-appearance:textfield; }
+
   </style>
 </head>
 <body>
@@ -534,3 +547,4 @@ if(ADMIN_TOKEN){ showApp(); }
 </script>
 </body>
 </html>
+
