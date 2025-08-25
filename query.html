@@ -13,7 +13,6 @@
   .list-head{font-weight:700;color:#27485f;margin-bottom:.5rem}
   .btn-cancel{background:#dc3545;border:none;color:#fff}
   .btn-cancel:hover{background:#b02a37}
-  .tag{font-size:.75rem;border:1px solid #cbd5e1;color:#3b7096;border-radius:999px;padding:.1rem .5rem;margin-left:.25rem}
   #ing{position:fixed;inset:0;background:rgba(255,255,255,.85);display:none;align-items:center;justify-content:center;z-index:9999;font-size:18px;color:#2e5a79;backdrop-filter:blur(2px)}
   #dots{display:inline-block;width:2ch;text-align:left}
   @media (max-width:576px){
@@ -55,10 +54,7 @@
 
 <script>
 // ===== 設定 =====
-// ⚠️ 換成同一支 GAS URL
 const API = "https://script.google.com/macros/s/AKfycbz-OLvUKfEIKXprDy3apd6zV8FXjTYic_2ltNu2F4iwSNTph09shmp8WKQlj3IL_dZD/exec";
-
-// ✅ 你的 reCAPTCHA v3 Site Key（留空字串會自動略過）
 const RECAPTCHA_SITE_KEY = "6LdqprArAAAAACpuAXemZUH3KNER1t1iw07YjGHu";
 
 // 動態載入 / 取得 token
@@ -135,9 +131,7 @@ async function queryByPid(){
 
     if(payload?.error === 'robot'){ alert('機器人驗證未通過，請重新操作'); return; }
 
-    // 只顯示未取消
     const rows = Array.isArray(payload?.items) ? payload.items.filter(x => !x.cancelled) : [];
-
     $list.innerHTML = '';
     $res.style.display='block';
 
@@ -162,7 +156,6 @@ function appendRow(item, pid){
   const ymd = item.date || '';
   const w   = weekday(ymd);
   const t   = item.time || guessTime(item.slot) || '';
-  const rcptLocal = sessionStorage.getItem('rcpt:'+item.id) || '';
 
   const row = document.createElement('div');
   row.className = 'list-row mb-2';
@@ -175,7 +168,6 @@ function appendRow(item, pid){
     <div>${item.num||''}</div>
     <div>
       <button class="btn btn-cancel btn-sm" ${item.canCancel===false?'disabled':''} data-id="${item.id||''}">取消</button>
-      ${rcptLocal ? '<span class="tag" title="此筆已在本裝置保存憑證">憑證</span>' : ''}
     </div>
   `;
   const btn = row.querySelector('.btn-cancel');
@@ -183,7 +175,7 @@ function appendRow(item, pid){
   $list.appendChild(row);
 }
 
-// ===== 取消 =====
+// ===== 取消（完全用身分證） =====
 async function cancelOne(item, pid){
   if(item?.canCancel===false) return;
   const ok = confirm(`確認取消：\n${item.date||''}（${item.slot||''}）\n${item.name||''} 第 ${item.num||''} 號？`);
@@ -192,31 +184,11 @@ async function cancelOne(item, pid){
   showing('取消中請稍等');
   try{
     const recaptchaToken = await getRecaptchaToken('cancel');
-
-    // 先嘗試：id + receipt（同裝置預約時會有）
-    const localRcpt = sessionStorage.getItem('rcpt:'+item.id) || '';
-    let resp = await axios.get(API,{ params:{ action:'cancel', id: item.id, receipt: localRcpt, recaptchaToken, t: Date.now() }});
-
-    // 若缺憑證或失敗，再試：以身分證批量取消（後端允許時）
-    if(!(resp.data && (resp.data.ok || resp.data.success))){
-      const msg = (resp.data && (resp.data.message||resp.data.error)) || '';
-      if(/憑證|receipt|unauthorized/i.test(msg)){
-        const rcpt = prompt('此筆需要預約憑證（receipt）。\n請貼上憑證字串：');
-        if(rcpt && rcpt.trim()){
-          sessionStorage.setItem('rcpt:'+item.id, rcpt.trim());
-          resp = await axios.get(API,{ params:{ action:'cancel', id: item.id, receipt: rcpt.trim(), recaptchaToken, t: Date.now() }});
-        }
-      }
-    }
-
-    // 若仍沒成功，再退回用身分證取消（相容舊法）
-    if(!(resp.data && (resp.data.ok || resp.data.success))){
-      resp = await axios.get(API,{ params:{ action:'cancel', idnum: pid, recaptchaToken, t: Date.now() }});
-    }
+    let resp = await axios.get(API,{ params:{ action:'cancel', idnum: pid, recaptchaToken, t: Date.now() }});
 
     if(resp.data && (resp.data.ok || resp.data.success)){
       alert(resp.data.message || '已取消。');
-      await queryByPid(); // 重新查一次
+      await queryByPid();
     }else{
       alert((resp.data && resp.data.message) || '取消失敗，請稍後再試');
     }
@@ -228,7 +200,7 @@ async function cancelOne(item, pid){
   }
 }
 
-// ===== 綁定事件與輸入限制 =====
+// ===== 綁定事件 =====
 document.getElementById('btnQuery').onclick = queryByPid;
 document.getElementById('pid').addEventListener('input', e=>{
   e.target.value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,10);
@@ -237,7 +209,6 @@ document.getElementById('pid').addEventListener('keydown', e=>{
   if(e.key === 'Enter') queryByPid();
 });
 
-// 預先載入 reCAPTCHA（若有設定）
 loadRecaptcha().catch(()=>{});
 </script>
 </body>
