@@ -25,6 +25,10 @@
     .login-card .logo{ width:28px; height:28px; border-radius:6px; display:grid; place-items:center; background:#1f2937; color:#fff; }
     .card-wrap{ max-width:1180px; margin:24px auto; padding:0 12px; }
     .tabbar{ display:flex; gap:8px; margin:16px 0; }
+    /* 讓起始/間格看得到一位數且置中 */
+    .w-ch-4  { width:4.5ch !important; min-width:40px; }
+    .w-ch-3  { width:3.5ch !important; min-width:36px; }
+    .text-center{ text-align:center; }
   </style>
 </head>
 <body>
@@ -76,7 +80,6 @@
           <div><button id="btnTodayReload" class="btn btn-outline-secondary btn-round btn-sm">重新整理</button></div>
         </div>
 
-        <!-- 快速日期切換 + 總計 -->
         <div class="date-nav mt-2">
           <button id="tPrev" class="btn btn-outline-secondary btn-sm">◀ 前一天</button>
           <input id="tDate" type="date" class="form-control form-control-sm">
@@ -178,6 +181,12 @@
             <button id="btnWinSet" class="btn-main btn-round">套用</button>
           </div>
         </div>
+        <div class="form-check form-switch mt-3">
+          <input class="form-check-input" type="checkbox" role="switch" id="flagWeekSwitch">
+          <label class="form-check-label small-note" for="flagWeekSwitch">
+            啟用「預設星期規律」：週一→D+1、週二～週五→D+2、週日→D+2、週六→D+3（=下週二）。關閉時改用上方 D+start～D+end。
+          </label>
+        </div>
         <div class="small-note mt-2">
           若要「奇數／偶數開關」：在下方每天規則設定 <code>起始號碼</code>（1=奇，2=偶）與 <code>間格位數</code>（設 2）。
         </div>
@@ -242,11 +251,11 @@
         <div class="row g-2 align-items-end mb-2">
           <div class="col-6 col-md-3">
             <label class="small-note">起始號碼</label>
-            <input id="neStartNo" type="number" class="form-control" value="1" min="1">
+            <input id="neStartNo" type="number" class="form-control w-ch-4 text-center" value="1" min="1">
           </div>
           <div class="col-6 col-md-3">
             <label class="small-note">間格位數</label>
-            <input id="neStep" type="number" class="form-control" value="1" min="1">
+            <input id="neStep" type="number" class="form-control w-ch-4 text-center" value="1" min="1">
           </div>
           <div class="col-12 col-md-6">
             <label class="small-note">備註</label>
@@ -357,7 +366,6 @@ function fmtBirthday(v){
 }
 
 /* ====== Auth ====== */
-// 綁定登入按鈕
 btnLoginPW.onclick = async () => {
   try{
     const a = (acc.value||'').trim();
@@ -376,14 +384,13 @@ btnLoginPW.onclick = async () => {
     alert('登入失敗');
   }
 };
-// 支援 Enter 直接登入
 [acc, pw].forEach(el => el.addEventListener('keydown', e => { if (e.key === 'Enter') btnLoginPW.click(); }));
 
 /* 登出 / 匯出 */
 logoutBtn.onclick = () => { ADMIN_TOKEN=""; sessionStorage.removeItem('ADMIN_TOKEN'); showLogin(); };
 exportBtn.onclick = ()=>{ assertAuthed(); window.open(`${API}?action=export&token=${encodeURIComponent(ADMIN_TOKEN)}`,'_blank'); };
 
-/* 綁定 tabs */
+/* Tabs 綁定 */
 [tabBtnToday,tabBtnTomorrow,tabBtnSettings,tabBtnSpecial].forEach(btn=>{
   btn.onclick = async ()=>{
     const id = btn.dataset.tab;
@@ -391,13 +398,13 @@ exportBtn.onclick = ()=>{ assertAuthed(); window.open(`${API}?action=export&toke
     try{
       if(id==='tab-today'){ await initTodayTab(); }
       if(id==='tab-tomorrow'){ await initTomorrowTab(); }
-      if(id==='tab-settings'){ await Promise.all([loadWindow(), loadDaily(), loadSheetLinks()]); }
+      if(id==='tab-settings'){ await Promise.all([loadWindow(), loadDaily(), loadSheetLinks(), loadFlags()]); }
       if(id==='tab-special'){ await loadSpecials(); }
     }catch(e){ console.error(e); }
   };
 });
 
-/* ====== 今天 / 明天 名單：改用 adminDay 搭配可切換日期 ====== */
+/* ====== 今天 / 明天 名單 ====== */
 const todayInfo   = document.getElementById('todayInfo');
 const todayStats  = document.getElementById('todayStats');
 const tblToday    = document.getElementById('tblToday').querySelector('tbody');
@@ -430,7 +437,7 @@ function renderDay(container, data){
       <div class="col-12 col-md-4"><div class="card p-3">
         <div class="mb-1"><span class="tag ${tag}"></span><strong>${s.label}</strong></div>
         <div class="small-note mb-1">時段：${s.time||'—'}</div>
-        <div><strong>${used}</strong> / ${limit||0}　<span class="small-note">起始：${startNo}　間格：${step}</span></div>
+        <div><strong>${used}</strong> / ${limit||0}　<span class="small-note">起始：${startNo}　間隔：${step}</span></div>
       </div></div>
     `);
   });
@@ -502,10 +509,11 @@ async function initTomorrowTab(){
   await loadDay(currentYmdTomorrow, {infoEl:tomorrowInfo, statsEl:tomorrowStats, tbodyEl:tblTomorrow, totalsEl:document.getElementById('mTotals')});
 }
 
+/* Admin 取消（免 reCAPTCHA） */
 async function cancelByRow(id){
   if(!confirm('確定要取消這筆預約嗎？')) return;
   assertAuthed();
-  await axios.get(API,{ params:{ action:'cancel', id, token: ADMIN_TOKEN }});
+  await axios.get(API,{ params:{ action:'adminCancel', id, token: ADMIN_TOKEN }});
   if(views['tab-today'].style.display!=='none') await loadDay(currentYmdToday, {infoEl:todayInfo, statsEl:todayStats, tbodyEl:tblToday, totalsEl:document.getElementById('tTotals')});
   if(views['tab-tomorrow'].style.display!=='none') await loadDay(currentYmdTomorrow, {infoEl:tomorrowInfo, statsEl:tomorrowStats, tbodyEl:tblTomorrow, totalsEl:document.getElementById('mTotals')});
 }
@@ -541,13 +549,28 @@ async function adjustWin(ds,de){
   if(r.data?.ok) await loadWindow(); else alert('調整失敗');
 }
 
+/* ====== 預設星期規律 開關 ====== */
+const flagWeekSwitch = document.getElementById('flagWeekSwitch');
+async function loadFlags(){
+  assertAuthed();
+  const r = await axios.get(API, { params:{ action:'adminFlags', token: ADMIN_TOKEN, t:Date.now() }});
+  const on = !!r.data?.USE_WEEKDAY_SHIFT;
+  flagWeekSwitch.checked = on;
+}
+async function saveFlags(){
+  assertAuthed();
+  const on = flagWeekSwitch.checked;
+  const r = await axios.get(API, { params:{ action:'adminFlagsSet', USE_WEEKDAY_SHIFT: on?'true':'false', token: ADMIN_TOKEN }});
+  if(!(r.data && r.data.ok)) alert('切換失敗');
+}
+flagWeekSwitch?.addEventListener('change', saveFlags);
+
 /* ====== daily_limit（weekday） ====== */
 const tblDaily = document.getElementById('tblDaily').querySelector('tbody');
 async function loadDaily(){
   assertAuthed();
   const r = await axios.get(API,{ params:{ action:'dailyGet', token: ADMIN_TOKEN, t:Date.now() }});
-  // 後端 dailyGet 回傳物件欄位：weekdayEn / weekdayZh / 早診上限 / 午診上限 / 晚診上限 / 早診時間 / 午診時間 / 晚診時間 / 起始號碼 / 間格位數
-  const rows = asArr(r.data).filter(w => VALID_WD.has(w.weekdayEn)); 
+  const rows = asArr(r.data).filter(w => VALID_WD.has(w.weekdayEn));
   tblDaily.innerHTML = '';
   rows.forEach(w=>{
     const id = `wd_${w.weekdayEn}`;
@@ -560,8 +583,8 @@ async function loadDaily(){
         <td><input class="form-control form-control-sm" value="${w['早診時間']||w.timeE||''}" data-k="timeE"></td>
         <td><input class="form-control form-control-sm" value="${w['午診時間']||w.timeN||''}" data-k="timeN"></td>
         <td><input class="form-control form-control-sm" value="${w['晚診時間']||w.timeL||''}" data-k="timeL"></td>
-        <td><input class="form-control form-control-sm" type="number" value="${w['起始號碼']||w.startNo||1}" data-k="startNo"></td>
-        <td><input class="form-control form-control-sm" type="number" value="${w['間格位數']||w.step||1}" data-k="step"></td>
+        <td><input class="form-control form-control-sm w-ch-4 text-center" type="number" value="${w['起始號碼']||w.startNo||1}" data-k="startNo" min="1"></td>
+        <td><input class="form-control form-control-sm w-ch-3 text-center" type="number" value="${w['間格位數']||w.step||1}" data-k="step" min="1"></td>
         <td><button class="btn-main btn-sm btn-round" onclick="saveWeek('${w.weekdayEn}')">儲存</button></td>
       </tr>
     `);
@@ -614,7 +637,6 @@ addBtn.onclick = async () => {
 async function loadSpecials(){
   assertAuthed();
   const r = await axios.get(API,{ params:{ action:'adminGet', token: ADMIN_TOKEN, t:Date.now() }});
-  // 後端 adminGet 需回傳：日期、早診上限、午診上限、晚診上限、備註、起始號碼、間格位數、id
   const arr = asArr(r.data);
   const tbody=tbl.querySelector('tbody'); tbody.innerHTML="";
   arr.forEach(x=>{
@@ -647,7 +669,6 @@ async function delRow(id){
 async function editRow(id){
   assertAuthed();
   const d=await axios.get(API,{ params:{ action:'adminOne', id, token: ADMIN_TOKEN }});
-  // 後端 adminOne 需回傳：日期、早診上限、午診上限、晚診上限、備註、起始號碼、間格位數、id
   const f=asObj(d.data);
   const html = `<div class="modal fade" id="editM">
   <div class="modal-dialog"><div class="modal-content">
@@ -675,14 +696,14 @@ async function editRow(id){
        </div>
        <div class="col-6">
          <label class="form-label mt-2">起始號碼</label>
-         <input id="edStartNo" class="form-control" type="number" value="${f["起始號碼"]||1}" min="1">
+         <input id="edStartNo" class="form-control w-ch-4 text-center" type="number" value="${f["起始號碼"]||1}" min="1">
        </div>
        <div class="col-6">
          <label class="form-label mt-2">間格位數</label>
-         <input id="edStep" class="form-control" type="number" value="${f["間格位數"]||1}" min="1">
+         <input id="edStep" class="form-control w-ch-4 text-center" type="number" value="${f["間格位數"]||1}" min="1">
        </div>
      </div>
-     <div class="small-note mt-2">若要奇數/偶數列：起始=1/2、間格=2。此處儲存會以 <code>adminAdd</code> 覆蓋該日期設定。</div>
+     <div class="small-note mt-2">若要奇數/偶數列：起始=1/2、間隔=2。此處儲存會以 <code>adminAdd</code> 覆蓋該日期設定。</div>
    </div>
    <div class="modal-footer">
      <button class="btn btn-outline-secondary btn-round" data-bs-dismiss="modal">取消</button>
