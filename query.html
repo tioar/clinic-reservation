@@ -14,6 +14,20 @@
   .list-head{font-weight:700;color:#27485f;margin-bottom:.5rem}
   .btn-cancel{background:#dc3545;border:none;color:#fff}
   .btn-cancel:hover{background:#b02a37}
+  /* 新增：取消鍵 disabled 樣式為灰色且不可點 */
+  .btn-cancel:disabled,
+  .btn-cancel[disabled]{
+    background:#adb5bd !important;
+    color:#fff !important;
+    border:none !important;
+    cursor:not-allowed !important;
+    opacity:1 !important;
+  }
+  .btn-cancel:disabled:hover,
+  .btn-cancel[disabled]:hover{
+    background:#adb5bd !important;
+  }
+
   #ing{position:fixed;inset:0;background:rgba(255,255,255,.85);display:none;align-items:center;justify-content:center;z-index:9999;font-size:18px;color:#2e5a79;backdrop-filter:blur(2px)}
   #dots{display:inline-block;width:2ch;text-align:left}
   @media (max-width:576px){
@@ -28,6 +42,11 @@
   <div class="header">
     <div class="logo">＋</div>
     <h1>查詢／取消預約</h1>
+  </div>
+
+  <!-- 新增：紅字警語（副標題） -->
+  <div class="text-danger small mb-3" style="margin-top:-4px;">
+    僅能取消預約門診前一天之預約，當天請用電話取消。
   </div>
 
   <!-- 查詢區 -->
@@ -132,6 +151,7 @@ async function queryByPid(){
 
     if(payload?.error === 'robot'){ alert('機器人驗證未通過，請重新操作'); return; }
 
+    // 僅隱藏已取消；日期是否可取消由 canCancel 控制（今天與以前為 false）
     const rows = Array.isArray(payload?.items) ? payload.items.filter(x => !x.cancelled) : [];
     $list.innerHTML = '';
     $res.style.display='block';
@@ -163,7 +183,7 @@ function appendRow(item, pid){
   row.innerHTML = `
     <div>${ymd}</div>
     <div>星期${w}</div>
-    <div>${item.slot||''}</div>
+    <div>${(item.slot||'')}</div>
     <div>${t}</div>
     <div>${item.name||''}</div>
     <div>${item.num||''}</div>
@@ -214,6 +234,3 @@ loadRecaptcha().catch(()=>{});
 </script>
 </body>
 </html>
-
-
-
