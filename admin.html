@@ -13,25 +13,24 @@
     :root{
       --primary:#3b697d;        /* 靛藍主色 */
       --primary-600:#2f5565;     /* 主色 hover/active */
-      --secondary:#6b7a90;      /* 次要灰藍 */
       --card-bg:#ffffff;
       --border:#d9dee7;
 
-      /* row tint colors */
+      /* row tint colors（表格與上方卡片共用） */
       /* 早診：綠 */
-      --early-light:#e7f7ee;   /* 淺綠 */
-      --early-dark:#bfead3;    /* 深一點的綠 */
-      --early-bar:#16a34a;     /* 左側色條 */
+      --early-light:#e7f7ee;
+      --early-dark:#cfeedd;
+      --early-bar:#16a34a;
 
       /* 午診：橘 */
-      --noon-light:#fff3df;    /* 淺橘 */
-      --noon-dark:#ffd79a;     /* 深一點的橘 */
-      --noon-bar:#f59e0b;      /* 左側色條 */
+      --noon-light:#fff3df;
+      --noon-dark:#ffe4b3;
+      --noon-bar:#f59e0b;
 
-      /* 晚診：藍（改成藍色系） */
-      --night-light:#e8f2ff;   /* 淺藍 */
-      --night-dark:#c5dcff;    /* 深一點的藍 */
-      --night-bar:#3b82f6;     /* 左側色條（藍） */
+      /* 晚診：藍 */
+      --night-light:#e8f2ff;
+      --night-dark:#cfe2ff;
+      --night-bar:#3b82f6;
     }
 
     body{
@@ -97,16 +96,40 @@
     .date-nav .form-control{ width:160px; border-radius:14px; }
     .totals{ font-weight:900; color:#1f3f57; } .totals .muted{ color:#6b7a90; font-weight:800; }
 
-    /* ===== 統計卡片 ===== */
-    .stat{ border:1px dashed #d8dee9; border-radius:16px; padding:.75rem 1rem; background:#fff; display:flex; align-items:center; gap:.75rem; }
-    .stat .cap{ font-weight:900; }
+    /* ===== 上方「早/午/晚」統計卡片（彩色框框） ===== */
+    .stat{
+      border:2px dashed var(--border);
+      border-radius:20px;
+      padding:.9rem 1rem;
+      background:#fff;
+      display:flex; align-items:center; gap:.9rem;
+      box-shadow:0 4px 10px rgba(0,0,0,.04);
+    }
+    .stat .cap{
+      padding:.35rem .7rem;
+      border-radius:999px;
+      font-weight:900;
+      line-height:1;
+    }
+    .stat .kv{font-weight:800}
+    .stat .note{color:#6b7280;font-weight:700}
+
+    /* 依診別給色（背景+邊框+膠囊） */
+    .stat-early{ background:var(--early-light); border-color:var(--early-bar); }
+    .stat-early .cap{ background:#dff5ea; color:#065f46; border:1px solid #b8ead4; }
+
+    .stat-noon{  background:var(--noon-light);  border-color:var(--noon-bar); }
+    .stat-noon  .cap{ background:#ffeccd; color:#7a4d00; border:1px solid #ffd69a; }
+
+    .stat-night{ background:var(--night-light); border-color:var(--night-bar); }
+    .stat-night .cap{ background:#e1ecff; color:#1d4ed8; border:1px solid #c7dbff; }
 
     /* ===== 表格 ===== */
     .table{ border-radius:16px; overflow:hidden; margin:0; }
     .table td{ border-top:2px solid #e5e7eb !important; }
     .table thead th{ border-bottom:2px solid #cbd5e1 !important; font-weight:900; }
 
-    /* 依診別＋深淺交錯上底色（作用於整列） */
+    /* 列上色（與你現用一致：整條著色 + 左側色條） */
     tr.slot-early-light  > *{ background:var(--early-light) !important; }
     tr.slot-early-dark   > *{ background:var(--early-dark)  !important; }
     tr.slot-noon-light   > *{ background:var(--noon-light)  !important; }
@@ -114,18 +137,16 @@
     tr.slot-night-light  > *{ background:var(--night-light) !important; }
     tr.slot-night-dark   > *{ background:var(--night-dark)  !important; }
 
-    /* 左側診別色條（第一欄內側） */
     tr[class^="slot-early"] td:first-child{ box-shadow:inset 6px 0 0 0 var(--early-bar); }
     tr[class^="slot-noon"]  td:first-child{ box-shadow:inset 6px 0 0 0 var(--noon-bar); }
     tr[class^="slot-night"] td:first-child{ box-shadow:inset 6px 0 0 0 var(--night-bar); }
 
-    /* tag 圓點（新增異動區塊的小色塊） */
+    /* 新增異動區塊的小色塊 */
     .tag{ display:inline-block; width:.8em; height:.8em; border-radius:50%; margin-right:.4em; vertical-align:middle; }
     .tag-early{ background:var(--early-bar); }
     .tag-noon{  background:var(--noon-bar); }
-    .tag-night{ background:var(--night-bar); } /* 改成藍色 */
+    .tag-night{ background:var(--night-bar); }
 
-    /* 小字備註 */
     .small-note{ color:#64748b; font-size:.925rem; }
     .small-note code{ background:#f6f7fb; padding:.1rem .25rem; border-radius:6px; }
   </style>
@@ -441,52 +462,7 @@ function asObj(p){ try{ return typeof p==='string'?JSON.parse(p):(p||{});}catch{
 function asArr(p){ try{ if(typeof p==='string') p=JSON.parse(p);}catch{} if(Array.isArray(p))return p; if(Array.isArray(p?.rows))return p.rows; if(Array.isArray(p?.items))return p.items; if(Array.isArray(p?.data))return p.data; return []; }
 function num(x){ const n=Number(x); return isFinite(n)?n:0; }
 
-/* ===== 登入／登出／Tab 切換 ===== */
-btnLoginPW.onclick = async ()=>{
-  try{
-    const a=(acc.value||'').trim(), p=(pw.value||'').trim();
-    if(!a||!p) return;
-    const r=await axios.get(API,{params:{action:'adminLogin',acc:a,pw:p,t:Date.now()}});
-    if(r.data?.ok){
-      ADMIN_TOKEN=r.data.token; sessionStorage.setItem('ADMIN_TOKEN',ADMIN_TOKEN); showApp();
-    }else{
-      alert(r.data?.message||'帳號或密碼錯誤');
-    }
-  }catch(e){ console.error(e); alert('登入失敗'); }
-};
-[acc,pw].forEach(el=>el.addEventListener('keydown',e=>{ if(e.key==='Enter') btnLoginPW.click(); }));
-logoutBtn.onclick=()=>{ ADMIN_TOKEN=""; sessionStorage.removeItem('ADMIN_TOKEN'); showLogin(); };
-exportBtn.onclick=()=>{ assertAuthed(); window.open(`${API}?action=export&token=${encodeURIComponent(ADMIN_TOKEN)}`,'_blank'); };
-[tabBtnToday,tabBtnTomorrow,tabBtnSettings,tabBtnSpecial].forEach(btn=>{
-  btn.onclick=async()=>{
-    const id=btn.dataset.tab; switchTab(id);
-    try{
-      if(id==='tab-today'){ await initTodayTab(); }
-      if(id==='tab-tomorrow'){ await initTomorrowTab(); }
-      if(id==='tab-settings'){ await Promise.all([loadWindow(),loadDaily(),loadSheetLinks(),loadFlags()]); }
-      if(id==='tab-special'){ await loadSpecials(); }
-    }catch(e){ console.error(e); }
-  };
-});
-
 /* ===== 共用：渲染統計 + 表格 ===== */
-function renderStats(containerId, slots){
-  const box=document.getElementById(containerId); box.innerHTML='';
-  const frag=document.createDocumentFragment();
-  slots.forEach(s=>{
-    const col=document.createElement('div'); col.className='col-12 col-md-4';
-    col.innerHTML=`
-      <div class="stat">
-        <div class="cap">${s.label}</div>
-        <div class="flex-grow-1">
-          <div class="small-note mb-1">${s.time||''}</div>
-          <div><b>${num(s.used)}</b> / ${num(s.limit)} <span class="text-muted">（起始 ${num(s.startNo)}，間隔 ${num(s.step)}）</span></div>
-        </div>
-      </div>`;
-    frag.appendChild(col);
-  });
-  box.appendChild(frag);
-}
 
 /* 診別 → key */
 function slotKey(label){
@@ -497,15 +473,33 @@ function slotKey(label){
   return 'early';
 }
 
+function renderStats(containerId, slots){
+  const box=document.getElementById(containerId); box.innerHTML='';
+  const frag=document.createDocumentFragment();
+  slots.forEach(s=>{
+    const key = slotKey(s.label);
+    const col=document.createElement('div'); col.className='col-12 col-md-4';
+    col.innerHTML=`
+      <div class="stat stat-${key}">
+        <div class="cap">${s.label}</div>
+        <div class="flex-grow-1">
+          <div class="small-note mb-1">${s.time||''}</div>
+          <div class="kv"><b>${num(s.used)}</b> / ${num(s.limit)} <span class="note">（起始 ${num(s.startNo)}，間隔 ${num(s.step)}）</span></div>
+        </div>
+      </div>`;
+    frag.appendChild(col);
+  });
+  box.appendChild(frag);
+}
+
 function renderItems(tableId, items, refreshFnName){
   const tb=document.querySelector(`#${tableId} tbody`); tb.innerHTML='';
-  /* 讓每個診別自己交錯：各自從 light 開始 */
   const counters={ early:0, noon:0, night:0 };
   items.forEach(x=>{
     const tr=document.createElement('tr');
     const key=slotKey(x.slot||'');
-    const idx=(counters[key]++);              // 先取值再 +1
-    const shade=(idx % 2===0 ? 'light' : 'dark'); // 0,2,4... 用 light
+    const idx=(counters[key]++);
+    const shade=(idx % 2===0 ? 'light' : 'dark');
     tr.className=`slot-${key}-${shade}`;
     tr.innerHTML=`
       <td>${x.slot||''}</td>
@@ -712,7 +706,7 @@ addBtn.onclick = async ()=>{
       午診時段:neNoonTime.value||'',
       晚診時段:neNightTime.value||'',
       起始號碼:Number(neStartNo.value||1),
-      間隔位數:Math.max(1,Number(neStep.value||1)),
+      關隔位數:Math.max(1,Number(neStep.value||1)),
       備註:neNote.value||''
     };
     await axios.get(API,{params:q});
