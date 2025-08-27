@@ -7,15 +7,19 @@
 
   <link rel="icon" type="image/png" href="favicon.png" />
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
 
   <style>
     :root{
       --primary:#3b697d;        /* 靛藍主色 */
-      --primary-dark:#2d4d5a;   /* 深色選中 */
-      --secondary:#6b7a90;      /* 灰藍色 */
+      --primary-dark:#2d4d5a;   /* 選中深色 */
       --card-bg:#ffffff;
       --border:#d9dee7;
+
+      /* 診別色系 */
+      --early-bg:#d1fae5; --early-fg:#065f46; --early-bd:#34d399;
+      --noon-bg:#fef3c7;  --noon-fg:#92400e; --noon-bd:#fbbf24;
+      --night-bg:#ede9fe; --night-fg:#4c1d95; --night-bd:#a78bfa;
     }
 
     body{
@@ -24,95 +28,81 @@
       min-height:100vh;
       color:#334155;
     }
+
     /* ===== 卡片 ===== */
-    .card, .login-card .card{
-      border-radius:28px !important;
-      border:2px solid var(--border);
-      box-shadow:0 6px 14px rgba(0,0,0,.06);
-    }
+    .card{ border-radius:28px !important; border:2px solid var(--border); box-shadow:0 6px 14px rgba(0,0,0,.06); }
 
     /* ===== 按鈕統一 ===== */
-    .btn{
-      border-radius:999px !important;
-      font-weight:600;
-      border:0;
-    }
-    .btn-main{
-      background:var(--primary);
-      color:#fff !important;
-    }
-    .btn-main:hover, .btn-main.active{
-      background:var(--primary-dark);
-      color:#fff !important;
-    }
-    .btn-outline-secondary{
-      background:#94a3b8;
-      color:#fff !important;
-    }
-    .btn-outline-secondary:hover, .btn-outline-secondary.active{
-      background:#64748b;
-      color:#fff !important;
-    }
-    .btn-danger{
-      background:#dc3545;
-      color:#fff !important;
-    }
-    .btn-danger:hover{
-      background:#b02a37;
-      color:#fff !important;
-    }
-    .btn-warning{
-      background:#f59e0b;
-      color:#fff !important;
-    }
-    .btn-warning:hover{
-      background:#d97706;
-      color:#fff !important;
-    }
+    .btn{ border-radius:999px !important; font-weight:700; border:0; }
+    .btn-main{ background:var(--primary); color:#fff !important; }
+    .btn-main:hover,.btn-main.active{ background:var(--primary-dark); color:#fff !important; }
+    .btn-outline-secondary{ background:#94a3b8; color:#fff !important; }
+    .btn-outline-secondary:hover,.btn-outline-secondary.active{ background:#64748b; color:#fff !important; }
+    .btn-danger{ background:#dc3545; color:#fff !important; }
+    .btn-danger:hover{ background:#b02a37; color:#fff !important; }
+    .btn-warning{ background:#f59e0b; color:#fff !important; }
+    .btn-warning:hover{ background:#d97706; color:#fff !important; }
 
     /* ===== Login ===== */
     .login-card{ display:grid; place-items:center; min-height:calc(100vh - 6rem); padding:3rem 1rem; }
-    .login-card .logo{ 
-      width:40px; height:40px; border-radius:50%; 
-      display:grid; place-items:center;
-      background:var(--primary); color:#fff; font-weight:700; font-size:20px;
+    .login-card .card{ max-width:480px; padding:28px 24px; }
+    .login-card .logo{
+      width:56px;height:56px;border-radius:50%;display:grid;place-items:center;
+      background:var(--primary);color:#fff;font-weight:900;font-size:28px;line-height:1;
+      box-shadow:0 8px 18px rgba(59,105,125,.25);
     }
-    .login-card h1{ font-weight:700; }
-    .login-card .form-control{ border-radius:14px; padding:.625rem .9rem; border:2px solid #d1d5db; }
+    .login-card .form-control{ border-radius:16px; padding:.675rem .95rem; border:2px solid #d1d5db; }
     .login-card .form-control:focus{ border-color:var(--primary); box-shadow:0 0 0 .2rem rgba(59,105,125,.2); }
 
-
     /* ===== Header ===== */
+    .card-head{ display:flex; align-items:center; gap:12px; }
     .card-head .logo{
-      width:36px; height:36px; border-radius:50%;
-      display:grid; place-items:center;
-      background:var(--primary); color:#fff; font-weight:700;
+      width:44px;height:44px;border-radius:50%;display:grid;place-items:center;
+      background:var(--primary);color:#fff;font-weight:900;font-size:22px;line-height:1;
+      box-shadow:0 6px 14px rgba(59,105,125,.18);
     }
+    .card-head h3{ font-weight:900; }
+    .card-head .subtitle{ margin-top:2px; font-size:.95rem; color:#475569; }
+    .card-head .subtitle b{ color:#0f172a; font-weight:900; }
 
-    /* ===== Table ===== */
-    .table {
-  border-radius: 16px;
-  overflow: hidden; /* 保證子元素背景不會凸出 */
-  margin: 0;
-    }
-    .table-striped>tbody>tr:nth-of-type(odd)>* {
-  background-color: #f8fafc; /* 淡灰，和卡片融為一體 */
-    }
+    /* ===== Tabs ===== */
+    .tabbar{ display:flex; gap:8px; margin:16px 0 20px; }
 
-    .table td{
-      border-top:2px solid #e5e7eb !important;
-    }
-    .table thead th{
-      border-bottom:2px solid #cbd5e1 !important;
-      font-weight:700;
-    }
+    /* ===== 表格 ===== */
+    .table{ border-radius:16px; overflow:hidden; margin:0; }
+    .table-striped>tbody>tr:nth-of-type(odd)>*{ background-color:#f8fafc; }
+    .table td{ border-top:2px solid #e5e7eb !important; }
+    .table thead th{ border-bottom:2px solid #cbd5e1 !important; font-weight:900; }
+
+    /* ===== 統計卡片 ===== */
+    .stat{ border:2px dashed #d8dee9; border-radius:18px; padding:.8rem 1rem; display:flex; align-items:center; gap:.75rem; background:#fff; }
+    .stat .cap{ font-weight:900; }
+    .stat.early{ border-color:var(--early-bd); background:var(--early-bg); }
+    .stat.noon { border-color:var(--noon-bd);  background:var(--noon-bg);  }
+    .stat.night{ border-color:var(--night-bd); background:var(--night-bg); }
+
+    /* ===== 診別色標（表格用） ===== */
+    .slot-pill{ padding:.2rem .6rem; border-radius:999px; font-weight:900; display:inline-block; border:2px solid transparent; }
+    .slot-early{ background:var(--early-bg); color:var(--early-fg); border-color:var(--early-bd); }
+    .slot-noon { background:var(--noon-bg);  color:var(--noon-fg);  border-color:var(--noon-bd);  }
+    .slot-night{ background:var(--night-bg); color:var(--night-fg); border-color:var(--night-bd); }
+
+    /* 其它小樣式 */
+    .small-note{ color:#64748b; font-size:.925rem; }
+    h1,h2,h3,h4,h5,th{ font-weight:900; }
+    .date-nav{ display:flex; flex-wrap:wrap; align-items:center; gap:.5rem .5rem; }
+    .date-nav .form-control{ width:160px; }
+    .totals{ font-weight:900; color:#1f3f57; } .totals .muted{ color:#6b7a90; font-weight:700; }
+    .form-control,.form-select,.input-group .form-control{ border-radius:14px; }
+    .btn-sm{ border-radius:12px; }
   </style>
 </head>
 <body>
+
 <!-- Login -->
 <div id="login" class="container login-card">
-  <div class="card p-4">
-    <div class="header d-flex align-items-center gap-2 mb-3">
+  <div class="card">
+    <div class="d-flex align-items-center gap-2 mb-3">
       <div class="logo">＋</div>
       <div>
         <h1 class="h4 m-0">後台登入</h1>
@@ -129,12 +119,12 @@
 
 <!-- App -->
 <div id="app" style="display:none;">
-  <div class="card-wrap container py-3">
-    <div class="card-head d-flex align-items-center gap-2 mb-3">
+  <div class="container py-3" style="max-width:1180px;">
+    <div class="card-head mb-3">
       <div class="logo">＋</div>
       <div>
         <h3 class="m-0">後台管理</h3>
-        <div class="text-muted small"><b>今天名單、明天名單、預約設定、臨時異動</b></div>
+        <div class="subtitle"><b>今天名單、明天名單、預約設定、臨時異動</b></div>
       </div>
       <div class="ms-auto d-flex align-items-center gap-2">
         <button id="exportBtn" class="btn btn-outline-secondary btn-sm">匯出今日起預約名單</button>
@@ -142,159 +132,15 @@
       </div>
     </div>
 
-    <!-- 分頁 -->
-    <div class="tabbar mb-3 d-flex gap-2">
+    <!-- Tabs -->
+    <div class="tabbar">
       <button class="btn btn-main active" id="tabBtnToday" data-tab="tab-today">今天名單</button>
       <button class="btn btn-main" id="tabBtnTomorrow" data-tab="tab-tomorrow">明天名單</button>
       <button class="btn btn-main" id="tabBtnSettings" data-tab="tab-settings">預約設定</button>
       <button class="btn btn-main" id="tabBtnSpecial" data-tab="tab-special">臨時異動</button>
-
-    /* ========= 共用按鈕與小元件 ========= */
-    .btn-round{ border-radius:999px; }
-    .btn-main{
-      background:var(--primary); color:#fff; border:0; border-radius:999px;
-      box-shadow:0 6px 14px rgba(63,95,165,.18);
-    }
-    .btn-main:hover{ background:var(--primary-600); color:#fff; }
-    .btn-outline-secondary{ border-radius:999px; }
-    .btn-danger{ background:var(--danger); border-color:var(--danger); }
-    .btn-danger:hover{ background:var(--danger-hover); border-color:var(--danger-hover); }
-
-    .sheet-chip{
-      display:inline-block; padding:.375rem .6rem; border:1px solid var(--chip); border-radius:999px;
-      color:var(--slate-600); text-decoration:none;
-    }
-    .small-note{ color:var(--slate-500); font-size:.925rem; }
-    .small-note code{ background:#f6f6f8; padding:.1rem .25rem; border-radius:6px; }
-    .tag{ display:inline-block; width:.8em; height:.8em; border-radius:2px; margin-right:.4em; vertical-align:middle; }
-    .tag-early{ background:#10b981; } .tag-noon{ background:#f59e0b; } .tag-night{ background:#6366f1; }
-
-    .date-nav{ display:flex; flex-wrap:wrap; align-items:center; gap:.5rem .5rem; }
-    .date-nav .form-control{ width:160px; }
-    .totals{ font-weight:800; color:#1f3f57; } .totals .muted{ color:#6b7a90; font-weight:700; }
-
-    .card-wrap{ max-width:1180px; margin:24px auto; padding:0 12px; }
-    .tabbar{ display:flex; gap:8px; margin:16px 0; }
-
-    .w-ch-4{ width:4.5ch !important; min-width:40px; } .w-ch-3{ width:3.5ch !important; min-width:36px; }
-    .text-center{ text-align:center; }
-
-    .stat{
-      border:1px dashed #d8dee9; border-radius:16px; padding:.75rem 1rem; display:flex; align-items:center; gap:.75rem; background:#fff;
-    }
-    .stat .cap{ font-weight:800; color:var(--slate-700); }
-    .muted{ color:#94a3b8; }
-
-    /* 表頭/標題加粗更明顯 */
-    h1,h2,h3,h4,h5,th{ font-weight:800; color:var(--slate-700); }
-
-    /* ========= Login ========= */
-    .login-card{ display:grid; place-items:center; min-height:calc(100vh - 6rem); padding:3rem 1rem; }
-    .login-card .card{
-      width:100%; max-width:460px; background:var(--card-bg); border:0; border-radius:28px; padding:28px 24px;
-      box-shadow:0 12px 24px rgba(30,79,208,.08), 0 4px 12px rgba(15,23,42,.06);
-    }
-    .login-card .header{ display:flex; align-items:center; gap:14px; margin-bottom:10px; }
-
-    /* 圓形靛藍 Logo（白色＋） */
-    .login-card .logo{
-      width:56px; height:56px; border-radius:50%; display:grid; place-items:center;
-      background:var(--primary); color:#fff; font-weight:800; font-size:28px; line-height:1;
-      box-shadow:0 8px 18px rgba(63,95,165,.25);
-    }
-
-    .login-card h1{ color:var(--slate-700); }
-
-    .login-card .form-control{
-      border-radius:16px; padding:.675rem .95rem; border:1px solid #e5e7eb;
-      box-shadow:inset 0 1px 0 rgba(0,0,0,.02);
-    }
-    .login-card .form-control:focus{
-      border-color:var(--primary);
-      box-shadow:0 0 0 .2rem rgba(63,95,165,.15), 0 2px 6px rgba(0,0,0,.04);
-      outline:none;
-    }
-    .login-card .btn-primary{
-      background:var(--primary); border:0; border-radius:16px; padding:.78rem 1rem;
-      box-shadow:0 10px 18px rgba(63,95,165,.18); font-weight:800;
-    }
-    .login-card .btn-primary:hover{ background:var(--primary-600); }
-    .login-card .helper{ display:flex; justify-content:space-between; align-items:center; color:var(--slate-500); font-size:.925rem; }
-
-    /* ========= App Header ========= */
-    .card-head{ display:flex; align-items:center; gap:12px; }
-    .card-head .logo{
-      width:44px; height:44px; border-radius:50%; display:grid; place-items:center;
-      background:var(--primary); color:#fff; font-weight:900; font-size:24px; line-height:1;
-      box-shadow:0 6px 14px rgba(63,95,165,.18);
-    }
-    .card-head h3{ font-weight:900; }
-    .card-head .subtitle{
-      margin-top:2px; font-size:.95rem; color:var(--slate-600);
-    }
-    .card-head .subtitle b{
-      color:var(--slate-900); font-weight:900;
-    }
-
-    /* 表格條紋色淡化、圓角 */
-    .table{ border-radius:14px; overflow:hidden; }
-    .table-striped>tbody>tr:nth-of-type(odd)>*{ --bs-table-accent-bg:#f7f9fc; }
-
-    /* 輸入框圓角統一 */
-    .form-control, .form-select, .input-group .form-control{
-      border-radius:14px;
-    }
-    .input-group .btn{ border-radius:14px; }
-
-    /* 小尺寸按鈕也維持圓角 */
-    .btn-sm{ border-radius:12px; }
-  </style>
-</head>
-<body>
-<!-- Login -->
-<div id="login" class="container login-card">
-  <div class="card">
-    <div class="header">
-      <div class="logo">＋</div>
-      <div>
-        <h1 class="h4 m-0">後台登入</h1>
-        <div class="small-note mt-1">請輸入管理帳號與密碼</div>
-      </div>
-    </div>
-    <label for="acc" class="form-label small-note mb-1">帳號</label>
-    <input id="acc" class="form-control mb-3" placeholder="輸入帳號" autocomplete="username">
-    <label for="pw" class="form-label small-note mb-1">管理密碼</label>
-    <input id="pw" type="password" class="form-control mb-3" placeholder="輸入密碼" autocomplete="current-password">
-    <button id="btnLoginPW" class="btn btn-primary w-100 mb-2">登入</button>
-    <div class="helper"><span>忘記密碼？請聯絡管理者</span></div>
-  </div>
-</div>
-
-<!-- App -->
-<div id="app" style="display:none;">
-  <div class="card-wrap">
-    <div class="card-head">
-      <div class="logo">𖡎</div>
-      <div>
-        <h3 class="m-0">後台管理</h3>
-        <!-- 注意事項置於標題下方（樣式一致） -->
-        <div class="subtitle"><b>今天名單、明天名單、預約設定、臨時異動</b></div>
-      </div>
-      <div class="ms-auto d-flex align-items-center gap-2">
-        <button id="exportBtn" class="btn btn-outline-secondary btn-round btn-sm">匯出今日起預約名單</button>
-        <button id="logoutBtn"  class="btn-main btn-round btn-sm">登出</button>
-      </div>
     </div>
 
-    <!-- 分頁 -->
-    <div class="tabbar">
-      <button class="btn btn-main" id="tabBtnToday" data-tab="tab-today">今天名單</button>
-      <button class="btn btn-outline-secondary" id="tabBtnTomorrow" data-tab="tab-tomorrow">明天名單</button>
-      <button class="btn btn-outline-secondary" id="tabBtnSettings" data-tab="tab-settings">預約設定</button>
-      <button class="btn btn-outline-secondary" id="tabBtnSpecial" data-tab="tab-special">臨時異動</button>
-    </div>
-
-    <!-- ====== 今天名單（可切任意日期） ====== -->
+    <!-- ====== 今天名單 ====== -->
     <section id="tab-today">
       <div class="card mb-3 p-3">
         <div class="d-flex align-items-center justify-content-between">
@@ -302,7 +148,7 @@
             <h5 class="m-0">今天名單</h5>
             <div id="todayInfo" class="small-note mt-1"></div>
           </div>
-          <div><button id="btnTodayReload" class="btn btn-outline-secondary btn-round btn-sm">重新整理</button></div>
+          <div><button id="btnTodayReload" class="btn btn-outline-secondary btn-sm">重新整理</button></div>
         </div>
         <div class="date-nav mt-2">
           <button id="tPrev" class="btn btn-outline-secondary btn-sm">◄ 前一天</button>
@@ -310,9 +156,7 @@
           <button id="tNext" class="btn btn-outline-secondary btn-sm">後一天 ►</button>
           <button id="tToday" class="btn btn-outline-secondary btn-sm">今天</button>
           <button id="tTomorrow" class="btn btn-outline-secondary btn-sm">明天</button>
-          <div class="ms-2 totals">
-            <span class="muted">總計：</span><span id="tTotals">—</span>
-          </div>
+          <div class="ms-2 totals"><span class="muted">總計：</span><span id="tTotals">—</span></div>
         </div>
         <div id="todayStats" class="row g-3 mt-2"></div>
       </div>
@@ -333,7 +177,7 @@
       </div>
     </section>
 
-    <!-- ====== 明天名單（預設=明天，也可切換日期） ====== -->
+    <!-- ====== 明天名單 ====== -->
     <section id="tab-tomorrow" style="display:none;">
       <div class="card mb-3 p-3">
         <div class="d-flex align-items-center justify-content-between">
@@ -341,7 +185,7 @@
             <h5 class="m-0">明天名單</h5>
             <div id="tomorrowInfo" class="small-note mt-1"></div>
           </div>
-          <div><button id="btnTomorrowReload" class="btn btn-outline-secondary btn-round btn-sm">重新整理</button></div>
+          <div><button id="btnTomorrowReload" class="btn btn-outline-secondary btn-sm">重新整理</button></div>
         </div>
         <div class="date-nav mt-2">
           <button id="mPrev" class="btn btn-outline-secondary btn-sm">◄ 前一天</button>
@@ -397,22 +241,18 @@
             </div>
           </div>
           <div class="d-flex align-items-end">
-            <button id="btnWinSet" class="btn-main btn-round">套用</button>
+            <button id="btnWinSet" class="btn-main">套用</button>
           </div>
         </div>
 
         <div class="form-check form-switch mt-3">
           <input class="form-check-input" type="checkbox" role="switch" id="customWindowSwitch">
-          <label class="form-check-label small-note" for="customWindowSwitch">
-            使用自訂日期區間（上方 D+起始～D+結束）。關閉時使用系統預設規則。
-          </label>
+          <label class="form-check-label small-note" for="customWindowSwitch">使用自訂日期區間（上方 D+起始～D+結束）。關閉時使用系統預設規則。</label>
         </div>
 
         <div class="form-check form-switch mt-2">
           <input class="form-check-input" type="checkbox" role="switch" id="flagWeekSwitch">
-          <label class="form-check-label small-note" for="flagWeekSwitch">
-            啟用「預設星期規律」提示旗標（供前端面板使用）。
-          </label>
+          <label class="form-check-label small-note" for="flagWeekSwitch">啟用「預設星期規律」提示旗標（供前端面板使用）。</label>
         </div>
 
         <div class="small-note mt-2">
@@ -458,19 +298,19 @@
         <input type="date" id="newDate" class="form-control mb-3">
 
         <div class="row g-2 align-items-center">
-          <div class="col-12 col-md-3"><span class="tag tag-early"></span><strong>早診上限</strong></div>
+          <div class="col-12 col-md-3"><span class="slot-pill slot-early">早診</span> <strong>上限</strong></div>
           <div class="col-6 col-md-3"><input id="neEarlyLimit" value="10" type="number" class="form-control" placeholder="上限"></div>
           <div class="col-6 col-md-6"><input id="neEarlyTime"  value=""   class="form-control" placeholder="早診時段，例如 08:30~11:30"></div>
         </div>
 
         <div class="row g-2 align-items-center mt-1">
-          <div class="col-12 col-md-3"><span class="tag tag-noon"></span><strong>午診上限</strong></div>
+          <div class="col-12 col-md-3"><span class="slot-pill slot-noon">午診</span> <strong>上限</strong></div>
           <div class="col-6 col-md-3"><input id="neNoonLimit" value="10" type="number" class="form-control" placeholder="上限"></div>
           <div class="col-6 col-md-6"><input id="neNoonTime"  value=""   class="form-control" placeholder="午診時段，例如 14:00~17:00"></div>
         </div>
 
         <div class="row g-2 align-items-center mt-1">
-          <div class="col-12 col-md-3"><span class="tag tag-night"></span><strong>晚診上限</strong></div>
+          <div class="col-12 col-md-3"><span class="slot-pill slot-night">晚診</span> <strong>上限</strong></div>
           <div class="col-6 col-md-3"><input id="neNightLimit" value="10" type="number" class="form-control" placeholder="上限"></div>
           <div class="col-6 col-md-6"><input id="neNightTime" value=""   class="form-control" placeholder="晚診時段，例如 18:00~20:30"></div>
         </div>
@@ -488,7 +328,7 @@
             <label class="small-note">備註</label>
             <div class="d-flex gap-2">
               <input id="neNote" placeholder="備註" class="form-control">
-              <button id="addBtn" class="btn-main btn-round">新增</button>
+              <button id="addBtn" class="btn-main">新增</button>
             </div>
           </div>
         </div>
@@ -550,7 +390,7 @@ function switchTab(id){
   [tabBtnToday,tabBtnTomorrow,tabBtnSettings,tabBtnSpecial].forEach(b=>{
     const a=(b.dataset.tab||b.id.replace('tabBtn','tab-'))===id;
     b.classList.toggle('btn-main',a);
-    b.classList.toggle('btn-outline-secondary',!a);
+    b.classList.toggle('active',a);
   });
   Object.entries(views).forEach(([k,el])=>el.style.display=(k===id?'block':'none'));
 }
@@ -564,6 +404,15 @@ function todayYmd(){ return ymdLocal(new Date()); }
 function asObj(p){ try{ return typeof p==='string'?JSON.parse(p):(p||{});}catch{ return {}; } }
 function asArr(p){ try{ if(typeof p==='string') p=JSON.parse(p);}catch{} if(Array.isArray(p))return p; if(Array.isArray(p?.rows))return p.rows; if(Array.isArray(p?.items))return p.items; if(Array.isArray(p?.data))return p.data; return []; }
 function num(x){ const n=Number(x); return isFinite(n)?n:0; }
+
+/* 小工具：診別對應 class */
+function slotType(label){
+  if(!label) return {pill:'', stat:''};
+  if(String(label).includes('早')) return {pill:'slot-early', stat:'early'};
+  if(String(label).includes('午')) return {pill:'slot-noon',  stat:'noon'};
+  if(String(label).includes('晚')) return {pill:'slot-night', stat:'night'};
+  return {pill:'', stat:''};
+}
 
 /* ===== 登入／登出／Tab 切換 ===== */
 btnLoginPW.onclick = async ()=>{
@@ -598,13 +447,14 @@ function renderStats(containerId, slots){
   const box=document.getElementById(containerId); box.innerHTML='';
   const frag=document.createDocumentFragment();
   slots.forEach(s=>{
+    const classes=slotType(s.label||'');
     const col=document.createElement('div'); col.className='col-12 col-md-4';
     col.innerHTML=`
-      <div class="stat">
-        <div class="cap">${s.label}</div>
+      <div class="stat ${classes.stat}">
+        <div class="cap"><span class="slot-pill ${classes.pill}">${s.label||''}</span></div>
         <div class="flex-grow-1">
           <div class="small-note mb-1">${s.time||''}</div>
-          <div><b>${num(s.used)}</b> / ${num(s.limit)} <span class="muted">（起始 ${num(s.startNo)}，間隔 ${num(s.step)}）</span></div>
+          <div><b>${num(s.used)}</b> / ${num(s.limit)} <span class="text-muted">（起始 ${num(s.startNo)}，間隔 ${num(s.step)}）</span></div>
         </div>
       </div>`;
     frag.appendChild(col);
@@ -614,9 +464,10 @@ function renderStats(containerId, slots){
 function renderItems(tableId, items, refreshFnName){
   const tb=document.querySelector(`#${tableId} tbody`); tb.innerHTML='';
   items.forEach(x=>{
+    const t=slotType(x.slot||'');
     const tr=document.createElement('tr');
     tr.innerHTML=`
-      <td>${x.slot||''}</td>
+      <td><span class="slot-pill ${t.pill}">${x.slot||''}</span></td>
       <td>${x.time||''}</td>
       <td>${x.num||''}</td>
       <td>${x.name||''}</td>
@@ -625,13 +476,13 @@ function renderItems(tableId, items, refreshFnName){
       <td>${x.phone||''}</td>
       <td>${x.createdAt||''}</td>
       <td>
-        <button class="btn btn-danger btn-sm btn-round" onclick="cancelRow(${x.id}, '${refreshFnName}')">取消</button>
+        <button class="btn btn-danger btn-sm" onclick="cancelRow(${x.id}, '${refreshFnName}')">取消</button>
       </td>`;
     tb.appendChild(tr);
   });
 }
 
-/* ===== 今天 / 明天（其實都用 adminDay，可切日期） ===== */
+/* ===== 今天 / 明天 ===== */
 const tDate=document.getElementById('tDate'), tPrev=document.getElementById('tPrev'), tNext=document.getElementById('tNext'),
       tToday=document.getElementById('tToday'), tTomorrow=document.getElementById('tTomorrow'),
       todayInfo=document.getElementById('todayInfo'), tTotals=document.getElementById('tTotals');
@@ -676,9 +527,7 @@ async function cancelRow(id, refreshFnName){
   try{
     assertAuthed();
     await axios.get(API,{params:{action:'adminCancel', id, token:ADMIN_TOKEN}});
-    if (typeof window[refreshFnName] === 'function') {
-      window[refreshFnName]();
-    }
+    if (typeof window[refreshFnName] === 'function') window[refreshFnName]();
   }catch(e){ console.error(e); alert('取消失敗或尚未登入'); }
 }
 window.cancelRow=cancelRow;
@@ -691,10 +540,10 @@ const winStart=document.getElementById('winStart'), winEnd=document.getElementBy
       customWindowSwitch=document.getElementById('customWindowSwitch'),
       flagWeekSwitch=document.getElementById('flagWeekSwitch');
 
-btnStartMinus.onclick=()=>{ winStart.value=Math.max(0, num(winStart.value)-1); };
-btnStartPlus.onclick =()=>{ winStart.value=num(winStart.value)+1; };
-btnEndMinus.onclick  =()=>{ winEnd.value  =Math.max(num(winStart.value), num(winEnd.value)-1); };
-btnEndPlus.onclick   =()=>{ winEnd.value  =num(winEnd.value)+1; };
+btnStartMinus.onclick=()=>{ winStart.value=Math.max(0, Number(winStart.value||0)-1); };
+btnStartPlus.onclick =()=>{ winStart.value=Number(winStart.value||0)+1; };
+btnEndMinus.onclick  =()=>{ winEnd.value  =Math.max(Number(winStart.value||0), Number(winEnd.value||0)-1); };
+btnEndPlus.onclick   =()=>{ winEnd.value  =Number(winEnd.value||0)+1; };
 
 btnWinSet.onclick=async ()=>{
   try{
@@ -753,7 +602,7 @@ async function loadDaily(){
       <td><input class="form-control form-control-sm" id="dTLt-${x.row}" value="${x.timeL||''}"></td>
       <td><input class="form-control form-control-sm w-ch-4 text-center" id="dST-${x.row}" type="number" value="${x.startNo||1}" min="1"></td>
       <td><input class="form-control form-control-sm w-ch-4 text-center" id="dSP-${x.row}" type="number" value="${x.step||1}" min="1"></td>
-      <td><button class="btn btn-sm btn-main btn-round" onclick="saveDaily('${x.weekdayEn}','${x.row}')">儲存</button></td>`;
+      <td><button class="btn btn-sm btn-main" onclick="saveDaily('${x.weekdayEn}','${x.row}')">儲存</button></td>`;
     tb.appendChild(tr);
   });
 }
@@ -788,7 +637,7 @@ async function loadSheetLinks(){
   o.sheets.forEach(s=>{
     const url=`https://docs.google.com/spreadsheets/d/${o.id}/edit#gid=${s.gid}`;
     const a=document.createElement('a');
-    a.className='sheet-chip'; a.href=url; a.target='_blank'; a.rel='noopener';
+    a.className='btn btn-outline-secondary btn-sm'; a.href=url; a.target='_blank'; a.rel='noopener';
     a.textContent=s.name||('GID '+s.gid);
     box.appendChild(a);
   });
@@ -845,8 +694,8 @@ async function loadSpecials(){
       <td>${x.起始號碼||1}</td><td>${x.間隔位數||1}</td>
       <td>${x.備註||""}</td>
       <td class="d-flex gap-2">
-        <button class="btn btn-warning btn-sm btn-round" onclick="editRow('${x.id}')">編輯</button>
-        <button class="btn btn-danger btn-sm btn-round" onclick="delRow('${x.id}')">刪除</button>
+        <button class="btn btn-warning btn-sm" onclick="editRow('${x.id}')">編輯</button>
+        <button class="btn btn-danger btn-sm" onclick="delRow('${x.id}')">刪除</button>
       </td>`;
     tbody.appendChild(tr);
   });
@@ -879,8 +728,8 @@ async function editRow(id){
      <div class="small-note mt-2">此處儲存會以 <code>adminAdd</code> 覆蓋該日期設定。</div>
    </div>
    <div class="modal-footer">
-     <button class="btn btn-outline-secondary btn-round" data-bs-dismiss="modal">取消</button>
-     <button id="saveBtn" class="btn-main btn-round">儲存</button>
+     <button class="btn btn-outline-secondary" data-bs-dismiss="modal">取消</button>
+     <button id="saveBtn" class="btn btn-main">儲存</button>
    </div>
   </div></div></div>`;
   document.body.insertAdjacentHTML('beforeend', html);
@@ -911,8 +760,3 @@ if(ADMIN_TOKEN){ showApp(); }
 </script>
 </body>
 </html>
-
-
-
-
-
