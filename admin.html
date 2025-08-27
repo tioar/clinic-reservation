@@ -90,7 +90,16 @@
     }
 
     /* ===== Table ===== */
-    .table th, .table td{
+    .table {
+  border-radius: 16px;
+  overflow: hidden; /* 保證子元素背景不會凸出 */
+  margin: 0;
+    }
+    .table-striped>tbody>tr:nth-of-type(odd)>* {
+  background-color: #f8fafc; /* 淡灰，和卡片融為一體 */
+    }
+
+    .table td{
       border-top:2px solid #e5e7eb !important;
     }
     .table thead th{
@@ -902,5 +911,6 @@ if(ADMIN_TOKEN){ showApp(); }
 </script>
 </body>
 </html>
+
 
 
