@@ -13,7 +13,7 @@
   <style>
     :root{
       --bg-from:#ecf1f6; --bg-to:#e6edf6; --card-bg:#ffffff;
-      --primary:#2563eb; --primary-600:#1e4fd0; --primary-700:#183fa9;
+      --primary:#6b7a90 --primary-600:#3f81bf; --primary-700:#405aa1;
       --slate-700:#334155; --slate-500:#64748b; --ring:#9ab5ff; --chip:#d5d9e2;
     }
     body{ background:linear-gradient(160deg,var(--bg-from),var(--bg-to)); min-height:100vh; color:var(--slate-700); }
@@ -181,7 +181,7 @@
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 <script>
 /* ===== API 與共用（你的原碼保留） ===== */
-const API = "https://script.google.com/macros/s/AKfycbw63BV5w0VIHxE7sePmLXhd_pRJyZTGOqmujtwjmwdADv827L0TMg1LrbO0eiSkuMWs/exec";
+const API = "https://script.google.com/macros/s/AKfycbw31f0NLcEP7yNrrpo65CD7iqgPUhAKYdmqTWjoMQktpejLMJZmWamYrLDwEbOJ7wHB/exec";
 const loginBox=document.getElementById('login'), appBox=document.getElementById('app');
 const acc=document.getElementById('acc'), pw=document.getElementById('pw'), btnLoginPW=document.getElementById('btnLoginPW');
 const logoutBtn=document.getElementById('logoutBtn'), exportBtn=document.getElementById('exportBtn');
@@ -332,3 +332,4 @@ if(ADMIN_TOKEN){ showApp(); }
 </script>
 </body>
 </html>
+
