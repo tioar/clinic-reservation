@@ -26,26 +26,32 @@
 <div id="ing">處理中請稍等<span id="dots">...</span></div>
 
 <div class="card" style="max-width:560px;margin:40px auto;">
-  <div class="header">
-    <div class="logo">＋</div>
-    <h1>查詢／取消預約</h1>
+  <div class="header p-3 pb-0">
+    <div class="d-flex align-items-center gap-2">
+      <div class="logo">＋</div>
+      <h1 class="m-0">查詢／取消預約</h1>
+    </div>
+    <!-- ✅ 1) 副標題（你要的文字） -->
+    <div class="mt-2 fw-semibold" style="color:#000;">
+      線上取消預約只能在預約的門診前一天執行，當天請以電話取消謝謝。
+    </div>
   </div>
 
   <!-- 查詢區 -->
-  <div id="normalBox">
+  <div id="normalBox" class="p-3">
     <div class="mb-3">
       <label class="form-label">身分證字號</label>
       <input type="text" id="pid" class="form-control" placeholder="例如：A123456789" maxlength="10" autocomplete="off">
     </div>
     <div class="d-grid gap-2">
-      <button id="btnQuery" class="btn-main">查詢</button>
+      <button id="btnQuery" class="btn btn-primary">查詢</button>
       <a href="index.html" class="btn btn-outline-secondary">返回首頁</a>
     </div>
     <hr class="my-4">
   </div>
 
   <!-- 結果列表 -->
-  <div id="result" style="display:none;">
+  <div id="result" style="display:none;" class="p-3 pt-0">
     <div class="list-row list-head">
       <div>日期</div><div>星期</div><div>診別</div><div>時間</div><div>姓名</div><div>號碼</div><div>操作</div>
     </div>
@@ -121,6 +127,13 @@ function guessTime(slot){
   if(slot.includes('晚')) return '18:00~20:30';
   return '';
 }
+function todayYmd(){
+  const z = new Date();
+  const yyyy = z.getFullYear();
+  const mm = ('0'+(z.getMonth()+1)).slice(-2);
+  const dd = ('0'+z.getDate()).slice(-2);
+  return `${yyyy}-${mm}-${dd}`;
+}
 
 // ===== 查詢（用身分證字號） =====
 async function queryByPid(){
@@ -157,12 +170,14 @@ async function queryByPid(){
   }
 }
 
-// ===== 渲染一列 =====
+// ===== 渲染一列（當天一律禁用取消） =====
 function appendRow(item, pid){
   const ymd = item.date || '';
   const w   = weekday(ymd);
   const t   = item.time || guessTime(item.slot) || '';
-  const rcptLocal = sessionStorage.getItem('rcpt:'+item.id) || '';
+
+  // 後端也會提供 canCancel，但前端再雙重保險：當天不可取消
+  const disableCancel = (ymd === todayYmd());
 
   const row = document.createElement('div');
   row.className = 'list-row mb-2';
@@ -174,48 +189,28 @@ function appendRow(item, pid){
     <div>${item.name||''}</div>
     <div>${item.num||''}</div>
     <div>
-      <button class="btn btn-cancel btn-sm" ${item.canCancel===false?'disabled':''} data-id="${item.id||''}">取消</button>
-      ${rcptLocal ? '<span class="tag" title="此筆已在本裝置保存憑證">憑證</span>' : ''}
+      <button class="btn btn-cancel btn-sm" ${disableCancel ? 'disabled' : ''} data-id="${item.id||''}">取消</button>
     </div>
   `;
   const btn = row.querySelector('.btn-cancel');
-  btn.onclick = () => cancelOne(item, pid);
+  btn.onclick = () => {
+    if(disableCancel) return;  // 前端保險，不動作
+    cancelByPid(pid);
+  };
   $list.appendChild(row);
 }
 
-// ===== 取消 =====
-async function cancelOne(item, pid){
-  if(item?.canCancel===false) return;
-  const ok = confirm(`確認取消：\n${item.date||''}（${item.slot||''}）\n${item.name||''} 第 ${item.num||''} 號？`);
+// ===== 取消（不再要求憑證，只用身分證） =====
+async function cancelByPid(pid){
+  const ok = confirm(`確認取消此身分證字號 ${pid} 的所有未取消預約？\n（僅能取消非當天門診）`);
   if(!ok) return;
 
   showing('取消中請稍等');
   try{
     const recaptchaToken = await getRecaptchaToken('cancel');
-
-    // 先嘗試：id + receipt（同裝置預約時會有）
-    const localRcpt = sessionStorage.getItem('rcpt:'+item.id) || '';
-    let resp = await axios.get(API,{ params:{ action:'cancel', id: item.id, receipt: localRcpt, recaptchaToken, t: Date.now() }});
-
-    // 若缺憑證或失敗，再試：貼上 receipt
-    if(!(resp.data && (resp.data.ok || resp.data.success))){
-      const msg = (resp.data && (resp.data.message||resp.data.error)) || '';
-      if(/憑證|receipt|unauthorized/i.test(msg)){
-        const rcpt = prompt('此筆需要預約憑證（receipt）。\n請貼上憑證字串：');
-        if(rcpt && rcpt.trim()){
-          sessionStorage.setItem('rcpt:'+item.id, rcpt.trim());
-          resp = await axios.get(API,{ params:{ action:'cancel', id: item.id, receipt: rcpt.trim(), recaptchaToken, t: Date.now() }});
-        }
-      }
-    }
-
-    // 仍未成功 → 相容舊法：以身分證批量取消（後端允許時）
-    if(!(resp.data && (resp.data.ok || resp.data.success))){
-      resp = await axios.get(API,{ params:{ action:'cancel', idnum: pid, recaptchaToken, t: Date.now() }});
-    }
-
+    const resp = await axios.get(API,{ params:{ action:'cancel', idnum: pid, recaptchaToken, t: Date.now() }});
     if(resp.data && (resp.data.ok || resp.data.success)){
-      alert(resp.data.message || '已取消。');
+      alert(resp.data.message || '已取消符合規則的預約。');
       await queryByPid(); // 重新查一次
     }else{
       alert((resp.data && resp.data.message) || '取消失敗，請稍後再試');
@@ -242,7 +237,3 @@ loadRecaptcha().catch(()=>{});
 </script>
 </body>
 </html>
-
-
-
-
