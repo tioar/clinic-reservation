@@ -3,136 +3,164 @@
 <head>
   <meta charset="UTF-8">
   <title>陳萬龍診所預約後台管理</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="icon" type="image/png" href="favicon.png" />
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
 
   <style>
     :root{
-      --primary:#3b697d;        /* 靛藍主色 */
-      --primary-dark:#2d4d5a;   /* 選中深色 */
-      --card-bg:#ffffff;
-      --border:#d9dee7;
+      /* 主題 */
+      --primary:#3b697d;
+      --primary-dark:#2d4d5a;
+      --ink:#1f2937;
 
-      /* 診別色系 */
-      --early-bg:#d1fae5; --early-fg:#065f46; --early-bd:#34d399;
-      --noon-bg:#fef3c7;  --noon-fg:#92400e; --noon-bd:#fbbf24;
-      --night-bg:#ede9fe; --night-fg:#4c1d95; --night-bd:#a78bfa;
+      /* 中性色、邊框、陰影 */
+      --card-bg:#ffffff;
+      --page-bg:#edf2f7;
+      --line:#d9dee7;
+
+      /* 危險 */
+      --danger:#dc3545;
+      --danger-hover:#b02a37;
+
+      /* 診別配色 */
+      --early:#16a34a;      --early-50:#e7f7ee;
+      --noon:#f59e0b;       --noon-50:#fff3df;
+      --night:#7c3aed;      --night-50:#efe9ff;
     }
 
+    /* ===== 基本 ===== */
+    html,body{ height:100%; }
     body{
-      font-family:'Noto Sans TC','Microsoft JhengHei',sans-serif;
+      font-family:'Noto Sans TC','Microsoft JhengHei',system-ui,-apple-system,Segoe UI,Roboto,'Helvetica Neue',Arial,sans-serif;
       background:linear-gradient(160deg,#ecf1f6,#e6edf6);
-      min-height:100vh;
-      color:#334155;
+      color:var(--ink);
     }
 
     /* ===== 卡片 ===== */
-    .card{ border-radius:28px !important; border:2px solid var(--border); box-shadow:0 6px 14px rgba(0,0,0,.06); }
+    .card{
+      border:2px solid var(--line) !important;
+      border-radius:28px !important;
+      background:var(--card-bg);
+      box-shadow:0 10px 22px rgba(0,0,0,.06);
+    }
 
-    /* ===== 按鈕統一 ===== */
-    .btn{ border-radius:999px !important; font-weight:700; border:0; }
+    /* ===== 文案強度 ===== */
+    h1,h2,h3,h4,h5,th{ font-weight:900; }
+    .text-muted{ color:#6b7280 !important; }
+
+    /* ===== 通用按鈕 ===== */
+    .btn{ border-radius:999px !important; font-weight:800; border:0; }
     .btn-main{ background:var(--primary); color:#fff !important; }
     .btn-main:hover,.btn-main.active{ background:var(--primary-dark); color:#fff !important; }
-    .btn-outline-secondary{ background:#94a3b8; color:#fff !important; }
-    .btn-outline-secondary:hover,.btn-outline-secondary.active{ background:#64748b; color:#fff !important; }
-    .btn-danger{ background:#dc3545; color:#fff !important; }
-    .btn-danger:hover{ background:#b02a37; color:#fff !important; }
-    .btn-warning{ background:#f59e0b; color:#fff !important; }
-    .btn-warning:hover{ background:#d97706; color:#fff !important; }
+    .btn-tonal{ background:#94a3b8; color:#fff !important; }
+    .btn-tonal:hover,.btn-tonal.active{ background:#64748b; color:#fff !important; }
+    .btn-danger{ background:var(--danger); color:#fff !important; }
+    .btn-danger:hover{ background:var(--danger-hover); color:#fff !important; }
 
     /* ===== Login ===== */
-    .login-card{ display:grid; place-items:center; min-height:calc(100vh - 6rem); padding:3rem 1rem; }
-    .login-card .card{ max-width:480px; padding:28px 24px; }
-    .login-card .logo{
-      width:56px;height:56px;border-radius:50%;display:grid;place-items:center;
-      background:var(--primary);color:#fff;font-weight:900;font-size:28px;line-height:1;
-      box-shadow:0 8px 18px rgba(59,105,125,.25);
+    .login-wrap{ display:grid; place-items:center; min-height:calc(100vh - 6rem); padding:32px 12px; }
+    .login-card{ max-width:480px; width:100%; }
+    .login-logo{
+      width:56px; height:56px; border-radius:50%; display:grid; place-items:center;
+      background:var(--primary); color:#fff; font-weight:900; font-size:28px; line-height:1;
+      box-shadow:0 10px 24px rgba(59,105,125,.28);
     }
-    .login-card .form-control{ border-radius:16px; padding:.675rem .95rem; border:2px solid #d1d5db; }
-    .login-card .form-control:focus{ border-color:var(--primary); box-shadow:0 0 0 .2rem rgba(59,105,125,.2); }
+    .login-card .form-control{
+      border-radius:16px; border:2px solid #d1d5db; padding:.7rem .95rem;
+    }
+    .login-card .form-control:focus{
+      border-color:var(--primary); box-shadow:0 0 0 .2rem rgba(59,105,125,.18);
+    }
 
     /* ===== Header ===== */
-    .card-head{ display:flex; align-items:center; gap:12px; }
-    .card-head .logo{
-      width:44px;height:44px;border-radius:50%;display:grid;place-items:center;
-      background:var(--primary);color:#fff;font-weight:900;font-size:22px;line-height:1;
-      box-shadow:0 6px 14px rgba(59,105,125,.18);
+    .head{
+      display:flex; align-items:center; gap:12px; margin-bottom:12px;
     }
-    .card-head h3{ font-weight:900; }
-    .card-head .subtitle{ margin-top:2px; font-size:.95rem; color:#475569; }
-    .card-head .subtitle b{ color:#0f172a; font-weight:900; }
+    .head .logo{
+      width:44px; height:44px; border-radius:50%; display:grid; place-items:center;
+      background:var(--primary); color:#fff; font-weight:900; font-size:22px;
+      box-shadow:0 8px 18px rgba(59,105,125,.22);
+    }
+    .subtitle{ margin-top:2px; font-size:.95rem; color:#6b7280; }
+    .subtitle b{ color:#111827; }
 
-    /* ===== Tabs ===== */
-    .tabbar{ display:flex; gap:8px; margin:16px 0 20px; }
+    /* ===== 分頁 pills ===== */
+    .tabbar{ display:flex; gap:8px; margin:12px 0 20px; flex-wrap:wrap; }
+    .tabbar .btn{ padding:.55rem 1rem; }
+
+    /* ===== 日期列 ===== */
+    .date-nav{ display:flex; flex-wrap:wrap; align-items:center; gap:8px; }
+    .date-nav .form-control{ width:160px; border-radius:14px; border:2px solid #d1d5db; }
+    .totals{ font-weight:900; color:#1f3f57; }
+    .totals .muted{ color:#6b7a90; font-weight:800; }
+
+    /* ===== 統計卡（依診別著色） ===== */
+    .stats .col-12{ }
+    .stat{ border:2px dashed #d8dee9; border-radius:18px; padding:.8rem 1rem; background:#fff; display:flex; align-items:center; gap:.75rem; }
+    .stat .cap{ font-weight:900; min-width:3em; }
+    .stat.early { background:var(--early-50); border-color:var(--early); }
+    .stat.noon  { background:var(--noon-50);  border-color:var(--noon);  }
+    .stat.night { background:var(--night-50); border-color:var(--night); }
 
     /* ===== 表格 ===== */
-    .table{ border-radius:16px; overflow:hidden; margin:0; }
-    .table-striped>tbody>tr:nth-of-type(odd)>*{ background-color:#f8fafc; }
+    .table{ border-radius:16px; overflow:hidden; }
+    .table thead th{ border-bottom:2px solid #cbd5e1 !important; }
     .table td{ border-top:2px solid #e5e7eb !important; }
-    .table thead th{ border-bottom:2px solid #cbd5e1 !important; font-weight:900; }
 
-    /* ===== 統計卡片 ===== */
-    .stat{ border:2px dashed #d8dee9; border-radius:18px; padding:.8rem 1rem; display:flex; align-items:center; gap:.75rem; background:#fff; }
-    .stat .cap{ font-weight:900; }
-    .stat.early{ border-color:var(--early-bd); background:var(--early-bg); }
-    .stat.noon { border-color:var(--noon-bd);  background:var(--noon-bg);  }
-    .stat.night{ border-color:var(--night-bd); background:var(--night-bg); }
+    /* 表格依診別著色（整列柔和底色 + 左側色條） */
+    tr.slot-early > *{ background:var(--early-50) !important; }
+    tr.slot-noon  > *{ background:var(--noon-50)  !important; }
+    tr.slot-night > *{ background:var(--night-50) !important; }
+    tr.slot-early td:first-child{ box-shadow:inset 6px 0 0 0 var(--early); }
+    tr.slot-noon  td:first-child{ box-shadow:inset 6px 0 0 0 var(--noon);  }
+    tr.slot-night td:first-child{ box-shadow:inset 6px 0 0 0 var(--night); }
 
-    /* ===== 診別色標（表格用） ===== */
-    .slot-pill{ padding:.2rem .6rem; border-radius:999px; font-weight:900; display:inline-block; border:2px solid transparent; }
-    .slot-early{ background:var(--early-bg); color:var(--early-fg); border-color:var(--early-bd); }
-    .slot-noon { background:var(--noon-bg);  color:var(--noon-fg);  border-color:var(--noon-bd);  }
-    .slot-night{ background:var(--night-bg); color:var(--night-fg); border-color:var(--night-bd); }
+    /* 小尺寸按鈕也維持圓角 */
+    .btn-sm{ border-radius:12px !important; }
 
-    /* 其它小樣式 */
-    .small-note{ color:#64748b; font-size:.925rem; }
-    h1,h2,h3,h4,h5,th{ font-weight:900; }
-    .date-nav{ display:flex; flex-wrap:wrap; align-items:center; gap:.5rem .5rem; }
-    .date-nav .form-control{ width:160px; }
-    .totals{ font-weight:900; color:#1f3f57; } .totals .muted{ color:#6b7a90; font-weight:700; }
-    .form-control,.form-select,.input-group .form-control{ border-radius:14px; }
-    .btn-sm{ border-radius:12px; }
+    /* 版面寬度 */
+    .wrap{ max-width:1180px; margin:24px auto; padding:0 12px; }
   </style>
 </head>
 <body>
 
-<!-- Login -->
-<div id="login" class="container login-card">
-  <div class="card">
-    <div class="d-flex align-items-center gap-2 mb-3">
-      <div class="logo">＋</div>
+<!-- ================= Login ================= -->
+<div id="login" class="login-wrap">
+  <div class="card login-card p-4">
+    <div class="d-flex align-items-center gap-2 mb-2">
+      <div class="login-logo">＋</div>
       <div>
         <h1 class="h4 m-0">後台登入</h1>
         <div class="text-muted">請輸入管理帳號與密碼</div>
       </div>
     </div>
-    <label for="acc" class="form-label">帳號</label>
+    <label for="acc" class="form-label fw-bold">帳號</label>
     <input id="acc" class="form-control mb-3" placeholder="輸入帳號" autocomplete="username">
-    <label for="pw" class="form-label">管理密碼</label>
+    <label for="pw" class="form-label fw-bold">管理密碼</label>
     <input id="pw" type="password" class="form-control mb-3" placeholder="輸入密碼" autocomplete="current-password">
-    <button id="btnLoginPW" class="btn btn-main w-100 mb-2">登入</button>
+    <button id="btnLoginPW" class="btn btn-main w-100 mb-1">登入</button>
+    <div class="small text-muted">忘記密碼？請聯絡管理者</div>
   </div>
 </div>
 
-<!-- App -->
+<!-- ================= App ================= -->
 <div id="app" style="display:none;">
-  <div class="container py-3" style="max-width:1180px;">
-    <div class="card-head mb-3">
+  <div class="wrap">
+    <div class="head">
       <div class="logo">＋</div>
       <div>
         <h3 class="m-0">後台管理</h3>
-        <div class="subtitle"><b>今天名單、明天名單、預約設定、臨時異動</b></div>
+        <div class="subtitle"><b>注意事項：</b>今天名單、明天名單、預約設定、臨時異動</div>
       </div>
-      <div class="ms-auto d-flex align-items-center gap-2">
-        <button id="exportBtn" class="btn btn-outline-secondary btn-sm">匯出今日起預約名單</button>
-        <button id="logoutBtn"  class="btn btn-main btn-sm">登出</button>
+      <div class="ms-auto d-flex gap-2">
+        <button id="exportBtn" class="btn btn-tonal btn-sm">匯出今日起預約名單</button>
+        <button id="logoutBtn" class="btn btn-main btn-sm">登出</button>
       </div>
     </div>
 
-    <!-- Tabs -->
+    <!-- tabs -->
     <div class="tabbar">
       <button class="btn btn-main active" id="tabBtnToday" data-tab="tab-today">今天名單</button>
       <button class="btn btn-main" id="tabBtnTomorrow" data-tab="tab-tomorrow">明天名單</button>
@@ -140,25 +168,25 @@
       <button class="btn btn-main" id="tabBtnSpecial" data-tab="tab-special">臨時異動</button>
     </div>
 
-    <!-- ====== 今天名單 ====== -->
+    <!-- ===== 今天 ===== -->
     <section id="tab-today">
-      <div class="card mb-3 p-3">
+      <div class="card p-3 mb-3">
         <div class="d-flex align-items-center justify-content-between">
           <div>
             <h5 class="m-0">今天名單</h5>
-            <div id="todayInfo" class="small-note mt-1"></div>
+            <div id="todayInfo" class="text-muted"></div>
           </div>
-          <div><button id="btnTodayReload" class="btn btn-outline-secondary btn-sm">重新整理</button></div>
+          <button id="btnTodayReload" class="btn btn-tonal btn-sm">重新整理</button>
         </div>
         <div class="date-nav mt-2">
-          <button id="tPrev" class="btn btn-outline-secondary btn-sm">◄ 前一天</button>
+          <button id="tPrev" class="btn btn-tonal btn-sm">◄ 前一天</button>
           <input id="tDate" type="date" class="form-control form-control-sm">
-          <button id="tNext" class="btn btn-outline-secondary btn-sm">後一天 ►</button>
-          <button id="tToday" class="btn btn-outline-secondary btn-sm">今天</button>
-          <button id="tTomorrow" class="btn btn-outline-secondary btn-sm">明天</button>
+          <button id="tNext" class="btn btn-tonal btn-sm">後一天 ►</button>
+          <button id="tToday" class="btn btn-tonal btn-sm">今天</button>
+          <button id="tTomorrow" class="btn btn-tonal btn-sm">明天</button>
           <div class="ms-2 totals"><span class="muted">總計：</span><span id="tTotals">—</span></div>
         </div>
-        <div id="todayStats" class="row g-3 mt-2"></div>
+        <div id="todayStats" class="row stats g-3 mt-2"></div>
       </div>
 
       <div class="card p-3">
@@ -173,29 +201,29 @@
             <tbody></tbody>
           </table>
         </div>
-        <div class="small-note">註：取消會直接在試算表 I 欄標記 TRUE。</div>
+        <div class="text-muted small">註：取消會直接在試算表 I 欄標記 TRUE。</div>
       </div>
     </section>
 
-    <!-- ====== 明天名單 ====== -->
+    <!-- ===== 明天 ===== -->
     <section id="tab-tomorrow" style="display:none;">
-      <div class="card mb-3 p-3">
+      <div class="card p-3 mb-3">
         <div class="d-flex align-items-center justify-content-between">
           <div>
             <h5 class="m-0">明天名單</h5>
-            <div id="tomorrowInfo" class="small-note mt-1"></div>
+            <div id="tomorrowInfo" class="text-muted"></div>
           </div>
-          <div><button id="btnTomorrowReload" class="btn btn-outline-secondary btn-sm">重新整理</button></div>
+          <button id="btnTomorrowReload" class="btn btn-tonal btn-sm">重新整理</button>
         </div>
         <div class="date-nav mt-2">
-          <button id="mPrev" class="btn btn-outline-secondary btn-sm">◄ 前一天</button>
+          <button id="mPrev" class="btn btn-tonal btn-sm">◄ 前一天</button>
           <input id="mDate" type="date" class="form-control form-control-sm">
-          <button id="mNext" class="btn btn-outline-secondary btn-sm">後一天 ►</button>
-          <button id="mToday" class="btn btn-outline-secondary btn-sm">今天</button>
-          <button id="mTomorrow" class="btn btn-outline-secondary btn-sm">明天</button>
+          <button id="mNext" class="btn btn-tonal btn-sm">後一天 ►</button>
+          <button id="mToday" class="btn btn-tonal btn-sm">今天</button>
+          <button id="mTomorrow" class="btn btn-tonal btn-sm">明天</button>
           <div class="ms-2 totals"><span class="muted">總計：</span><span id="mTotals">—</span></div>
         </div>
-        <div id="tomorrowStats" class="row g-3 mt-2"></div>
+        <div id="tomorrowStats" class="row stats g-3 mt-2"></div>
       </div>
 
       <div class="card p-3">
@@ -210,65 +238,63 @@
             <tbody></tbody>
           </table>
         </div>
-        <div class="small-note">註：取消會直接在試算表 I 欄標記 TRUE。</div>
+        <div class="text-muted small">註：取消會直接在試算表 I 欄標記 TRUE。</div>
       </div>
     </section>
 
-    <!-- ====== 預約設定 ====== -->
+    <!-- ===== 設定 ===== -->
     <section id="tab-settings" style="display:none;">
-      <div class="card mb-4 p-3">
+      <div class="card p-3 mb-4">
         <div class="d-flex align-items-center justify-content-between">
           <h5 class="m-0">預約期限</h5>
-          <div class="small-note">顯示區間 = 今天 + 起始天 ～ 今天 + 結束天</div>
+          <div class="text-muted">顯示區間 = 今天 + 起始天 ～ 今天 + 結束天</div>
         </div>
-        <div id="winInfo" class="small-note my-2"></div>
+        <div id="winInfo" class="text-muted my-2"></div>
 
-        <div class="d-flex flex-wrap align-items-center gap-4">
+        <div class="d-flex flex-wrap align-items-end gap-4">
           <div>
-            <div class="small-note mb-1">起始天</div>
-            <div class="input-group" style="max-width:200px;">
-              <button class="btn btn-outline-secondary" id="btnStartMinus">－</button>
-              <input id="winStart" inputmode="numeric" type="number" class="form-control text-center no-spinner" value="2">
-              <button class="btn btn-outline-secondary" id="btnStartPlus">＋</button>
+            <div class="text-muted mb-1">起始天</div>
+            <div class="input-group" style="max-width:220px;">
+              <button class="btn btn-tonal" id="btnStartMinus">－</button>
+              <input id="winStart" inputmode="numeric" type="number" class="form-control text-center" value="2">
+              <button class="btn btn-tonal" id="btnStartPlus">＋</button>
             </div>
           </div>
           <div>
-            <div class="small-note mb-1">結束天</div>
-            <div class="input-group" style="max-width:200px;">
-              <button class="btn btn-outline-secondary" id="btnEndMinus">－</button>
-              <input id="winEnd" inputmode="numeric" type="number" class="form-control text-center no-spinner" value="14">
-              <button class="btn btn-outline-secondary" id="btnEndPlus">＋</button>
+            <div class="text-muted mb-1">結束天</div>
+            <div class="input-group" style="max-width:220px;">
+              <button class="btn btn-tonal" id="btnEndMinus">－</button>
+              <input id="winEnd" inputmode="numeric" type="number" class="form-control text-center" value="14">
+              <button class="btn btn-tonal" id="btnEndPlus">＋</button>
             </div>
           </div>
-          <div class="d-flex align-items-end">
-            <button id="btnWinSet" class="btn-main">套用</button>
-          </div>
+          <button id="btnWinSet" class="btn btn-main">套用</button>
         </div>
 
         <div class="form-check form-switch mt-3">
           <input class="form-check-input" type="checkbox" role="switch" id="customWindowSwitch">
-          <label class="form-check-label small-note" for="customWindowSwitch">使用自訂日期區間（上方 D+起始～D+結束）。關閉時使用系統預設規則。</label>
+          <label class="form-check-label" for="customWindowSwitch">使用自訂日期區間；關閉時使用系統預設規則。</label>
         </div>
 
         <div class="form-check form-switch mt-2">
           <input class="form-check-input" type="checkbox" role="switch" id="flagWeekSwitch">
-          <label class="form-check-label small-note" for="flagWeekSwitch">啟用「預設星期規律」提示旗標（供前端面板使用）。</label>
+          <label class="form-check-label" for="flagWeekSwitch">啟用「預設星期規律」提示旗標（供前端面板使用）。</label>
         </div>
 
-        <div class="small-note mt-2">
-          若要「奇數／偶數」：在下方每天規則設定 <code>起始號碼</code>（1=奇，2=偶）與 <code>間隔位數</code>（設 2）。
+        <div class="small text-muted mt-2">
+          若要「奇數／偶數」：設定 <code>起始號碼</code>（1=奇，2=偶）與 <code>間隔位數</code>（設 2）。
         </div>
       </div>
 
-      <div class="card mb-4 p-3">
+      <div class="card p-3 mb-4">
         <h5 class="mb-2">每週規則（daily_limit）</h5>
         <div class="table-responsive">
           <table class="table align-middle" id="tblDaily">
             <colgroup>
               <col style="width:120px;">
-              <col style="width:80px;"><col style="width:80px;"><col style="width:80px;">
+              <col style="width:90px;"><col style="width:90px;"><col style="width:90px;">
               <col style="width:200px;"><col style="width:200px;"><col style="width:200px;">
-              <col style="width:96px;"><col style="width:96px;"><col style="width:96px;">
+              <col style="width:110px;"><col style="width:110px;"><col style="width:110px;">
             </colgroup>
             <thead>
               <tr>
@@ -281,7 +307,7 @@
             <tbody></tbody>
           </table>
         </div>
-        <div class="small-note">時間格式：08:30~11:30 ｜ 奇數：起始=1、間隔=2；偶數：起始=2、間隔=2；連號：起始=1、間隔=1。</div>
+        <div class="small text-muted">時間格式：08:30~11:30 ｜ 奇數：起始=1、間隔=2；偶數：起始=2、間隔=2；連號：起始=1、間隔=1。</div>
       </div>
 
       <div class="card p-3" id="sheetsCard" style="display:none;">
@@ -291,48 +317,48 @@
       </div>
     </section>
 
-    <!-- ====== 臨時異動 ====== -->
+    <!-- ===== 臨時異動 ===== -->
     <section id="tab-special" style="display:none;">
-      <div class="card mb-4 p-3">
+      <div class="card p-3 mb-4">
         <h5 class="mb-3">新增臨時異動</h5>
-        <input type="date" id="newDate" class="form-control mb-3">
+        <input type="date" id="newDate" class="form-control mb-3" style="max-width:300px;">
 
         <div class="row g-2 align-items-center">
-          <div class="col-12 col-md-3"><span class="slot-pill slot-early">早診</span> <strong>上限</strong></div>
+          <div class="col-12 col-md-3"><strong>早診上限</strong></div>
           <div class="col-6 col-md-3"><input id="neEarlyLimit" value="10" type="number" class="form-control" placeholder="上限"></div>
           <div class="col-6 col-md-6"><input id="neEarlyTime"  value=""   class="form-control" placeholder="早診時段，例如 08:30~11:30"></div>
         </div>
 
         <div class="row g-2 align-items-center mt-1">
-          <div class="col-12 col-md-3"><span class="slot-pill slot-noon">午診</span> <strong>上限</strong></div>
+          <div class="col-12 col-md-3"><strong>午診上限</strong></div>
           <div class="col-6 col-md-3"><input id="neNoonLimit" value="10" type="number" class="form-control" placeholder="上限"></div>
           <div class="col-6 col-md-6"><input id="neNoonTime"  value=""   class="form-control" placeholder="午診時段，例如 14:00~17:00"></div>
         </div>
 
         <div class="row g-2 align-items-center mt-1">
-          <div class="col-12 col-md-3"><span class="slot-pill slot-night">晚診</span> <strong>上限</strong></div>
+          <div class="col-12 col-md-3"><strong>晚診上限</strong></div>
           <div class="col-6 col-md-3"><input id="neNightLimit" value="10" type="number" class="form-control" placeholder="上限"></div>
           <div class="col-6 col-md-6"><input id="neNightTime" value=""   class="form-control" placeholder="晚診時段，例如 18:00~20:30"></div>
         </div>
 
         <div class="row g-2 align-items-end mt-2">
           <div class="col-6 col-md-3">
-            <label class="small-note">起始號碼</label>
-            <input id="neStartNo" type="number" class="form-control w-ch-4 text-center" value="1" min="1">
+            <label class="form-label">起始號碼</label>
+            <input id="neStartNo" type="number" class="form-control text-center" value="1" min="1">
           </div>
           <div class="col-6 col-md-3">
-            <label class="small-note">間隔位數</label>
-            <input id="neStep" type="number" class="form-control w-ch-4 text-center" value="1" min="1">
+            <label class="form-label">間隔位數</label>
+            <input id="neStep" type="number" class="form-control text-center" value="1" min="1">
           </div>
           <div class="col-12 col-md-6">
-            <label class="small-note">備註</label>
+            <label class="form-label">備註</label>
             <div class="d-flex gap-2">
               <input id="neNote" placeholder="備註" class="form-control">
-              <button id="addBtn" class="btn-main">新增</button>
+              <button id="addBtn" class="btn btn-main">新增</button>
             </div>
           </div>
         </div>
-        <div class="small-note mt-2">時間格式：08:30~11:30 ｜ 奇數／偶數：起始=1／2、間隔=2。</div>
+        <div class="small text-muted mt-2">時間格式：08:30~11:30 ｜ 奇數／偶數：起始=1／2、間隔=2。</div>
       </div>
 
       <div class="card p-3">
@@ -362,6 +388,7 @@
         </div>
       </div>
     </section>
+
   </div>
 </div>
 
@@ -389,7 +416,6 @@ const views={
 function switchTab(id){
   [tabBtnToday,tabBtnTomorrow,tabBtnSettings,tabBtnSpecial].forEach(b=>{
     const a=(b.dataset.tab||b.id.replace('tabBtn','tab-'))===id;
-    b.classList.toggle('btn-main',a);
     b.classList.toggle('active',a);
   });
   Object.entries(views).forEach(([k,el])=>el.style.display=(k===id?'block':'none'));
@@ -404,15 +430,6 @@ function todayYmd(){ return ymdLocal(new Date()); }
 function asObj(p){ try{ return typeof p==='string'?JSON.parse(p):(p||{});}catch{ return {}; } }
 function asArr(p){ try{ if(typeof p==='string') p=JSON.parse(p);}catch{} if(Array.isArray(p))return p; if(Array.isArray(p?.rows))return p.rows; if(Array.isArray(p?.items))return p.items; if(Array.isArray(p?.data))return p.data; return []; }
 function num(x){ const n=Number(x); return isFinite(n)?n:0; }
-
-/* 小工具：診別對應 class */
-function slotType(label){
-  if(!label) return {pill:'', stat:''};
-  if(String(label).includes('早')) return {pill:'slot-early', stat:'early'};
-  if(String(label).includes('午')) return {pill:'slot-noon',  stat:'noon'};
-  if(String(label).includes('晚')) return {pill:'slot-night', stat:'night'};
-  return {pill:'', stat:''};
-}
 
 /* ===== 登入／登出／Tab 切換 ===== */
 btnLoginPW.onclick = async ()=>{
@@ -443,17 +460,22 @@ exportBtn.onclick=()=>{ assertAuthed(); window.open(`${API}?action=export&token=
 });
 
 /* ===== 共用：渲染統計 + 表格 ===== */
+function slotKey(label){
+  if(String(label).includes('早')) return 'early';
+  if(String(label).includes('午')) return 'noon';
+  return 'night';
+}
 function renderStats(containerId, slots){
   const box=document.getElementById(containerId); box.innerHTML='';
   const frag=document.createDocumentFragment();
   slots.forEach(s=>{
-    const classes=slotType(s.label||'');
+    const key=slotKey(s.label);
     const col=document.createElement('div'); col.className='col-12 col-md-4';
     col.innerHTML=`
-      <div class="stat ${classes.stat}">
-        <div class="cap"><span class="slot-pill ${classes.pill}">${s.label||''}</span></div>
+      <div class="stat ${key}">
+        <div class="cap">${s.label}</div>
         <div class="flex-grow-1">
-          <div class="small-note mb-1">${s.time||''}</div>
+          <div class="text-muted mb-1">${s.time||''}</div>
           <div><b>${num(s.used)}</b> / ${num(s.limit)} <span class="text-muted">（起始 ${num(s.startNo)}，間隔 ${num(s.step)}）</span></div>
         </div>
       </div>`;
@@ -464,10 +486,11 @@ function renderStats(containerId, slots){
 function renderItems(tableId, items, refreshFnName){
   const tb=document.querySelector(`#${tableId} tbody`); tb.innerHTML='';
   items.forEach(x=>{
-    const t=slotType(x.slot||'');
     const tr=document.createElement('tr');
+    const key=slotKey(x.slot||'');
+    tr.className=`slot-${key}`;
     tr.innerHTML=`
-      <td><span class="slot-pill ${t.pill}">${x.slot||''}</span></td>
+      <td>${x.slot||''}</td>
       <td>${x.time||''}</td>
       <td>${x.num||''}</td>
       <td>${x.name||''}</td>
@@ -475,14 +498,12 @@ function renderItems(tableId, items, refreshFnName){
       <td>${x.pid||''}</td>
       <td>${x.phone||''}</td>
       <td>${x.createdAt||''}</td>
-      <td>
-        <button class="btn btn-danger btn-sm" onclick="cancelRow(${x.id}, '${refreshFnName}')">取消</button>
-      </td>`;
+      <td><button class="btn btn-danger btn-sm" onclick="cancelRow(${x.id}, '${refreshFnName}')">取消</button></td>`;
     tb.appendChild(tr);
   });
 }
 
-/* ===== 今天 / 明天 ===== */
+/* ===== 今天 / 明天（都走 adminDay，可切日期） ===== */
 const tDate=document.getElementById('tDate'), tPrev=document.getElementById('tPrev'), tNext=document.getElementById('tNext'),
       tToday=document.getElementById('tToday'), tTomorrow=document.getElementById('tTomorrow'),
       todayInfo=document.getElementById('todayInfo'), tTotals=document.getElementById('tTotals');
@@ -600,9 +621,9 @@ async function loadDaily(){
       <td><input class="form-control form-control-sm" id="dTE-${x.row}" value="${x.timeE||''}"></td>
       <td><input class="form-control form-control-sm" id="dTN-${x.row}" value="${x.timeN||''}"></td>
       <td><input class="form-control form-control-sm" id="dTLt-${x.row}" value="${x.timeL||''}"></td>
-      <td><input class="form-control form-control-sm w-ch-4 text-center" id="dST-${x.row}" type="number" value="${x.startNo||1}" min="1"></td>
-      <td><input class="form-control form-control-sm w-ch-4 text-center" id="dSP-${x.row}" type="number" value="${x.step||1}" min="1"></td>
-      <td><button class="btn btn-sm btn-main" onclick="saveDaily('${x.weekdayEn}','${x.row}')">儲存</button></td>`;
+      <td><input class="form-control form-control-sm text-center" id="dST-${x.row}" type="number" value="${x.startNo||1}" min="1"></td>
+      <td><input class="form-control form-control-sm text-center" id="dSP-${x.row}" type="number" value="${x.step||1}" min="1"></td>
+      <td><button class="btn btn-main btn-sm" onclick="saveDaily('${x.weekdayEn}','${x.row}')">儲存</button></td>`;
     tb.appendChild(tr);
   });
 }
@@ -637,7 +658,8 @@ async function loadSheetLinks(){
   o.sheets.forEach(s=>{
     const url=`https://docs.google.com/spreadsheets/d/${o.id}/edit#gid=${s.gid}`;
     const a=document.createElement('a');
-    a.className='btn btn-outline-secondary btn-sm'; a.href=url; a.target='_blank'; a.rel='noopener';
+    a.className='btn btn-tonal btn-sm';
+    a.href=url; a.target='_blank'; a.rel='noopener';
     a.textContent=s.name||('GID '+s.gid);
     box.appendChild(a);
   });
@@ -694,7 +716,7 @@ async function loadSpecials(){
       <td>${x.起始號碼||1}</td><td>${x.間隔位數||1}</td>
       <td>${x.備註||""}</td>
       <td class="d-flex gap-2">
-        <button class="btn btn-warning btn-sm" onclick="editRow('${x.id}')">編輯</button>
+        <button class="btn btn-tonal btn-sm" onclick="editRow('${x.id}')">編輯</button>
         <button class="btn btn-danger btn-sm" onclick="delRow('${x.id}')">刪除</button>
       </td>`;
     tbody.appendChild(tr);
@@ -722,13 +744,13 @@ async function editRow(id){
        <div class="col-12 col-md-6"><label class="form-label">午診時段</label><input id="edTN" class="form-control" value='${f["午診時段"]||""}'></div>
        <div class="col-12 col-md-6"><label class="form-label">晚診時段</label><input id="edTLt" class="form-control" value='${f["晚診時段"]||""}'></div>
        <div class="col-12 col-md-6"><label class="form-label">備註</label><input id="edNote" class="form-control" value="${f["備註"]||""}"></div>
-       <div class="col-6 col-md-3"><label class="form-label">起始號碼</label><input id="edStartNo" class="form-control w-ch-4 text-center" type="number" value="${f["起始號碼"]||1}" min="1"></div>
-       <div class="col-6 col-md-3"><label class="form-label">間隔位數</label><input id="edStep" class="form-control w-ch-4 text-center" type="number" value="${f["間隔位數"]||1}" min="1"></div>
+       <div class="col-6 col-md-3"><label class="form-label">起始號碼</label><input id="edStartNo" class="form-control text-center" type="number" value="${f["起始號碼"]||1}" min="1"></div>
+       <div class="col-6 col-md-3"><label class="form-label">間隔位數</label><input id="edStep" class="form-control text-center" type="number" value="${f["間隔位數"]||1}" min="1"></div>
      </div>
-     <div class="small-note mt-2">此處儲存會以 <code>adminAdd</code> 覆蓋該日期設定。</div>
+     <div class="small text-muted mt-2">此處儲存會以 <code>adminAdd</code> 覆蓋該日期設定。</div>
    </div>
    <div class="modal-footer">
-     <button class="btn btn-outline-secondary" data-bs-dismiss="modal">取消</button>
+     <button class="btn btn-tonal" data-bs-dismiss="modal">取消</button>
      <button id="saveBtn" class="btn btn-main">儲存</button>
    </div>
   </div></div></div>`;
