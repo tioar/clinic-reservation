@@ -111,3 +111,22 @@ h1,h2,h3,h4,h5{ color:var(--main); font-weight:700; margin:0; }
   background:#fff; color:#2a4a61; text-decoration:none!important;
 }
 .sheet-chip:hover{ background:#f7f9fb; }
+
+/* 全域字體 */
+body, button, input, h1, h2, h3, h4, h5, h6 {
+  font-family: 'Noto Sans TC', 'Microsoft JhengHei', sans-serif;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+}
+
+/* 標題更粗圓體 */
+h1, h3, h5 {
+  font-weight: 700;
+}
+
+/* 按鈕字體也用圓體、加粗 */
+.btn {
+  font-family: 'Noto Sans TC', 'Microsoft JhengHei', sans-serif;
+  font-weight: 600;
+}
+
