@@ -6,6 +6,7 @@
 <title>預約成功</title>
 
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+<link rel="icon" type="image/png" href="favicon.png">
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 
 <!-- CryptoJS (AES) ─ 前端僅遮蔽用 -->
@@ -13,7 +14,7 @@
 
 <script>
 /* === 後端 API（⚠️請與 index.html / query.html 完全一致） === */
-const API = "https://script.google.com/macros/s/AKfycbz-OLvUKfEIKXprDy3apd6zV8FXjTYic_2ltNu2F4iwSNTph09shmp8WKQlj3IL_dZD/exec";
+const API = "https://script.google.com/macros/s/AKfycbz5xP8kcEnCEcMxNb4U5hKarFGmT_QQSbi888uwjsQ2dnGSpABQiGVolO3tIdnJphjm/exec";
 
 /* === AES（遮蔽，不等於安全） === */
 const AES_KEY = "A2x5fT9qR7nC1vB8mK3pZ6sD4uH0yW2j";
@@ -206,4 +207,5 @@ ${ymd} 星期${wk}（${d.slot||''}） ${timeRange||''}
 </script>
 </body>
 </html>
+
 
