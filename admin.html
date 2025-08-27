@@ -94,14 +94,178 @@
       <button class="btn btn-outline-secondary" id="tabBtnSpecial" data-tab="tab-special">臨時異動</button>
     </div>
 
-    <!-- 今天名單（原樣，略） -->
-    <section id="tab-today"> …（保持你原本內容）… </section>
+    <!-- ====== 今天名單 ====== -->
+    <section id="tab-today">
+      <div class="card mb-3 p-3">
+        <div class="d-flex align-items-center justify-content-between">
+          <div>
+            <h5 class="m-0">今天名單</h5>
+            <div id="todayInfo" class="small-note mt-1"></div>
+          </div>
+          <div><button id="btnTodayReload" class="btn btn-outline-secondary btn-round btn-sm">重新整理</button></div>
+        </div>
 
-    <!-- 明天名單（原樣，略） -->
-    <section id="tab-tomorrow" style="display:none;"> …（保持你原本內容）… </section>
+        <div class="date-nav mt-2">
+          <button id="tPrev" class="btn btn-outline-secondary btn-sm">◀ 前一天</button>
+          <input id="tDate" type="date" class="form-control form-control-sm">
+          <button id="tNext" class="btn btn-outline-secondary btn-sm">後一天 ▶</button>
+          <button id="tToday" class="btn btn-outline-secondary btn-sm">今天</button>
+          <button id="tTomorrow" class="btn btn-outline-secondary btn-sm">明天</button>
+          <div class="ms-2 totals">
+            <span class="muted">總計：</span><span id="tTotals">—</span>
+          </div>
+        </div>
 
-    <!-- 預約設定（原樣，略） -->
-    <section id="tab-settings" style="display:none;"> …（保持你原本內容）… </section>
+        <div id="todayStats" class="row g-3 mt-2"></div>
+      </div>
+
+      <div class="card p-3">
+        <div class="table-responsive">
+          <table class="table table-striped align-middle" id="tblToday">
+            <thead>
+              <tr>
+                <th>診別</th><th>時段</th><th>號碼</th><th>姓名</th><th>生日</th>
+                <th>身分證</th><th>電話</th><th>建立時間</th><th style="width:90px;">操作</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <div class="small-note">註：取消會直接在試算表 I 欄標記 TRUE。</div>
+      </div>
+    </section>
+
+    <!-- ====== 明天名單 ====== -->
+    <section id="tab-tomorrow" style="display:none;">
+      <div class="card mb-3 p-3">
+        <div class="d-flex align-items-center justify-content-between">
+          <div>
+            <h5 class="m-0">明天名單</h5>
+            <div id="tomorrowInfo" class="small-note mt-1"></div>
+          </div>
+          <div><button id="btnTomorrowReload" class="btn btn-outline-secondary btn-round btn-sm">重新整理</button></div>
+        </div>
+
+        <div class="date-nav mt-2">
+          <button id="mPrev" class="btn btn-outline-secondary btn-sm">◀ 前一天</button>
+          <input id="mDate" type="date" class="form-control form-control-sm">
+          <button id="mNext" class="btn btn-outline-secondary btn-sm">後一天 ▶</button>
+          <button id="mToday" class="btn btn-outline-secondary btn-sm">今天</button>
+          <button id="mTomorrow" class="btn btn-outline-secondary btn-sm">明天</button>
+          <div class="ms-2 totals">
+            <span class="muted">總計：</span><span id="mTotals">—</span>
+          </div>
+        </div>
+
+        <div id="tomorrowStats" class="row g-3 mt-2"></div>
+      </div>
+
+      <div class="card p-3">
+        <div class="table-responsive">
+          <table class="table table-striped align-middle" id="tblTomorrow">
+            <thead>
+              <tr>
+                <th>診別</th><th>時段</th><th>號碼</th><th>姓名</th><th>生日</th>
+                <th>身分證</th><th>電話</th><th>建立時間</th><th style="width:90px;">操作</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <div class="small-note">註：取消會直接在試算表 I 欄標記 TRUE。</div>
+      </div>
+    </section>
+
+    <!-- ====== 預約設定 ====== -->
+    <section id="tab-settings" style="display:none;">
+      <div class="card mb-4 p-3">
+        <div class="d-flex align-items-center justify-content-between">
+          <h5 class="m-0">預約期限</h5>
+          <div class="small-note">顯示區間 = 今天 + 起始天 ～ 今天 + 結束天</div>
+        </div>
+        <div id="winInfo" class="small-note my-2"></div>
+
+        <div class="d-flex flex-wrap align-items-center gap-4">
+          <div>
+            <div class="small-note mb-1">起始天</div>
+            <div class="input-group" style="max-width:200px;">
+              <button class="btn btn-outline-secondary" id="btnStartMinus">－</button>
+              <input id="winStart" inputmode="numeric" type="number" class="form-control text-center no-spinner" value="2">
+              <button class="btn btn-outline-secondary" id="btnStartPlus">＋</button>
+            </div>
+          </div>
+          <div>
+            <div class="small-note mb-1">結束天</div>
+            <div class="input-group" style="max-width:200px;">
+              <button class="btn btn-outline-secondary" id="btnEndMinus">－</button>
+              <input id="winEnd" inputmode="numeric" type="number" class="form-control text-center no-spinner" value="14">
+              <button class="btn btn-outline-secondary" id="btnEndPlus">＋</button>
+            </div>
+          </div>
+          <div class="d-flex align-items-end">
+            <button id="btnWinSet" class="btn-main btn-round">套用</button>
+          </div>
+        </div>
+
+        <!-- 新增：使用自訂日期規則的開關（不影響原有開關） -->
+        <div class="form-check form-switch mt-3">
+          <input class="form-check-input" type="checkbox" role="switch" id="customWindowSwitch">
+          <label class="form-check-label small-note" for="customWindowSwitch">
+            使用自訂日期區間（上方 D+起始～D+結束）。關閉時使用系統預設規則。
+          </label>
+        </div>
+
+        <!-- 原有舊開關：保留並維持作用 -->
+        <div class="form-check form-switch mt-2">
+          <input class="form-check-input" type="checkbox" role="switch" id="flagWeekSwitch">
+          <label class="form-check-label small-note" for="flagWeekSwitch">
+            啟用「預設星期規律」：週一→D+1、週二～週五→D+2、週日→D+2、週六→D+3（=下週二）。關閉時改用上方 D+start～D+end。
+          </label>
+        </div>
+
+        <div class="small-note mt-2">
+          若要「奇數／偶數開關」：在下方每天規則設定 <code>起始號碼</code>（1=奇，2=偶）與 <code>間格位數</code>（設 2）。
+        </div>
+      </div>
+
+      <div class="card mb-4 p-3">
+        <h5 class="mb-2">每週規則（daily_limit）</h5>
+        <div class="table-responsive">
+          <table class="table align-middle" id="tblDaily">
+            <colgroup>
+              <col style="width:120px;">
+              <col style="width:80px;">
+              <col style="width:80px;">
+              <col style="width:80px;">
+              <col style="width:200px;">
+              <col style="width:200px;">
+              <col style="width:200px;">
+              <col style="width:96px;">
+              <col style="width:96px;">
+              <col style="width:96px;">
+            </colgroup>
+            <thead>
+              <tr>
+                <th>星期</th>
+                <th>早診上限</th><th>午診上限</th><th>晚診上限</th>
+                <th>早診時間</th><th>午診時間</th><th>晚診時間</th>
+                <th>起始號碼</th>
+                <th>間格位數</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <div class="small-note">時間格式：08:30~11:30 ｜ 奇數：起始=1、間隔=2；偶數：起始=2、間隔=2；連號：起始=1、間隔=1。</div>
+      </div>
+
+      <div class="card p-3" id="sheetsCard" style="display:none;">
+        <h5 class="mb-2">試算表捷徑</h5>
+        <div id="sheetBtns" class="d-flex flex-wrap gap-2"></div>
+        <div class="text-muted small mt-2">（需有該試算表權限；會在新分頁開啟）</div>
+      </div>
+    </section>
 
     <!-- 臨時異動（已補上 E/F/G/H 欄） -->
     <section id="tab-special" style="display:none;">
@@ -332,4 +496,5 @@ if(ADMIN_TOKEN){ showApp(); }
 </script>
 </body>
 </html>
+
 
