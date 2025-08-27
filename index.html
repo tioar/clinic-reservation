@@ -65,28 +65,74 @@ function aesDec(cipherParam){
 </script>
 
 <style>
-  /* 全螢幕送出遮罩（動態點點） */
-  #mask{position:fixed;inset:0;background:rgba(255,255,255,.88);display:none;align-items:center;justify-content:center;z-index:9999;font-size:18px;color:#2e5a79;backdrop-filter:blur(2px)}
-  #dots{display:inline-block;width:2ch;text-align:left}
+  /* ===== 全螢幕送出遮罩（保留原機制與 ... 動畫，只做外觀強化） ===== */
+  #mask{
+    position:fixed; inset:0; display:none;
+    align-items:center; justify-content:center;
+    z-index:9999; font-size:18px; color:#2e5a79;
+    background:rgba(255,255,255,.88);
+    backdrop-filter:blur(2px);
+  }
+  #dots{ display:inline-block; width:2ch; text-align:left }
+
+  /* ===== 版面小強化：卡片與標題區 ===== */
+  body{ background:#f6f2fc; }
+  .card{
+    max-width:780px; margin:32px auto; padding:20px 20px 24px;
+    border-radius:20px; border:1px solid #e5e1f4; background:#fff;
+    box-shadow:0 8px 24px rgba(100,61,168,.08);
+  }
+  .header{ display:flex; align-items:flex-start; gap:12px; margin-bottom:8px; }
+  .header .logo{
+    width:42px; height:42px; border-radius:50%;
+    display:grid; place-items:center;
+    background:#643da8; color:#fff; font-weight:900; font-size:22px; box-shadow:0 6px 14px rgba(100,61,168,.2);
+  }
+  .header h1{
+    font-size:1.4rem; font-weight:900; margin:0; line-height:1.2; color:#2a2341;
+  }
+  /* ✅ 副標改為獨立「小標」放在標題下方（不是同一行） */
+  .subnote{
+    margin:6px 0 2px 54px;  /* 與 logo 對齊縮排 */
+    color:#776c9d; font-weight:700; font-size:.95rem;
+    background:#f6f2fc; border:1px solid #ebe6fb; border-radius:12px; padding:10px 12px;
+  }
+
+  /* 表單圓角與主按鈕 */
+  .form-control, .form-select{ border-radius:14px; }
+  .btn-main{
+    background:#643da8; color:#fff; border:0; border-radius:999px; font-weight:800;
+  }
+  .btn-main:hover{ background:#4d2f82; color:#fff; }
+
+  /* 星期文案顏色 */
+  #weekday{ color:#776c9d; font-weight:700; }
+
+  /* ===== 診別下拉：依選項變色（早=綠、午=橘、晚=藍） ===== */
+  .slot-theme{ transition:background-color .2s ease, border-color .2s ease, color .2s ease; }
+  .slot-early{ background:#e7f7ee !important; border-color:#b8ead4 !important; color:#0f5132 !important; }
+  .slot-noon { background:#fff3df !important; border-color:#ffd79a !important; color:#7a4d00 !important; }
+  .slot-night{ background:#e8f2ff !important; border-color:#cfe2ff !important; color:#1d4ed8 !important; }
 </style>
 </head>
 <body>
+<!-- ✅ 保留且沿用原動畫機制 -->
 <div id="mask">預約中請稍等，請勿關閉或重新整理頁面<span id="dots">...</span></div>
 
 <div class="card">
   <div class="header">
     <div class="logo">＋</div>
     <h1>陳萬龍診所門診線上預約</h1>
-     <p style="color:black;font-weight:bold;">
-      只能選擇今天起後2天~14天內的門診，無選項可選表示預約已經額滿；
-      若有日期無法選擇還請對照門診時刻表與最新消息，查看是否有門診異動。
-    </p>
+  </div>
+  <!-- 小標（副標）— 改為獨立一行、置於標題下方 -->
+  <div class="subnote">
+    只能選擇今天起後2天~14天內的門診；無選項可選表示預約已額滿。若有日期無法選擇，請對照門診時刻表與最新消息查看是否有門診異動。
   </div>
 
   <!-- 錯誤訊息列（預設隱藏） -->
-  <div id="errBar" class="alert alert-danger d-none" role="alert" style="margin-top:-8px;"></div>
+  <div id="errBar" class="alert alert-danger d-none" role="alert" style="margin-top:8px;"></div>
 
-  <div class="mb-3">
+  <div class="mb-3 mt-2">
     <label class="form-label">預約日期 *</label>
     <div class="d-flex align-items-center flex-nowrap">
       <input type="date" id="date" class="form-control" style="max-width:70%;" autocomplete="off" />
@@ -96,7 +142,7 @@ function aesDec(cipherParam){
 
   <div class="mb-3">
     <label class="form-label">診別 *</label>
-    <select id="slot" class="form-select" autocomplete="off">
+    <select id="slot" class="form-select slot-theme" autocomplete="off">
       <option value="">請先選擇日期</option>
     </select>
   </div>
@@ -152,7 +198,7 @@ function aesDec(cipherParam){
 </div>
 
 <script>
-/* 元件 */
+/* 工具 */
 const el = id => document.getElementById(id);
 const $date     = el('date');
 const $slot     = el('slot');
@@ -167,7 +213,7 @@ const $errBar   = el('errBar');
 const $mask     = el('mask');
 const $dots     = el('dots');
 
-/* 遮罩動畫 */
+/* 遮罩動畫（保留原有行為） */
 let dotTimer=null;
 function showMask(txt){
   $mask.firstChild.nodeValue = (txt||'預約中請稍等，請勿關閉或重新整理頁面');
@@ -190,11 +236,27 @@ function updateWeekday(d){
   $weekday.textContent = `（星期${wtxt[wd]}）`;
 }
 
-/* 讀取後端「預約期限」作為日期可選範圍；失敗→ D+1～D+14 */
+/* slot 標籤判斷 + 下拉主題色切換 */
+function slotKey(label){
+  const s=String(label||'');
+  if(s.includes('早')) return 'early';
+  if(s.includes('午')) return 'noon';
+  if(s.includes('晚')) return 'night';
+  return '';
+}
+function applySelectTheme(){
+  const val = $slot.value || '';
+  const key = slotKey(val);
+  $slot.classList.remove('slot-early','slot-noon','slot-night');
+  if(key) $slot.classList.add('slot-'+key);
+}
+$slot.addEventListener('change', applySelectTheme);
+
+/* 讀取後端「預約期限」作為日期可選範圍；失敗→ D+2～D+14 */
 async function initDateWindow(){
   try{
     const r = await axios.get(API,{ params:{ action:'getWindow', t: Date.now() }});
-    const start = Number(r.data?.start ?? 1);
+    const start = Number(r.data?.start ?? 2);
     const end   = Number(r.data?.end   ?? 14);
     const today = new Date();
     const min = new Date(today.getFullYear(), today.getMonth(), today.getDate() + start);
@@ -223,6 +285,8 @@ async function onDateChange(){
   const d = $date.value;
   updateWeekday(d);
   $slot.innerHTML = '<option value="">讀取中…</option>';
+  $slot.classList.remove('slot-early','slot-noon','slot-night');
+
   try{
     const r = await axios.get(API,{ params:{ action:'getSlots', date:d, t: Date.now() }});
     // 兼容：可能回傳陣列，或 { slots, nonce, exp, sig, date }
@@ -238,11 +302,12 @@ async function onDateChange(){
       const used   = Number(o.used)||0;
       const remain = Math.max(0, limit-used);
       if(limit>0 && remain>0){
-        html += `<option value="${o.label}"
+        const label = o.label || '';
+        html += `<option value="${label}"
                        data-time="${o.time||''}"
                        data-start="${o.startNo||1}"
                        data-remain="${remain}">
-                   ${o.label}（${o.time||''}，剩 ${remain}/${limit}）
+                   ${label}（${o.time||''}，剩 ${remain}/${limit}）
                  </option>`;
       }
     });
@@ -303,7 +368,7 @@ $submit.onclick = async ()=>{
   try{
     submitting=true;
     $submit.disabled=true;
-    showMask();
+    showMask(); // ✅ 保留原遮罩啟動
 
     // 可能需要的 token（後端未啟用也不影響）
     const recaptchaToken = await getRecaptchaToken();
@@ -370,7 +435,7 @@ $submit.onclick = async ()=>{
   }finally{
     submitting=false;
     $submit.disabled=false;
-    hideMask();
+    hideMask(); // ✅ 保留原遮罩關閉
   }
 };
 
@@ -378,14 +443,8 @@ $submit.onclick = async ()=>{
 (async () => {
   try{ await loadRecaptcha(); }catch(_){}
   await initDateWindow();
-  onDateChange();
+  await onDateChange();
 })();
 </script>
 </body>
 </html>
-
-
-
-
-
-
