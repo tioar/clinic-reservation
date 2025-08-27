@@ -167,6 +167,10 @@
     <label for="pw" class="form-label small-note mb-1">管理密碼</label>
     <input id="pw" type="password" class="form-control mb-3" placeholder="輸入密碼" autocomplete="current-password">
     <button id="btnLoginPW" class="btn btn-main w-100 mb-2">登入</button>
+    <div class="form-check mb-3">
+      <input class="form-check-input" type="checkbox" id="rememberMe">
+      <label class="form-check-label small-note" for="rememberMe">在此裝置記住帳密（僅此分頁、關閉即清除）</label>
+    </div>
     <div class="small-note mt-1">忘記密碼？請聯絡管理者</div>
   </div>
 </div>
@@ -427,8 +431,80 @@
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 <script>
 /* ===== API 與共用 ===== */
-const API = "https://script.google.com/macros/s/AKfycbytApGzDwZ7RFeKegXWTa577PjQpwtMnuRGFdbMKHcW0Ib8IPNiDLBMtzRWnK5dS7-j/exec";
+const API = "https://script.google.com/macros/s/AKfycbzRmUag-TbdRifSp0xB2i4VSH12d3bx5QqawHF0LUM9wqs1iIcRhZX62B0xqqPnX7o9/exec";
+let ADMIN_TOKEN = sessionStorage.getItem('ADMIN_TOKEN')||"";
 
+/* ========= Token 自動續期工具 ========= */
+/** 解析 token 的過期秒數（token 第一段就是 exp） */
+function tokenExpSec(t){ try{ return Number(String(t).split('.')[0])||0; }catch(_){ return 0; } }
+/** 是否已過期（或快到期），preSec=提早 N 秒更新 */
+function tokenExpired(t, preSec=60){
+  const exp = tokenExpSec(t);
+  if(!exp) return true;
+  const now = Math.floor(Date.now()/1000);
+  return (exp - now) <= preSec;
+}
+/** 用 sessionStorage 保存/讀取帳密（只存在本分頁生命週期） */
+function saveCred(acc, pw){
+  try{
+    if(document.getElementById('rememberMe')?.checked){
+      sessionStorage.setItem('ADMIN_ACC', acc||'');
+      sessionStorage.setItem('ADMIN_PW',  pw||'');
+    }else{
+      sessionStorage.removeItem('ADMIN_ACC');
+      sessionStorage.removeItem('ADMIN_PW');
+    }
+  }catch(_){}
+}
+function loadCred(){
+  return {
+    acc: sessionStorage.getItem('ADMIN_ACC')||'',
+    pw : sessionStorage.getItem('ADMIN_PW')||''
+  };
+}
+/** 用保存的帳密重登；成功回 true（並更新 ADMIN_TOKEN） */
+async function reloginWithSaved(){
+  const {acc, pw} = loadCred();
+  if(!acc || !pw) return false; // 沒保存帳密就不自動重登
+  try{
+    const r = await axios.get(API,{params:{action:'adminLogin',acc,pw}});
+    if(r.data?.ok){
+      ADMIN_TOKEN = r.data.token;
+      sessionStorage.setItem('ADMIN_TOKEN', ADMIN_TOKEN);
+      return true;
+    }
+  }catch(_){}
+  return false;
+}
+/**
+ * 統一的後台呼叫：自動帶 token；若過期或被回「unauthorized」，會嘗試自動重登一次再重試。
+ * 用法：const data = await adminCall('adminDay', {date:'2025-08-29'});
+ */
+async function adminCall(action, params={}){
+  // 若沒有 token 或快過期 → 嘗試重登（有保存帳密才會動）
+  if(!ADMIN_TOKEN || tokenExpired(ADMIN_TOKEN, 60)){
+    await reloginWithSaved();
+  }
+  // 打 API
+  let r = await axios.get(API,{params:{action, token:ADMIN_TOKEN, ...params}});
+
+  // 若被判定 unauthorized → 自動重登一次再重試
+  if(r?.data && r.data.ok===false && r.data.error==='unauthorized'){
+    const ok = await reloginWithSaved();
+    if(ok){
+      r = await axios.get(API,{params:{action, token:ADMIN_TOKEN, ...params}});
+    }else{
+      sessionStorage.removeItem('ADMIN_TOKEN');
+      ADMIN_TOKEN="";
+      alert('登入已失效，請重新登入');
+      showLogin();
+      throw new Error('unauthorized');
+    }
+  }
+  return r.data;
+}
+
+/* ===== 小工具 ===== */
 const loginBox=document.getElementById('login'), appBox=document.getElementById('app');
 const acc=document.getElementById('acc'), pw=document.getElementById('pw'), btnLoginPW=document.getElementById('btnLoginPW');
 const logoutBtn=document.getElementById('logoutBtn'), exportBtn=document.getElementById('exportBtn');
@@ -444,17 +520,32 @@ const views={
   'tab-settings':document.getElementById('tab-settings'),
   'tab-special':document.getElementById('tab-special')
 };
+
 function switchTab(id){
   [tabBtnToday,tabBtnTomorrow,tabBtnSettings,tabBtnSpecial].forEach(b=>{
     const a=(b.dataset.tab||b.id.replace('tabBtn','tab-'))===id;
     b.classList.toggle('active',a);
   });
   Object.entries(views).forEach(([k,el])=>el.style.display=(k===id?'block':'none'));
+  // 首次切換到各頁面時載入資料
+  if(id==='tab-today'){ initTodayTab(); }
+  if(id==='tab-tomorrow'){ initTomorrowTab(); }
+  if(id==='tab-settings'){ loadWindow(); loadFlags(); loadDaily(); loadSheetLinks(); }
+  if(id==='tab-special'){ loadSpecials(); }
 }
-let ADMIN_TOKEN=sessionStorage.getItem('ADMIN_TOKEN')||"";
-function showApp(){ loginBox.style.display="none"; appBox.style.display="block"; switchTab('tab-today'); initTodayTab(); }
-function showLogin(){ appBox.style.display="none"; loginBox.style.display="block"; }
+
+function showApp(){ loginBox.style.display="none"; appBox.style.display="block"; switchTab('tab-today'); }
+function showLogin(){
+  appBox.style.display="none"; loginBox.style.display="block";
+  // 把保存的帳密帶回欄位
+  const c = loadCred();
+  if(c.acc) document.getElementById('rememberMe').checked = true;
+  acc.value = c.acc || '';
+  pw.value  = c.pw  || '';
+}
+
 function assertAuthed(){ if(!ADMIN_TOKEN){ showLogin(); throw new Error('no token'); } }
+
 function ymdLocal(d){ const y=d.getFullYear(),m=('0'+(d.getMonth()+1)).slice(-2),da=('0'+d.getDate()).slice(-2); return `${y}-${m}-${da}`; }
 function addDays(ymd,delta){ const d=new Date(ymd); d.setDate(d.getDate()+delta); return ymdLocal(d); }
 function todayYmd(){ return ymdLocal(new Date()); }
@@ -463,8 +554,6 @@ function asArr(p){ try{ if(typeof p==='string') p=JSON.parse(p);}catch{} if(Arra
 function num(x){ const n=Number(x); return isFinite(n)?n:0; }
 
 /* ===== 共用：渲染統計 + 表格 ===== */
-
-/* 診別 → key */
 function slotKey(label){
   const s=String(label||'').trim();
   if(s.includes('早')) return 'early';
@@ -472,7 +561,6 @@ function slotKey(label){
   if(s.includes('晚')) return 'night';
   return 'early';
 }
-
 function renderStats(containerId, slots){
   const box=document.getElementById(containerId); box.innerHTML='';
   const frag=document.createDocumentFragment();
@@ -491,7 +579,6 @@ function renderStats(containerId, slots){
   });
   box.appendChild(frag);
 }
-
 function renderItems(tableId, items, refreshFnName){
   const tb=document.querySelector(`#${tableId} tbody`); tb.innerHTML='';
   const counters={ early:0, noon:0, night:0 };
@@ -531,15 +618,14 @@ tPrev.onclick=()=>{ tDate.value=addDays(tDate.value||todayYmd(), -1); initTodayT
 tNext.onclick=()=>{ tDate.value=addDays(tDate.value||todayYmd(), +1); initTodayTab(); };
 tToday.onclick=()=>{ tDate.value=todayYmd(); initTodayTab(); };
 tTomorrow.onclick=()=>{ tDate.value=addDays(todayYmd(), +1); initTodayTab(); };
+
 mPrev.onclick=()=>{ mDate.value=addDays(mDate.value||addDays(todayYmd(),1), -1); initTomorrowTab(); };
 mNext.onclick=()=>{ mDate.value=addDays(mDate.value||addDays(todayYmd(),1), +1); initTomorrowTab(); };
 mToday.onclick=()=>{ mDate.value=todayYmd(); initTomorrowTab(); };
 mTomorrow.onclick=()=>{ mDate.value=addDays(todayYmd(), +1); initTomorrowTab(); };
 
 async function loadDay(dateStr, infoEl, totalsEl, statsContainerId, tableId){
-  assertAuthed();
-  const r=await axios.get(API,{params:{action:'adminDay', token:ADMIN_TOKEN, date:dateStr}});
-  const d=asObj(r.data);
+  const d=await adminCall('adminDay',{date:dateStr});
   infoEl.textContent = `${d.date||''}（${d.weekday||''}）`;
   totalsEl.textContent = Array.isArray(d.items)? d.items.length : 0;
   renderStats(statsContainerId, d.slots||[]);
@@ -558,8 +644,7 @@ async function initTomorrowTab(){
 async function cancelRow(id, refreshFnName){
   if(!confirm('確定取消？')) return;
   try{
-    assertAuthed();
-    await axios.get(API,{params:{action:'adminCancel', id, token:ADMIN_TOKEN}});
+    await adminCall('adminCancel',{id});
     if (typeof window[refreshFnName] === 'function') window[refreshFnName]();
   }catch(e){ console.error(e); alert('取消失敗或尚未登入'); }
 }
@@ -580,24 +665,20 @@ btnEndPlus.onclick   =()=>{ winEnd.value  =Number(winEnd.value||0)+1; };
 
 btnWinSet.onclick=async ()=>{
   try{
-    assertAuthed();
-    const params={ action:'adminWindowSet', token:ADMIN_TOKEN,
-      start:Number(winStart.value||0), end:Number(winEnd.value||0),
-      enableCustom: customWindowSwitch.checked?'YES':'NO'
-    };
-    const r=await axios.get(API,{params});
-    applyWindowInfo(r.data);
+    const params={ start:Number(winStart.value||0), end:Number(winEnd.value||0),
+                   enableCustom: customWindowSwitch.checked?'YES':'NO' };
+    const r=await adminCall('adminWindowSet', params);
+    applyWindowInfo(r);
   }catch(e){ console.error(e); alert('設定失敗'); }
 };
 customWindowSwitch.onchange=()=>btnWinSet.click();
 
 async function loadWindow(){
-  assertAuthed();
-  const r=await axios.get(API,{params:{action:'adminWindow', token:ADMIN_TOKEN}});
-  applyWindowInfo(r.data);
+  const r=await adminCall('adminWindow');
+  applyWindowInfo(r);
 }
-function applyWindowInfo(d){
-  const o=asObj(d);
+function applyWindowInfo(o){
+  o = asObj(o);
   winStart.value=o.start!=null?o.start:2;
   winEnd.value=o.end!=null?o.end:14;
   customWindowSwitch.checked=!!o.custom;
@@ -605,23 +686,17 @@ function applyWindowInfo(d){
 }
 
 async function loadFlags(){
-  assertAuthed();
-  const r=await axios.get(API,{params:{action:'adminFlags', token:ADMIN_TOKEN}});
-  const o=asObj(r.data);
+  const o=asObj(await adminCall('adminFlags'));
   flagWeekSwitch.checked=!!o.USE_WEEKDAY_SHIFT;
 }
 flagWeekSwitch.onchange=async()=>{
-  try{
-    assertAuthed();
-    await axios.get(API,{params:{action:'adminFlagsSet', token:ADMIN_TOKEN, USE_WEEKDAY_SHIFT: flagWeekSwitch.checked?'1':'0'}});
-  }catch(e){ console.error(e); alert('旗標設定失敗'); }
+  try{ await adminCall('adminFlagsSet',{ USE_WEEKDAY_SHIFT: flagWeekSwitch.checked?'1':'0' }); }
+  catch(e){ console.error(e); alert('旗標設定失敗'); }
 };
 
 /* ===== daily_limit（每週規則） ===== */
 async function loadDaily(){
-  assertAuthed();
-  const r=await axios.get(API,{params:{action:'dailyGet', token:ADMIN_TOKEN}});
-  const arr=asArr(r.data);
+  const arr=asArr(await adminCall('dailyGet'));
   const tb=document.querySelector('#tblDaily tbody'); tb.innerHTML='';
   arr.forEach(x=>{
     const tr=document.createElement('tr');
@@ -641,9 +716,8 @@ async function loadDaily(){
 }
 async function saveDaily(wdEn,row){
   try{
-    assertAuthed();
     const q={
-      action:'dailySet', token:ADMIN_TOKEN, wd:wdEn,
+      wd:wdEn,
       limitE:document.getElementById(`dEL-${row}`).value,
       limitN:document.getElementById(`dNL-${row}`).value,
       limitL:document.getElementById(`dTL-${row}`).value,
@@ -653,7 +727,7 @@ async function saveDaily(wdEn,row){
       startNo:document.getElementById(`dST-${row}`).value,
       step:   document.getElementById(`dSP-${row}`).value
     };
-    await axios.get(API,{params:q});
+    await adminCall('dailySet', q);
     alert('已儲存');
   }catch(e){ console.error(e); alert('儲存失敗'); }
 }
@@ -661,9 +735,7 @@ window.saveDaily=saveDaily;
 
 /* ===== 試算表捷徑 ===== */
 async function loadSheetLinks(){
-  assertAuthed();
-  const r=await axios.get(API,{params:{action:'sheetLinks', token:ADMIN_TOKEN}});
-  const o=asObj(r.data);
+  const o=asObj(await adminCall('sheetLinks'));
   const card=document.getElementById('sheetsCard');
   const box=document.getElementById('sheetBtns'); box.innerHTML='';
   if(!o?.id || !Array.isArray(o.sheets)) { card.style.display='none'; return; }
@@ -694,10 +766,8 @@ const tbl=document.getElementById('tbl');
 
 addBtn.onclick = async ()=>{
   try{
-    assertAuthed();
     if(!newDate.value) return alert("請選日期");
     const q={
-      action:'adminAdd', token:ADMIN_TOKEN,
       日期:newDate.value,
       早診上限:Number(neEarlyLimit.value||0),
       午診上限:Number(neNoonLimit.value||0),
@@ -706,18 +776,16 @@ addBtn.onclick = async ()=>{
       午診時段:neNoonTime.value||'',
       晚診時段:neNightTime.value||'',
       起始號碼:Number(neStartNo.value||1),
-      關隔位數:Math.max(1,Number(neStep.value||1)),
+      間隔位數:Math.max(1,Number(neStep.value||1)),
       備註:neNote.value||''
     };
-    await axios.get(API,{params:q});
+    await adminCall('adminAdd', q);
     alert("新增完成"); loadSpecials();
   }catch(e){ console.error(e); alert('新增失敗或尚未登入'); }
 };
 
 async function loadSpecials(){
-  assertAuthed();
-  const r=await axios.get(API,{params:{action:'adminGet',token:ADMIN_TOKEN,t:Date.now()}});
-  const arr=asArr(r.data);
+  const arr=asArr(await adminCall('adminGet',{t:Date.now()}));
   const tbody=tbl.querySelector('tbody'); tbody.innerHTML="";
   arr.forEach(x=>{
     const tr=document.createElement('tr');
@@ -737,14 +805,11 @@ async function loadSpecials(){
 
 async function delRow(id){
   if(!confirm("確定刪除？")) return;
-  try{ assertAuthed(); await axios.get(API,{params:{action:'adminDel',id,token:ADMIN_TOKEN}}); loadSpecials(); }
+  try{ await adminCall('adminDel',{id}); loadSpecials(); }
   catch(e){ console.error(e); alert('刪除失敗或尚未登入'); }
 }
-
 async function editRow(id){
-  assertAuthed();
-  const d=await axios.get(API,{params:{action:'adminOne',id,token:ADMIN_TOKEN}});
-  const f=asObj(d.data);
+  const f=asObj(await adminCall('adminOne',{id}));
   const html=`<div class="modal fade" id="editM"><div class="modal-dialog modal-lg"><div class="modal-content">
    <div class="modal-header"><h5 class="modal-title">編輯 ${f.日期}</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
    <div class="modal-body">
@@ -770,8 +835,8 @@ async function editRow(id){
   const mEl=document.getElementById("editM"); const m=new bootstrap.Modal(mEl); m.show();
   document.getElementById("saveBtn").onclick=async()=>{
     if(!confirm("確定儲存？")) return;
-    await axios.get(API,{params:{
-      action:'adminAdd', token:ADMIN_TOKEN, 日期:f.日期,
+    await adminCall('adminAdd',{
+      日期:f.日期,
       早診上限:document.getElementById('edEL').value,
       午診上限:document.getElementById('edNL').value,
       晚診上限:document.getElementById('edTL').value,
@@ -781,7 +846,7 @@ async function editRow(id){
       備註:document.getElementById('edNote').value,
       起始號碼:Number(document.getElementById('edStartNo').value||1),
       間隔位數:Math.max(1,Number(document.getElementById('edStep').value||1))
-    }});
+    });
     m.hide(); mEl.addEventListener('hidden.bs.modal', ()=> mEl.remove(), {once:true});
     loadSpecials();
   };
@@ -789,8 +854,38 @@ async function editRow(id){
 }
 window.editRow=editRow; window.delRow=delRow;
 
+/* ===== 匯出、登入、登出 ===== */
+exportBtn.onclick=()=>{ try{
+  assertAuthed();
+  // 直接開檔（用 token 帶參數），避免經過 adminCall 攔截
+  const url = `${API}?action=export&token=${encodeURIComponent(ADMIN_TOKEN)}&t=${Date.now()}`;
+  window.open(url, '_blank', 'noopener');
+}catch(e){} };
+
+logoutBtn.onclick=()=>{
+  sessionStorage.removeItem('ADMIN_TOKEN');
+  ADMIN_TOKEN="";
+  showLogin();
+};
+
+// 登入
+btnLoginPW.onclick=async()=>{
+  try{
+    const a=acc.value.trim(), p=pw.value.trim();
+    const r=await axios.get(API,{params:{action:'adminLogin',acc:a,pw:p}});
+    if(r.data?.ok){
+      ADMIN_TOKEN=r.data.token;
+      sessionStorage.setItem('ADMIN_TOKEN',ADMIN_TOKEN);
+      saveCred(a,p);            // 記住帳密（若有勾）
+      showApp();
+    }else{ alert('帳號或密碼錯誤'); }
+  }catch(e){ console.error(e); alert('登入失敗'); }
+};
+// Enter 快速登入
+[acc,pw].forEach(el=>el.addEventListener('keydown',e=>{ if(e.key==='Enter') btnLoginPW.click(); }));
+
 /* ===== 進入頁 ===== */
-if(ADMIN_TOKEN){ showApp(); }
+if(ADMIN_TOKEN){ showApp(); } else { showLogin(); }
 </script>
 </body>
 </html>
