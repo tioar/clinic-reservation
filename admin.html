@@ -4,151 +4,57 @@
   <meta charset="UTF-8">
   <title>陳萬龍診所預約後台管理</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="icon" type="image/png" href="3BA4B390-F02A-4049-AF8C-3956BA0C2A4E.png" />
+
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
+
   <style>
-    :root{
-      --bg-from:#ecf1f6;
-      --bg-to:#e6edf6;
-      --card-bg:#ffffff;
-      --primary:#2563eb;        /* 藍 */
-      --primary-600:#1e4fd0;    /* 深藍 */
-      --primary-700:#183fa9;
-      --slate-700:#334155;      /* 深灰藍字 */
-      --slate-500:#64748b;      /* 次要文字 */
-      --ring:#9ab5ff;           /* 聚焦外框 */
-      --chip:#d5d9e2;
-    }
+    /* 主要寬度與卡片 */
+    .card-wrap{ max-width:1180px; margin:40px auto; }
+    .card-wrap .card{ max-width:100% !important; margin:16px 0; }
 
-    /* 全域背景：藍灰漸層 */
-    body{
-      background: linear-gradient(160deg, var(--bg-from), var(--bg-to));
-      min-height:100vh;
-      color:var(--slate-700);
-    }
+    /* tabs 與小字 */
+    .tabbar{display:flex;flex-wrap:wrap;gap:.5rem;margin:8px 0 16px}
+    .tabbar .btn{border-radius:999px}
+    .small-note{font-size:.9rem;color:#6b7a90}
+    .table td,.table th{vertical-align:middle}
 
-    /* ====== 共用 ====== */
-    .btn-round{ border-radius:999px; }
-    .btn-main{
-      background:var(--primary);
-      color:#fff;
-      border:0;
-      border-radius:999px;
-      box-shadow: 0 6px 14px rgba(37, 99, 235, .18);
-    }
-    .btn-main:hover{ background:var(--primary-600); color:#fff; }
-    .btn-outline-secondary{
-      border-radius:999px;
-    }
-    .sheet-chip{ display:inline-block; padding:.375rem .6rem; border:1px solid var(--chip); border-radius:999px; }
+    /* number 隱藏上下箭頭 */
+    .card-wrap input[type=number]::-webkit-outer-spin-button,
+    .card-wrap input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0; }
+    .card-wrap input[type=number]{ -moz-appearance:textfield; }
 
-    .small-note{ color:var(--slate-500); font-size:.925rem; }
-    .small-note code{ background:#f6f6f8; padding:.1rem .25rem; border-radius:6px; }
+    /* 每週規則欄寬（避免要拉橫向捲軸） */
+    #tblDaily th, #tblDaily td{ white-space: normal; }
+    #tblDaily .td-limit   { width:80px;  }
+    #tblDaily .td-start   { width:90px;  }
+    #tblDaily .td-action  { width:96px;  }
+    #tblDaily .td-time    { width:200px; }
+    #tblDaily .td-limit  .form-control{ max-width:64px; text-align:center; padding:.25rem .4rem; }
+    #tblDaily .td-start  .form-control{ max-width:72px; text-align:center; padding:.25rem .4rem; }
+    #tblDaily .td-time   .form-control{ width:100%; padding:.25rem .5rem; }
 
-    .tag{ display:inline-block; width:.8em; height:.8em; border-radius:2px; margin-right:.4em; vertical-align:middle; }
-    .tag-early{ background:#10b981; } .tag-noon{ background:#f59e0b; } .tag-night{ background:#6366f1; }
+    /* 今天/明天名單的表格維持不換行，避免擠爆 */
+    #tblToday th,#tblToday td,
+    #tblTomorrow th,#tblTomorrow td{ white-space: nowrap; }
 
-    .date-nav{ display:flex; flex-wrap:wrap; align-items:center; gap:.5rem .5rem; }
-    .date-nav .form-control{ width:160px; }
-
-    .totals{ font-weight:700; color:#1f3f57; }
-    .totals .muted{ color:#6b7a90; font-weight:600; }
-
-    #tblToday th,#tblToday td,#tblTomorrow th,#tblTomorrow td{ white-space: nowrap; }
-
-    .card-wrap{ max-width:1180px; margin:24px auto; padding:0 12px; }
-    .tabbar{ display:flex; gap:8px; margin:16px 0; }
-
-    /* 起始/間隔欄寬置中 */
-    .w-ch-4  { width:4.5ch !important; min-width:40px; }
-    .w-ch-3  { width:3.5ch !important; min-width:36px; }
-    .text-center{ text-align:center; }
-
-    /* ====== 藍灰圓角風格：登入卡片 ====== */
-    .login-card{
-      display:grid;
-      place-items:center;
-      min-height:calc(100vh - 6rem);
-      padding:3rem 1rem;
-    }
-    .login-card .card{
-      width:100%;
-      max-width:460px;
-      background:var(--card-bg);
-      border:0;
-      border-radius:28px;                 /* 圓角 */
-      padding:28px 24px;
-      box-shadow:
-        0 12px 24px rgba(30, 79, 208, 0.08),
-        0 4px 12px rgba(15, 23, 42, 0.06);
-    }
-    .login-card .header{
-      display:flex; align-items:center; gap:14px; margin-bottom:10px;
-    }
-    .login-card .logo{
-      width:40px; height:40px; border-radius:12px;
-      display:grid; place-items:center;
-      background:var(--primary);
-      color:#fff; font-weight:700; font-size:18px;
-      box-shadow: 0 6px 14px rgba(37, 99, 235, .25);
-    }
-    .login-card h1{ color:var(--slate-700); }
-    .login-card .form-control{
-      border-radius:14px;               /* 圓角輸入框 */
-      padding:.625rem .9rem;
-      border:1px solid #e5e7eb;
-      box-shadow: inset 0 1px 0 rgba(0,0,0,.02);
-    }
-    .login-card .form-control:focus{
-      border-color:var(--primary);
-      box-shadow: 0 0 0 .2rem rgba(37, 99, 235, .12), 0 2px 6px rgba(0,0,0,.04);
-      outline:none;
-    }
-    .login-card .btn-primary{
-      background:var(--primary);
-      border:0;
-      border-radius:14px;
-      padding:.7rem 1rem;
-      box-shadow: 0 10px 18px rgba(37, 99, 235, .18);
-    }
-    .login-card .btn-primary:hover{ background:var(--primary-600); }
-    .login-card .helper{
-      display:flex; justify-content:space-between; align-items:center;
-      color:var(--slate-500); font-size:.925rem;
-    }
-
-    /* ====== App 頁首（與登入一致風格） ====== */
-    .card-head .logo{
-      width:32px; height:32px; border-radius:10px; display:grid; place-items:center;
-      background:var(--primary); color:#fff; font-weight:700;
-      box-shadow: 0 6px 14px rgba(37, 99, 235, .18);
-    }
+    /* 快速日期切換列 */
+    .quickbar{ display:flex; flex-wrap:wrap; gap:.5rem; align-items:center; margin-top:.5rem; }
+    .quickbar input[type="date"]{ max-width: 160px; }
   </style>
 </head>
 <body>
 
 <!-- ====== Login ====== -->
-<div id="login" class="container login-card">
+<div id="login" class="container py-5 login-card">
   <div class="card">
     <div class="header">
       <div class="logo">＋</div>
-      <div>
-        <h1 class="h4 m-0">後台登入</h1>
-        <div class="small-note mt-1">請輸入管理帳號與密碼</div>
-      </div>
+      <h1>後台登入</h1>
     </div>
-
-    <label for="acc" class="form-label small-note mb-1">帳號</label>
-    <input id="acc" class="form-control mb-3" placeholder="輸入帳號">
-
-    <label for="pw" class="form-label small-note mb-1">管理密碼</label>
-    <input id="pw" type="password" class="form-control mb-3" placeholder="輸入密碼">
-
-    <button id="btnLoginPW" class="btn btn-primary w-100 mb-2">登入</button>
-    <div class="helper">
-      <span>忘記密碼？請聯絡管理者</span>
-    </div>
+    <input id="acc" class="form-control mb-2" placeholder="帳號">
+    <input id="pw" type="password" class="form-control mb-3" placeholder="管理密碼">
+    <button id="btnLoginPW" class="btn btn-outline-secondary w-100">登入</button>
   </div>
 </div>
 
@@ -159,7 +65,7 @@
       <div class="logo">＋</div>
       <div>
         <h3 class="m-0">後台管理</h3>
-        <div class="subtitle text-muted">今天名單、明天名單、預約設定、臨時異動</div>
+        <div class="subtitle">今天名單、明天名單、預約設定、臨時異動</div>
       </div>
       <div class="ms-auto d-flex align-items-center gap-2">
         <button id="exportBtn" class="btn btn-outline-secondary btn-round btn-sm">匯出今日起預約名單</button>
@@ -177,7 +83,7 @@
 
     <!-- ====== 今天名單 ====== -->
     <section id="tab-today">
-      <div class="card mb-3 p-3">
+      <div class="card mb-3">
         <div class="d-flex align-items-center justify-content-between">
           <div>
             <h5 class="m-0">今天名單</h5>
@@ -186,21 +92,19 @@
           <div><button id="btnTodayReload" class="btn btn-outline-secondary btn-round btn-sm">重新整理</button></div>
         </div>
 
-        <div class="date-nav mt-2">
-          <button id="tPrev" class="btn btn-outline-secondary btn-sm">◀ 前一天</button>
+        <!-- 快速日期切換 & 總計 -->
+        <div class="quickbar">
+          <button id="tPrev" class="btn btn-outline-secondary btn-sm">← 前一天</button>
           <input id="tDate" type="date" class="form-control form-control-sm">
-          <button id="tNext" class="btn btn-outline-secondary btn-sm">後一天 ▶</button>
           <button id="tToday" class="btn btn-outline-secondary btn-sm">今天</button>
           <button id="tTomorrow" class="btn btn-outline-secondary btn-sm">明天</button>
-          <div class="ms-2 totals">
-            <span class="muted">總計：</span><span id="tTotals">—</span>
-          </div>
         </div>
+        <div id="todayTotals" class="small-note mt-1"></div>
 
         <div id="todayStats" class="row g-3 mt-2"></div>
       </div>
 
-      <div class="card p-3">
+      <div class="card">
         <div class="table-responsive">
           <table class="table table-striped align-middle" id="tblToday">
             <thead>
@@ -218,7 +122,7 @@
 
     <!-- ====== 明天名單 ====== -->
     <section id="tab-tomorrow" style="display:none;">
-      <div class="card mb-3 p-3">
+      <div class="card mb-3">
         <div class="d-flex align-items-center justify-content-between">
           <div>
             <h5 class="m-0">明天名單</h5>
@@ -227,21 +131,19 @@
           <div><button id="btnTomorrowReload" class="btn btn-outline-secondary btn-round btn-sm">重新整理</button></div>
         </div>
 
-        <div class="date-nav mt-2">
-          <button id="mPrev" class="btn btn-outline-secondary btn-sm">◀ 前一天</button>
-          <input id="mDate" type="date" class="form-control form-control-sm">
-          <button id="mNext" class="btn btn-outline-secondary btn-sm">後一天 ▶</button>
-          <button id="mToday" class="btn btn-outline-secondary btn-sm">今天</button>
-          <button id="mTomorrow" class="btn btn-outline-secondary btn-sm">明天</button>
-          <div class="ms-2 totals">
-            <span class="muted">總計：</span><span id="mTotals">—</span>
-          </div>
+        <!-- 快速日期切換 & 總計 -->
+        <div class="quickbar">
+          <button id="tmPrev" class="btn btn-outline-secondary btn-sm">← 前一天</button>
+          <input id="tmDate" type="date" class="form-control form-control-sm">
+          <button id="tmToday" class="btn btn-outline-secondary btn-sm">今天</button>
+          <button id="tmTomorrow" class="btn btn-outline-secondary btn-sm">明天</button>
         </div>
+        <div id="tomorrowTotals" class="small-note mt-1"></div>
 
         <div id="tomorrowStats" class="row g-3 mt-2"></div>
       </div>
 
-      <div class="card p-3">
+      <div class="card">
         <div class="table-responsive">
           <table class="table table-striped align-middle" id="tblTomorrow">
             <thead>
@@ -259,7 +161,7 @@
 
     <!-- ====== 預約設定 ====== -->
     <section id="tab-settings" style="display:none;">
-      <div class="card mb-4 p-3">
+      <div class="card mb-4">
         <div class="d-flex align-items-center justify-content-between">
           <h5 class="m-0">預約期限</h5>
           <div class="small-note">顯示區間 = 今天 + 起始天 ～ 今天 + 結束天</div>
@@ -287,18 +189,9 @@
             <button id="btnWinSet" class="btn-main btn-round">套用</button>
           </div>
         </div>
-        <div class="form-check form-switch mt-3">
-          <input class="form-check-input" type="checkbox" role="switch" id="flagWeekSwitch">
-          <label class="form-check-label small-note" for="flagWeekSwitch">
-            啟用「預設星期規律」：週一→D+1、週二～週五→D+2、週日→D+2、週六→D+3（=下週二）。關閉時改用上方 D+start～D+end。
-          </label>
-        </div>
-        <div class="small-note mt-2">
-          若要「奇數／偶數開關」：在下方每天規則設定 <code>起始號碼</code>（1=奇，2=偶）與 <code>間格位數</code>（設 2）。
-        </div>
       </div>
 
-      <div class="card mb-4 p-3">
+      <div class="card mb-4">
         <h5 class="mb-2">每週規則（daily_limit）</h5>
         <div class="table-responsive">
           <table class="table align-middle" id="tblDaily">
@@ -310,8 +203,7 @@
               <col style="width:200px;">
               <col style="width:200px;">
               <col style="width:200px;">
-              <col style="width:96px;">
-              <col style="width:96px;">
+              <col style="width:90px;">
               <col style="width:96px;">
             </colgroup>
             <thead>
@@ -319,18 +211,17 @@
                 <th>星期</th>
                 <th>早診上限</th><th>午診上限</th><th>晚診上限</th>
                 <th>早診時間</th><th>午診時間</th><th>晚診時間</th>
-                <th>起始號碼</th>
-                <th>間格位數</th>
+                <th>起始號</th>
                 <th>操作</th>
               </tr>
             </thead>
             <tbody></tbody>
           </table>
         </div>
-        <div class="small-note">時間格式：08:30~11:30 ｜ 奇數：起始=1、間隔=2；偶數：起始=2、間隔=2；連號：起始=1、間隔=1。</div>
+        <div class="small-note">時間格式示例：08:30~11:30</div>
       </div>
 
-      <div class="card p-3" id="sheetsCard" style="display:none;">
+      <div class="card" id="sheetsCard" style="display:none;">
         <h5 class="mb-2">試算表捷徑</h5>
         <div id="sheetBtns" class="d-flex flex-wrap gap-2"></div>
         <div class="text-muted small mt-2">（需有該試算表權限；會在新分頁開啟）</div>
@@ -339,47 +230,39 @@
 
     <!-- ====== 臨時異動 ====== -->
     <section id="tab-special" style="display:none;">
-      <div class="card mb-4 p-3">
+      <div class="card mb-4">
         <h5 class="mb-3">新增臨時異動</h5>
         <input type="date" id="newDate" class="form-control mb-3">
         <div class="row mb-2 align-items-center">
-          <div class="col-12 col-md-3 mb-2 mb-md-0"><span class="tag tag-early"></span><strong>早診上限</strong></div>
-          <div class="col-6 col-md-3 mb-2 mb-md-0"><input id="neEarlyLimit" value="10" type="number" class="form-control" placeholder="上限"></div>
+          <div class="col-12 col-md-3 mb-2 mb-md-0"><span class="tag tag-early"></span><strong>早診</strong></div>
+          <div class="col-6 col-md-4 mb-2 mb-md-0"><input id="neEarlyTime" value="08:30~11:30" class="form-control" placeholder="時段（顯示用）"></div>
+          <div class="col-4 col-md-3 mb-2 mb-md-0"><input id="neEarlyLimit" value="10" type="number" class="form-control" placeholder="上限"></div>
+          <div class="col-auto col-md-2"><input id="neEarly" checked type="checkbox"> 開放</div>
         </div>
         <div class="row mb-2 align-items-center">
-          <div class="col-12 col-md-3 mb-2 mb-md-0"><span class="tag tag-noon"></span><strong>午診上限</strong></div>
-          <div class="col-6 col-md-3 mb-2 mb-md-0"><input id="neNoonLimit" value="10" type="number" class="form-control" placeholder="上限"></div>
+          <div class="col-12 col-md-3 mb-2 mb-md-0"><span class="tag tag-noon"></span><strong>午診</strong></div>
+          <div class="col-6 col-md-4 mb-2 mb-md-0"><input id="neNoonTime" value="14:00~17:00" class="form-control" placeholder="時段（顯示用）"></div>
+          <div class="col-4 col-md-3 mb-2 mb-md-0"><input id="neNoonLimit" value="10" type="number" class="form-control" placeholder="上限"></div>
+          <div class="col-auto col-md-2"><input id="neNoon" checked type="checkbox"> 開放</div>
         </div>
         <div class="row mb-3 align-items-center">
-          <div class="col-12 col-md-3 mb-2 mb-md-0"><span class="tag tag-night"></span><strong>晚診上限</strong></div>
-          <div class="col-6 col-md-3 mb-2 mb-md-0"><input id="neNightLimit" value="10" type="number" class="form-control" placeholder="上限"></div>
+          <div class="col-12 col-md-3 mb-2 mb-md-0"><span class="tag tag-night"></span><strong>晚診</strong></div>
+          <div class="col-6 col-md-4 mb-2 mb-md-0"><input id="neNightTime" value="18:00~20:30" class="form-control" placeholder="時段（顯示用）"></div>
+          <div class="col-4 col-md-3 mb-2 mb-md-0"><input id="neNightLimit" value="10" type="number" class="form-control" placeholder="上限"></div>
+          <div class="col-auto col-md-2"><input id="neNight" checked type="checkbox"> 開放</div>
         </div>
-        <div class="row g-2 align-items-end mb-2">
-          <div class="col-6 col-md-3">
-            <label class="small-note">起始號碼</label>
-            <input id="neStartNo" type="number" class="form-control w-ch-4 text-center" value="1" min="1">
-          </div>
-          <div class="col-6 col-md-3">
-            <label class="small-note">間格位數</label>
-            <input id="neStep" type="number" class="form-control w-ch-4 text-center" value="1" min="1">
-          </div>
-          <div class="col-12 col-md-6">
-            <label class="small-note">備註</label>
-            <div class="d-flex gap-2">
-              <input id="neNote" placeholder="備註" class="form-control">
-              <button id="addBtn" class="btn-main btn-round">新增</button>
-            </div>
-          </div>
+        <div class="row">
+          <div class="col-8 col-md-6"><input id="neNote" placeholder="備註" class="form-control"></div>
+          <div class="col-auto"><button id="addBtn" class="btn-main btn-round">新增</button></div>
         </div>
-        <div class="small-note">奇數／偶數：起始=1／2、間隔=2。</div>
       </div>
 
-      <div class="card p-3">
+      <div class="card">
         <h5 class="mb-2">目前異動（未過期）</h5>
         <div class="table-responsive">
           <table class="table table-striped" id="tbl">
             <thead>
-              <tr><th>日期</th><th>早診</th><th>午診</th><th>晚診</th><th>起始號碼</th><th>間格位數</th><th>備註</th><th style="width:220px;">操作</th></tr>
+            <tr><th>日期</th><th>早診</th><th>午診</th><th>晚診</th><th>備註</th><th style="width:140px;">操作</th></tr>
             </thead>
             <tbody></tbody>
           </table>
@@ -393,8 +276,8 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 <script>
-/* ====== GAS endpoint（與前台同一支） ====== */
-const API = "https://script.google.com/macros/s/AKfycbw63BV5w0VIHxE7sePmLXhd_pRJyZTGOqmujtwjmwdADv827L0TMg1LrbO0eiSkuMWs/exec";
+/* ====== GAS endpoint（與 index / query / success 同一支） ====== */
+const API = "https://script.google.com/macros/s/AKfycbz-OLvUKfEIKXprDy3apd6zV8FXjTYic_2ltNu2F4iwSNTph09shmp8WKQlj3IL_dZD/exec";
 
 /* ====== DOM ====== */
 const loginBox   = document.getElementById('login');
@@ -429,15 +312,22 @@ function switchTab(id){
 let ADMIN_TOKEN = sessionStorage.getItem('ADMIN_TOKEN') || "";
 
 /* helpers */
-function showApp(){ loginBox.style.display="none"; appBox.style.display="block"; switchTab('tab-today'); initTodayTab(); }
+function showApp(){ loginBox.style.display="none"; appBox.style.display="block"; switchTab('tab-today'); loadToday(); }
 function showLogin(){ appBox.style.display="none"; loginBox.style.display="block"; }
 function assertAuthed(){ if(!ADMIN_TOKEN){ showLogin(); throw new Error('no token'); } }
 function ymdLocal(d){ const y=d.getFullYear(),m=('0'+(d.getMonth()+1)).slice(-2),da=('0'+d.getDate()).slice(-2); return `${y}-${m}-${da}`; }
-function addDays(ymd, delta){ const d=new Date(ymd); d.setDate(d.getDate()+delta); return ymdLocal(d); }
-function todayYmd(){ const d=new Date(); return ymdLocal(d); }
+function offsetYmd(ymd, delta){
+  const [y,m,d] = ymd.split('-').map(n=>Number(n));
+  const z = new Date(y, m-1, d + delta);
+  return ymdLocal(z);
+}
+const todayYmd = ()=> ymdLocal(new Date());
 
-/* ====== 回傳整理 ====== */
-function asObj(payload){ try{ return typeof payload==='string' ? JSON.parse(payload) : (payload||{}); }catch{ return {}; } }
+/* ====== 把回傳統一整理成好用的物件/陣列 ====== */
+function asObj(payload){
+  try{ return typeof payload==='string' ? JSON.parse(payload) : (payload||{}); }
+  catch{ return {}; }
+}
 function asArr(payload){
   try{ if(typeof payload==='string') payload = JSON.parse(payload); }catch{}
   if(Array.isArray(payload)) return payload;
@@ -456,10 +346,9 @@ function parseDateLike(v){
   if(v instanceof Date) return isNaN(v) ? null : v;
   if(typeof v === 'number'){ const ms = (v - 25569) * 86400 * 1000; const d  = new Date(ms); return isNaN(d) ? null : d; }
   if(typeof v === 'string'){
-    const s = v.trim();
-    const m = s.match(/^(\d{4})[-\/](\d{1,2})[-\/](\d{1,2})$/);
+    const s = v.trim(); const m = s.match(/^(\d{4})[-\/](\d{1,2})[-\/](\d{1,2})$/);
     if(m){ const d = new Date(Number(m[1]), Number(m[2])-1, Number(m[3])); return isNaN(d) ? null : d; }
-    const d2 = new Date(s); return isNaN(d2) ? null : d2;
+    const d = new Date(s); return isNaN(d) ? null : d;
   }
   return null;
 }
@@ -476,7 +365,7 @@ btnLoginPW.onclick = async () => {
   try{
     const a = (acc.value||'').trim();
     const p = (pw.value||'').trim();
-    if(!a || !p) return;
+    if(!a || !p){ pw.classList.add('shake'); setTimeout(()=>pw.classList.remove('shake'),350); return; }
     const r = await axios.get(API, { params:{ action:'adminLogin', acc:a, pw:p, t:Date.now() }});
     if(r.data?.ok){
       ADMIN_TOKEN = r.data.token;
@@ -490,65 +379,100 @@ btnLoginPW.onclick = async () => {
     alert('登入失敗');
   }
 };
-[acc, pw].forEach(el => el.addEventListener('keydown', e => { if (e.key === 'Enter') btnLoginPW.click(); }));
+/* Enter 送出登入 */
+[acc,pw].forEach(el=> el.addEventListener('keydown', e=>{
+  if(e.key==='Enter') btnLoginPW.click();
+}));
 
 /* 登出 / 匯出 */
 logoutBtn.onclick = () => { ADMIN_TOKEN=""; sessionStorage.removeItem('ADMIN_TOKEN'); showLogin(); };
-exportBtn.onclick = ()=>{ assertAuthed(); window.open(`${API}?action=export&token=${encodeURIComponent(ADMIN_TOKEN)}`,'_blank'); };
+exportBtn.onclick = ()=>{ assertAuthed(); window.open(`${API}?action=export&t=${Date.now()}&token=${encodeURIComponent(ADMIN_TOKEN)}`,'_blank'); };
 
-/* Tabs 綁定 */
+/* 綁定 tabs */
 [tabBtnToday,tabBtnTomorrow,tabBtnSettings,tabBtnSpecial].forEach(btn=>{
   btn.onclick = async ()=>{
     const id = btn.dataset.tab;
     switchTab(id);
     try{
-      if(id==='tab-today'){ await initTodayTab(); }
-      if(id==='tab-tomorrow'){ await initTomorrowTab(); }
-      if(id==='tab-settings'){ await Promise.all([loadWindow(), loadDaily(), loadSheetLinks(), loadFlags()]); }
+      if(id==='tab-today'){ await loadToday(); }
+      if(id==='tab-tomorrow'){ await loadTomorrow(); }
+      if(id==='tab-settings'){ await Promise.all([loadWindow(), loadDaily(), loadSheetLinks()]); }
       if(id==='tab-special'){ await loadSpecials(); }
     }catch(e){ console.error(e); }
   };
 });
 
-/* ====== 今天 / 明天 名單 ====== */
-const todayInfo   = document.getElementById('todayInfo');
-const todayStats  = document.getElementById('todayStats');
-const tblToday    = document.getElementById('tblToday').querySelector('tbody');
-document.getElementById('btnTodayReload').onclick = ()=> loadDay(currentYmdToday, {infoEl:todayInfo, statsEl:todayStats, tbodyEl:tblToday, totalsEl:document.getElementById('tTotals')});
+/* ====== 今天 / 明天 名單（含快速日期切換＆總計） ====== */
+const todayInfo     = document.getElementById('todayInfo');
+const todayStats    = document.getElementById('todayStats');
+const todayTotals   = document.getElementById('todayTotals');
+const tblToday      = document.getElementById('tblToday').querySelector('tbody');
+document.getElementById('btnTodayReload').onclick = ()=> {
+  const y = document.getElementById('tDate').value || todayYmd();
+  loadDayInto({infoEl:todayInfo, statsEl:todayStats, totalsEl:todayTotals, tbodyEl:tblToday}, y);
+};
 
 const tomorrowInfo  = document.getElementById('tomorrowInfo');
 const tomorrowStats = document.getElementById('tomorrowStats');
+const tomorrowTotals= document.getElementById('tomorrowTotals');
 const tblTomorrow   = document.getElementById('tblTomorrow').querySelector('tbody');
-document.getElementById('btnTomorrowReload').onclick = ()=> loadDay(currentYmdTomorrow, {infoEl:tomorrowInfo, statsEl:tomorrowStats, tbodyEl:tblTomorrow, totalsEl:document.getElementById('mTotals')});
+document.getElementById('btnTomorrowReload').onclick = ()=> {
+  const y = document.getElementById('tmDate').value || offsetYmd(todayYmd(),1);
+  loadDayInto({infoEl:tomorrowInfo, statsEl:tomorrowStats, totalsEl:tomorrowTotals, tbodyEl:tblTomorrow}, y);
+};
 
-/* 日期切換元件 */
+/* 快速列：Today */
+const tPrev = document.getElementById('tPrev');
 const tDate = document.getElementById('tDate');
-const mDate = document.getElementById('mDate');
-let currentYmdToday = todayYmd();
-let currentYmdTomorrow = addDays(todayYmd(), 1);
+const tToday= document.getElementById('tToday');
+const tTomorrow = document.getElementById('tTomorrow');
 
+tPrev.onclick = ()=>{ const base = tDate.value || todayYmd(); const y = offsetYmd(base,-1); tDate.value = y; loadDayInto({infoEl:todayInfo, statsEl:todayStats, totalsEl:todayTotals, tbodyEl:tblToday}, y); };
+tDate.onchange = ()=>{ const y = tDate.value || todayYmd(); loadDayInto({infoEl:todayInfo, statsEl:todayStats, totalsEl:todayTotals, tbodyEl:tblToday}, y); };
+tToday.onclick = ()=>{ const y = todayYmd(); tDate.value = y; loadDayInto({infoEl:todayInfo, statsEl:todayStats, totalsEl:todayTotals, tbodyEl:tblToday}, y); };
+tTomorrow.onclick = ()=>{ const y = offsetYmd(todayYmd(),1); tDate.value = y; loadDayInto({infoEl:todayInfo, statsEl:todayStats, totalsEl:todayTotals, tbodyEl:tblToday}, y); };
+
+/* 快速列：Tomorrow */
+const tmPrev = document.getElementById('tmPrev');
+const tmDate = document.getElementById('tmDate');
+const tmToday= document.getElementById('tmToday');
+const tmTomorrow = document.getElementById('tmTomorrow');
+
+tmPrev.onclick = ()=>{ const base = tmDate.value || offsetYmd(todayYmd(),1); const y = offsetYmd(base,-1); tmDate.value = y; loadDayInto({infoEl:tomorrowInfo, statsEl:tomorrowStats, totalsEl:tomorrowTotals, tbodyEl:tblTomorrow}, y); };
+tmDate.onchange = ()=>{ const y = tmDate.value || offsetYmd(todayYmd(),1); loadDayInto({infoEl:tomorrowInfo, statsEl:tomorrowStats, totalsEl:tomorrowTotals, tbodyEl:tblTomorrow}, y); };
+tmToday.onclick = ()=>{ const y = todayYmd(); tmDate.value = y; loadDayInto({infoEl:tomorrowInfo, statsEl:tomorrowStats, totalsEl:tomorrowTotals, tbodyEl:tblTomorrow}, y); };
+tmTomorrow.onclick = ()=>{ const y = offsetYmd(todayYmd(),1); tmDate.value = y; loadDayInto({infoEl:tomorrowInfo, statsEl:tomorrowStats, totalsEl:tomorrowTotals, tbodyEl:tblTomorrow}, y); };
+
+/* 渲染與載入 */
 function renderDay(container, data){
   const { infoEl, statsEl, tbodyEl, totalsEl } = container;
   infoEl.textContent = `${data.date || ''}　${data.weekday || ''}`;
 
+  // 總計（每個診別 used/limit + 合計筆數）
+  const slotMap = {};
+  (asArr(data.slots)).forEach(s=>{ slotMap[s.label] = s; });
+  const usedE = slotMap['早診']?.used||0, limitE = slotMap['早診']?.limit||0;
+  const usedN = slotMap['午診']?.used||0, limitN = slotMap['午診']?.limit||0;
+  const usedL = slotMap['晚診']?.used||0, limitL = slotMap['晚診']?.limit||0;
+  const totalItems = asArr(data.items).length;
+  if(totalsEl){
+    totalsEl.textContent = `總計：早診 ${usedE}/${limitE}、午診 ${usedN}/${limitN}、晚診 ${usedL}/${limitL}；合計 ${totalItems} 筆`;
+  }
+
+  // 上方三卡
   statsEl.innerHTML = '';
-  let sumUsed = 0, sumLimit = 0;
   asArr(data.slots).forEach(s=>{
     const tag = s.label==='早診'?'tag-early':(s.label==='午診'?'tag-noon':'tag-night');
-    const used = Number(s.used||0), limit = Number(s.limit||0);
-    sumUsed += used; sumLimit += (isFinite(limit) ? limit : 0);
-    const startNo = s.startNo ?? s['起始號碼'] ?? 1;
-    const step    = s.step    ?? s['間格位數'] ?? 1;
     statsEl.insertAdjacentHTML('beforeend', `
-      <div class="col-12 col-md-4"><div class="card p-3">
+      <div class="col-12 col-md-4"><div class="card">
         <div class="mb-1"><span class="tag ${tag}"></span><strong>${s.label}</strong></div>
         <div class="small-note mb-1">時段：${s.time||'—'}</div>
-        <div><strong>${used}</strong> / ${limit||0}　<span class="small-note">起始：${startNo}　間隔：${step}</span></div>
+        <div><strong>${s.used||0}</strong> / ${s.limit||0}　<span class="small-note">起始號：${s.startNo||1}</span></div>
       </div></div>
     `);
   });
-  if(totalsEl) totalsEl.textContent = `${sumUsed} / ${sumLimit}`;
 
+  // 表格
   tbodyEl.innerHTML = '';
   asArr(data.items).forEach(x=>{
     tbodyEl.insertAdjacentHTML('beforeend', `
@@ -567,61 +491,43 @@ function renderDay(container, data){
   });
 }
 
-async function loadDay(ymd, container){
+async function loadDayInto(container, ymd){
   assertAuthed();
   const r = await axios.get(API,{ params:{ action:'adminDay', date: ymd, token: ADMIN_TOKEN, t:Date.now() }});
   renderDay(container, asObj(r.data));
 }
 
-/* 綁定今天分頁的日期切換 */
-function bindTodayNav(){
-  const tPrev = document.getElementById('tPrev');
-  const tNext = document.getElementById('tNext');
-  const tToday = document.getElementById('tToday');
-  const tTomorrow = document.getElementById('tTomorrow');
-  tPrev.onclick = async ()=>{ currentYmdToday = addDays(currentYmdToday, -1); tDate.value=currentYmdToday; await loadDay(currentYmdToday, {infoEl:todayInfo, statsEl:todayStats, tbodyEl:tblToday, totalsEl:document.getElementById('tTotals')}); };
-  tNext.onclick = async ()=>{ currentYmdToday = addDays(currentYmdToday, +1); tDate.value=currentYmdToday; await loadDay(currentYmdToday, {infoEl:todayInfo, statsEl:todayStats, tbodyEl:tblToday, totalsEl:document.getElementById('tTotals')}); };
-  tToday.onclick = async ()=>{ currentYmdToday = todayYmd(); tDate.value=currentYmdToday; await loadDay(currentYmdToday, {infoEl:todayInfo, statsEl:todayStats, tbodyEl:tblToday, totalsEl:document.getElementById('tTotals')}); };
-  tTomorrow.onclick = async ()=>{ currentYmdToday = addDays(todayYmd(),1); tDate.value=currentYmdToday; await loadDay(currentYmdToday, {infoEl:todayInfo, statsEl:todayStats, tbodyEl:tblToday, totalsEl:document.getElementById('tTotals')}); };
-  tDate.onchange = async ()=>{ currentYmdToday = tDate.value || todayYmd(); await loadDay(currentYmdToday, {infoEl:todayInfo, statsEl:todayStats, tbodyEl:tblToday, totalsEl:document.getElementById('tTotals')}); };
-}
-
-/* 綁定明天分頁的日期切換 */
-function bindTomorrowNav(){
-  const mPrev = document.getElementById('mPrev');
-  const mNext = document.getElementById('mNext');
-  const mToday = document.getElementById('mToday');
-  const mTomorrow = document.getElementById('mTomorrow');
-  mPrev.onclick = async ()=>{ currentYmdTomorrow = addDays(currentYmdTomorrow, -1); mDate.value=currentYmdTomorrow; await loadDay(currentYmdTomorrow, {infoEl:tomorrowInfo, statsEl:tomorrowStats, tbodyEl:tblTomorrow, totalsEl:document.getElementById('mTotals')}); };
-  mNext.onclick = async ()=>{ currentYmdTomorrow = addDays(currentYmdTomorrow, +1); mDate.value=currentYmdTomorrow; await loadDay(currentYmdTomorrow, {infoEl:tomorrowInfo, statsEl:tomorrowStats, tbodyEl:tblTomorrow, totalsEl:document.getElementById('mTotals')}); };
-  mToday.onclick = async ()=>{ currentYmdTomorrow = todayYmd(); mDate.value=currentYmdTomorrow; await loadDay(currentYmdTomorrow, {infoEl:tomorrowInfo, statsEl:tomorrowStats, tbodyEl:tblTomorrow, totalsEl:document.getElementById('mTotals')}); };
-  mTomorrow.onclick = async ()=>{ currentYmdTomorrow = addDays(todayYmd(),1); mDate.value=currentYmdTomorrow; await loadDay(currentYmdTomorrow, {infoEl:tomorrowInfo, statsEl:tomorrowStats, tbodyEl:tblTomorrow, totalsEl:document.getElementById('mTotals')}); };
-  mDate.onchange = async ()=>{ currentYmdTomorrow = mDate.value || addDays(todayYmd(),1); await loadDay(currentYmdTomorrow, {infoEl:tomorrowInfo, statsEl:tomorrowStats, tbodyEl:tblTomorrow, totalsEl:document.getElementById('mTotals')}); };
-}
-
-/* 初始化兩個分頁 */
-async function initTodayTab(){
+async function loadToday(){
   assertAuthed();
-  currentYmdToday = todayYmd();
-  tDate.value = currentYmdToday;
-  bindTodayNav();
-  await loadDay(currentYmdToday, {infoEl:todayInfo, statsEl:todayStats, tbodyEl:tblToday, totalsEl:document.getElementById('tTotals')});
+  const y = todayYmd();
+  tDate.value = y;
+  await loadDayInto({infoEl:todayInfo, statsEl:todayStats, totalsEl:todayTotals, tbodyEl:tblToday}, y);
 }
-async function initTomorrowTab(){
+async function loadTomorrow(){
   assertAuthed();
-  currentYmdTomorrow = addDays(todayYmd(),1);
-  mDate.value = currentYmdTomorrow;
-  bindTomorrowNav();
-  await loadDay(currentYmdTomorrow, {infoEl:tomorrowInfo, statsEl:tomorrowStats, tbodyEl:tblTomorrow, totalsEl:document.getElementById('mTotals')});
+  const y = offsetYmd(todayYmd(), 1);
+  tmDate.value = y;
+  await loadDayInto({infoEl:tomorrowInfo, statsEl:tomorrowStats, totalsEl:tomorrowTotals, tbodyEl:tblTomorrow}, y);
 }
 
-/* Admin 取消（免 reCAPTCHA） */
 async function cancelByRow(id){
   if(!confirm('確定要取消這筆預約嗎？')) return;
   assertAuthed();
-  await axios.get(API,{ params:{ action:'adminCancel', id, token: ADMIN_TOKEN }});
-  if(views['tab-today'].style.display!=='none') await loadDay(currentYmdToday, {infoEl:todayInfo, statsEl:todayStats, tbodyEl:tblToday, totalsEl:document.getElementById('tTotals')});
-  if(views['tab-tomorrow'].style.display!=='none') await loadDay(currentYmdTomorrow, {infoEl:tomorrowInfo, statsEl:tomorrowStats, tbodyEl:tblTomorrow, totalsEl:document.getElementById('mTotals')});
+  try{
+    const resp = await axios.get(API,{ params:{ action:'adminCancel', id, token: ADMIN_TOKEN, t: Date.now() }});
+    if(!(resp.data && resp.data.ok)){
+      alert((resp.data && (resp.data.message||resp.data.error)) || '取消失敗');
+    }
+  }catch(e){
+    console.error(e);
+    alert('取消失敗或尚未登入');
+  }finally{
+    // 依目前各自日期重載
+    const y1 = tDate.value || todayYmd();
+    const y2 = tmDate.value || offsetYmd(todayYmd(),1);
+    if(views['tab-today'].style.display!=='none') await loadDayInto({infoEl:todayInfo, statsEl:todayStats, totalsEl:todayTotals, tbodyEl:tblToday}, y1);
+    if(views['tab-tomorrow'].style.display!=='none') await loadDayInto({infoEl:tomorrowInfo, statsEl:tomorrowStats, totalsEl:tomorrowTotals, tbodyEl:tblTomorrow}, y2);
+  }
 }
 window.cancelByRow = cancelByRow;
 
@@ -655,43 +561,26 @@ async function adjustWin(ds,de){
   if(r.data?.ok) await loadWindow(); else alert('調整失敗');
 }
 
-/* ====== 預設星期規律 開關 ====== */
-const flagWeekSwitch = document.getElementById('flagWeekSwitch');
-async function loadFlags(){
-  assertAuthed();
-  const r = await axios.get(API, { params:{ action:'adminFlags', token: ADMIN_TOKEN, t:Date.now() }});
-  const on = !!r.data?.USE_WEEKDAY_SHIFT;
-  flagWeekSwitch.checked = on;
-}
-async function saveFlags(){
-  assertAuthed();
-  const on = flagWeekSwitch.checked;
-  const r = await axios.get(API, { params:{ action:'adminFlagsSet', USE_WEEKDAY_SHIFT: on?'true':'false', token: ADMIN_TOKEN }});
-  if(!(r.data && r.data.ok)) alert('切換失敗');
-}
-flagWeekSwitch?.addEventListener('change', saveFlags);
-
 /* ====== daily_limit（weekday） ====== */
 const tblDaily = document.getElementById('tblDaily').querySelector('tbody');
 async function loadDaily(){
   assertAuthed();
   const r = await axios.get(API,{ params:{ action:'dailyGet', token: ADMIN_TOKEN, t:Date.now() }});
-  const rows = asArr(r.data).filter(w => VALID_WD.has(w.weekdayEn));
+  const rows = asArr(r.data).filter(w => VALID_WD.has(w.weekdayEn)); // 濾掉試算表表頭那一行
   tblDaily.innerHTML = '';
   rows.forEach(w=>{
     const id = `wd_${w.weekdayEn}`;
     tblDaily.insertAdjacentHTML('beforeend', `
       <tr id="${id}">
         <td>星期${w.weekdayZh||''}<div class="small-note">${w.weekdayEn}</div></td>
-        <td><input class="form-control form-control-sm" type="number" value="${w['早診上限']||w.limitE||0}" data-k="limitE"></td>
-        <td><input class="form-control form-control-sm" type="number" value="${w['午診上限']||w.limitN||0}" data-k="limitN"></td>
-        <td><input class="form-control form-control-sm" type="number" value="${w['晚診上限']||w.limitL||0}" data-k="limitL"></td>
-        <td><input class="form-control form-control-sm" value="${w['早診時間']||w.timeE||''}" data-k="timeE"></td>
-        <td><input class="form-control form-control-sm" value="${w['午診時間']||w.timeN||''}" data-k="timeN"></td>
-        <td><input class="form-control form-control-sm" value="${w['晚診時間']||w.timeL||''}" data-k="timeL"></td>
-        <td><input class="form-control form-control-sm w-ch-4 text-center" type="number" value="${w['起始號碼']||w.startNo||1}" data-k="startNo" min="1"></td>
-        <td><input class="form-control form-control-sm w-ch-3 text-center" type="number" value="${w['間格位數']||w.step||1}" data-k="step" min="1"></td>
-        <td><button class="btn-main btn-sm btn-round" onclick="saveWeek('${w.weekdayEn}')">儲存</button></td>
+        <td class="td-limit"><input class="form-control form-control-sm" type="number" inputmode="numeric" value="${w.limitE||0}" data-k="limitE"></td>
+        <td class="td-limit"><input class="form-control form-control-sm" type="number" inputmode="numeric" value="${w.limitN||0}" data-k="limitN"></td>
+        <td class="td-limit"><input class="form-control form-control-sm" type="number" inputmode="numeric" value="${w.limitL||0}" data-k="limitL"></td>
+        <td class="td-time"><input class="form-control form-control-sm" value="${w.timeE||''}" data-k="timeE"></td>
+        <td class="td-time"><input class="form-control form-control-sm" value="${w.timeN||''}" data-k="timeN"></td>
+        <td class="td-time"><input class="form-control form-control-sm" value="${w.timeL||''}" data-k="timeL"></td>
+        <td class="td-start"><input class="form-control form-control-sm" type="number" inputmode="numeric" value="${w.startNo||1}" data-k="startNo"></td>
+        <td class="td-action"><button class="btn-main btn-sm btn-round" onclick="saveWeek('${w.weekdayEn}')">儲存</button></td>
       </tr>
     `);
   });
@@ -708,12 +597,16 @@ window.saveWeek = saveWeek;
 
 /* ====== special_limit（臨時異動） ====== */
 const newDate    = document.getElementById('newDate');
+const neEarly    = document.getElementById('neEarly');
+const neNoon     = document.getElementById('neNoon');
+const neNight    = document.getElementById('neNight');
+const neEarlyTime= document.getElementById('neEarlyTime');
+const neNoonTime = document.getElementById('neNoonTime');
+const neNightTime= document.getElementById('neNightTime');
 const neEarlyLimit= document.getElementById('neEarlyLimit');
 const neNoonLimit = document.getElementById('neNoonLimit');
 const neNightLimit= document.getElementById('neNightLimit');
 const neNote     = document.getElementById('neNote');
-const neStartNo  = document.getElementById('neStartNo');
-const neStep     = document.getElementById('neStep');
 const addBtn     = document.getElementById('addBtn');
 const tbl        = document.getElementById('tbl');
 
@@ -721,17 +614,14 @@ addBtn.onclick = async () => {
   try{
     assertAuthed();
     if(!newDate.value) return alert("請選日期");
-    const q = {
+    await axios.get(API,{ params:{
       action:'adminAdd', token: ADMIN_TOKEN,
       日期    : newDate.value,
-      早診上限: Number(neEarlyLimit.value||0),
-      午診上限: Number(neNoonLimit.value||0),
-      晚診上限: Number(neNightLimit.value||0),
-      起始號碼: Number(neStartNo.value||1),
-      間格位數: Math.max(1, Number(neStep.value||1)),
+      早診上限: neEarly.checked ? Number(neEarlyLimit.value) : 0,
+      午診上限: neNoon.checked  ? Number(neNoonLimit.value)  : 0,
+      晚診上限: neNight.checked ? Number(neNightLimit.value) : 0,
       備註    : neNote.value
-    };
-    await axios.get(API,{ params:q });
+    }});
     alert("新增完成");
     loadSpecials();
   }catch(e){
@@ -751,11 +641,9 @@ async function loadSpecials(){
       <td>${x.早診上限||0}</td>
       <td>${x.午診上限||0}</td>
       <td>${x.晚診上限||0}</td>
-      <td>${x.起始號碼||1}</td>
-      <td>${x.間格位數||1}</td>
       <td>${x.備註||""}</td>
-      <td class="d-flex gap-2">
-        <button class="btn btn-warning btn-sm btn-round" onclick="editRow('${x.id}')">編輯</button>
+      <td>
+        <button class="btn btn-warning btn-sm me-1 btn-round" onclick="editRow('${x.id}')">編輯</button>
         <button class="btn btn-danger btn-sm btn-round" onclick="delRow('${x.id}')">刪除</button>
       </td></tr>`);
   })
@@ -783,33 +671,13 @@ async function editRow(id){
      <button class="btn-close" data-bs-dismiss="modal"></button>
    </div>
    <div class="modal-body">
-     <div class="row g-2">
-       <div class="col-6">
-         <label class="form-label">早診上限</label>
-         <input id="edEL" class="form-control" type="number" value="${f["早診上限"]||0}">
-       </div>
-       <div class="col-6">
-         <label class="form-label">午診上限</label>
-         <input id="edNL" class="form-control" type="number" value="${f["午診上限"]||0}">
-       </div>
-       <div class="col-6">
-         <label class="form-label mt-2">晚診上限</label>
-         <input id="edTL" class="form-control" type="number" value="${f["晚診上限"]||0}">
-       </div>
-       <div class="col-6">
-         <label class="form-label mt-2">備註</label>
-         <input id="edNote" class="form-control" value="${f["備註"]||""}">
-       </div>
-       <div class="col-6">
-         <label class="form-label mt-2">起始號碼</label>
-         <input id="edStartNo" class="form-control w-ch-4 text-center" type="number" value="${f["起始號碼"]||1}" min="1">
-       </div>
-       <div class="col-6">
-         <label class="form-label mt-2">間格位數</label>
-         <input id="edStep" class="form-control w-ch-4 text-center" type="number" value="${f["間格位數"]||1}" min="1">
-       </div>
-     </div>
-     <div class="small-note mt-2">若要奇數／偶數列：起始=1／2、間隔=2。此處儲存會以 <code>adminAdd</code> 覆蓋該日期設定。</div>
+     <div class="mb-2"><span class="tag tag-early"></span><strong>早診</strong>
+       <input id="edEL" class="form-control d-inline w-25 ms-2" type="number" value="${f["早診上限"]||0}"></div>
+     <div class="mb-2"><span class="tag tag-noon"></span><strong>午診</strong>
+       <input id="edNL" class="form-control d-inline w-25 ms-2" type="number" value="${f["午診上限"]||0}"></div>
+     <div class="mb-2"><span class="tag tag-night"></span><strong>晚診</strong>
+       <input id="edTL" class="form-control d-inline w-25 ms-2" type="number" value="${f["晚診上限"]||0}"></div>
+     <input id="edNote" class="form-control mt-2" value="${f["備註"]||""}">
    </div>
    <div class="modal-footer">
      <button class="btn btn-outline-secondary btn-round" data-bs-dismiss="modal">取消</button>
@@ -817,25 +685,16 @@ async function editRow(id){
    </div>
   </div></div></div>`;
   document.body.insertAdjacentHTML('beforeend',html);
-  const mEl = document.getElementById("editM");
-  const m=new bootstrap.Modal(mEl); m.show();
+  const m=new bootstrap.Modal(document.getElementById("editM")); m.show();
   document.getElementById("saveBtn").onclick=async()=>{
     if(!confirm("確定儲存？"))return;
     await axios.get(API,{ params:{
-      action:'adminAdd', token: ADMIN_TOKEN,
-      日期: f.日期,
-      早診上限:document.getElementById('edEL').value,
-      午診上限:document.getElementById('edNL').value,
-      晚診上限:document.getElementById('edTL').value,
-      備註:document.getElementById('edNote').value,
-      起始號碼:Number(document.getElementById('edStartNo').value||1),
-      間格位數:Math.max(1, Number(document.getElementById('edStep').value||1))
+      action:'adminEdit', id, token: ADMIN_TOKEN,
+      早診上限:edEL.value, 午診上限:edNL.value, 晚診上限:edTL.value, 備註:edNote.value
     }});
     m.hide();
-    mEl.addEventListener('hidden.bs.modal', ()=> mEl.remove(), {once:true});
     loadSpecials();
   };
-  mEl.addEventListener('hidden.bs.modal', ()=> mEl.remove(), {once:true});
 }
 window.editRow = editRow;
 window.delRow  = delRow;
@@ -843,18 +702,11 @@ window.delRow  = delRow;
 /* ====== 試算表捷徑 ====== */
 const sheetsCard = document.getElementById('sheetsCard');
 const sheetBtns  = document.getElementById('sheetBtns');
-let __sheetMeta = null;
-function getSheetIdFromCache(){ return __sheetMeta?.id || ""; }
-function getSpecialGidFromCache(){
-  const hit = (__sheetMeta?.sheets||[]).find(s=>String(s.name).trim()==='special_limit');
-  return hit?.gid || "";
-}
 async function loadSheetLinks(){
   try{
     assertAuthed();
     const r = await axios.get(API,{ params:{ action:'sheetLinks', token: ADMIN_TOKEN, t:Date.now() }});
     const data = asObj(r.data);
-    __sheetMeta = { id:data.id, sheets: asArr(data.sheets) };
     const id = data.id;
     const sheets = asArr(data.sheets);
     if(!id || !sheets.length){ sheetsCard.style.display='none'; return; }
