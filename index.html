@@ -78,29 +78,38 @@ function aesDec(cipherParam){
 
   body{ background:#f4eefc; }
   .card{
-    max-width:780px; margin:32px auto; padding:24px 22px 28px;
+    max-width:780px; margin:32px auto; padding:28px 22px 32px;
     border-radius:24px; border:1px solid var(--line); background:#fff;
     box-shadow:0 12px 28px rgba(98,54,167,.10);
   }
-  /* 標題列 (+ 與文字同一高度置中) */
-  .header{ display:flex; align-items:center; gap:12px; margin-bottom:8px; }
+
+  /* ===== 標題：加大、置中 ===== */
+  .header{
+    display:flex; align-items:center; justify-content:center;
+    gap:14px; margin-bottom:12px; text-align:center;
+  }
   .header .logo{
-    width:46px; height:46px; border-radius:50%;
+    width:60px; height:60px; border-radius:50%;
     display:grid; place-items:center;
-    background:var(--purple); color:#fff; font-weight:900; font-size:24px;
+    background:var(--purple); color:#fff; font-weight:900; font-size:32px;
     box-shadow:0 6px 14px rgba(98,54,167,.20);
   }
-  .header h1{ margin:0; font-size:1.45rem; font-weight:900; color:var(--ink); }
+  .header h1{
+    margin:0; font-size:2rem; line-height:1; font-weight:900; color:var(--ink);
+  }
 
-  /* 注意事項：獨立一行、放在「預約日期*」下方會用到（這裡先設樣式） */
+  /* 注意事項：獨立一行（在「預約日期 *」下） */
   .note-bubble{
-    margin:8px 0 6px 0;
+    margin:10px 0 8px 0;
     color:#6b5f92; font-weight:700; font-size:.95rem;
     background:#f4f0ff; border:1px solid var(--line); border-radius:12px; padding:10px 12px;
   }
 
+  /* ===== 表單：小標一律粗體 ===== */
+  .form-label{ font-weight:800; color:#2f2750; }
+  .form-check-label{ font-weight:800; color:#2f2750; }
   .form-control,.form-select{ border-radius:14px; }
-  #weekday{ color:#7b6aa4; font-weight:700; }
+  #weekday{ color:#7b6aa4; font-weight:800; }
 
   /* 診別下拉依詞彙變色 */
   .slot-theme{ transition:background-color .2s,border-color .2s,color .2s; }
@@ -108,7 +117,7 @@ function aesDec(cipherParam){
   .slot-noon { background:#fff3df !important; border-color:#ffd79a !important; color:#7a4d00 !important; }
   .slot-night{ background:#e8f2ff !important; border-color:#cfe2ff !important; color:#1d4ed8 !important; }
 
-  /* ===== 按鈕造型（比照 query 畫面） ===== */
+  /* ===== 按鈕：上紫下灰（粗體） ===== */
   .btn-pill{ border-radius:999px; font-weight:800; padding:1rem 1.25rem; }
   .btn-main{ background:var(--purple); color:#fff; border:none; }
   .btn-main:hover{ background:var(--purple-600); color:#fff; }
@@ -132,7 +141,7 @@ function aesDec(cipherParam){
 <div id="mask">預約中請稍等，請勿關閉或重新整理頁面<span id="dots">...</span></div>
 
 <div class="card">
-  <!-- 標題 -->
+  <!-- 標題（＋ 與文字加大、置中） -->
   <div class="header">
     <div class="logo">＋</div>
     <h1>陳萬龍診所門診線上預約</h1>
@@ -141,7 +150,7 @@ function aesDec(cipherParam){
   <!-- 預約日期 -->
   <div class="mb-3 mt-2">
     <label class="form-label">預約日期 *</label>
-    <!-- 注意事項：依你的要求放在「預約日期 *」下面 -->
+    <!-- 注意事項：放在「預約日期 *」下面 -->
     <div class="note-bubble">
       只能選擇今天起後2天~14天內的門診；無選項可選表示預約已額滿。若有日期無法選擇，請對照門診時刻表與最新消息查看是否有門診異動。
     </div>
@@ -185,7 +194,7 @@ function aesDec(cipherParam){
     </label>
   </div>
 
-  <!-- 按鈕：上紫下灰（與 query 相同風格） -->
+  <!-- 按鈕：上紫下灰（粗體） -->
   <div class="d-grid gap-3">
     <button id="submitBtn" class="btn btn-pill btn-main">送出預約</button>
     <a href="query.html" class="btn btn-pill btn-outline-gray text-decoration-none text-center">查詢／取消預約</a>
