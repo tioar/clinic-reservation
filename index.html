@@ -65,7 +65,7 @@ function aesDec(cipherParam){
 </script>
 
 <style>
-  /* ===== 全螢幕送出遮罩（保留原機制與 ... 動畫，只做外觀強化） ===== */
+  /* ===== 全螢幕送出遮罩 ===== */
   #mask{
     position:fixed; inset:0; display:none;
     align-items:center; justify-content:center;
@@ -75,40 +75,51 @@ function aesDec(cipherParam){
   }
   #dots{ display:inline-block; width:2ch; text-align:left }
 
-  /* ===== 版面小強化：卡片與標題區 ===== */
+  /* ===== 版面 ===== */
   body{ background:#f6f2fc; }
   .card{
     max-width:780px; margin:32px auto; padding:20px 20px 24px;
     border-radius:20px; border:1px solid #e5e1f4; background:#fff;
     box-shadow:0 8px 24px rgba(100,61,168,.08);
   }
-  .header{ display:flex; align-items:flex-start; gap:12px; margin-bottom:8px; }
+
+  /* ✅ 標題區：與＋垂直置中對齊 */
+  .header{ display:flex; align-items:center; gap:12px; margin-bottom:8px; }
   .header .logo{
     width:42px; height:42px; border-radius:50%;
     display:grid; place-items:center;
-    background:#643da8; color:#fff; font-weight:900; font-size:22px; box-shadow:0 6px 14px rgba(100,61,168,.2);
+    background:#643da8; color:#fff; font-weight:900; font-size:22px; line-height:1;
+    box-shadow:0 6px 14px rgba(100,61,168,.2);
   }
   .header h1{
     font-size:1.4rem; font-weight:900; margin:0; line-height:1.2; color:#2a2341;
   }
-  /* ✅ 副標改為獨立「小標」放在標題下方（不是同一行） */
+
+  /* 注意文字（搬到日期下方時沿用樣式） */
   .subnote{
-    margin:6px 0 2px 54px;  /* 與 logo 對齊縮排 */
     color:#776c9d; font-weight:700; font-size:.95rem;
     background:#f6f2fc; border:1px solid #ebe6fb; border-radius:12px; padding:10px 12px;
   }
 
   /* 表單圓角與主按鈕 */
   .form-control, .form-select{ border-radius:14px; }
+
+  /* 主紫色按鈕 */
   .btn-main{
     background:#643da8; color:#fff; border:0; border-radius:999px; font-weight:800;
   }
   .btn-main:hover{ background:#4d2f82; color:#fff; }
 
+  /* 淺紫色按鈕（次要） */
+  .btn-subtle{
+    background:#ede9fe; color:#4d2f82; border:0; border-radius:999px; font-weight:800;
+  }
+  .btn-subtle:hover{ background:#e3ddff; color:#3c256a; }
+
   /* 星期文案顏色 */
   #weekday{ color:#776c9d; font-weight:700; }
 
-  /* ===== 診別下拉：依選項變色（早=綠、午=橘、晚=藍） ===== */
+  /* 診別下拉：依選項變色（早=綠、午=橘、晚=藍） */
   .slot-theme{ transition:background-color .2s ease, border-color .2s ease, color .2s ease; }
   .slot-early{ background:#e7f7ee !important; border-color:#b8ead4 !important; color:#0f5132 !important; }
   .slot-noon { background:#fff3df !important; border-color:#ffd79a !important; color:#7a4d00 !important; }
@@ -116,7 +127,7 @@ function aesDec(cipherParam){
 </style>
 </head>
 <body>
-<!-- ✅ 保留且沿用原動畫機制 -->
+<!-- 遮罩 -->
 <div id="mask">預約中請稍等，請勿關閉或重新整理頁面<span id="dots">...</span></div>
 
 <div class="card">
@@ -124,16 +135,18 @@ function aesDec(cipherParam){
     <div class="logo">＋</div>
     <h1>陳萬龍診所門診線上預約</h1>
   </div>
-  <!-- 小標（副標）— 改為獨立一行、置於標題下方 -->
-  <div class="subnote">
-    只能選擇今天起後2天~14天內的門診；無選項可選表示預約已額滿。若有日期無法選擇，請對照門診時刻表與最新消息查看是否有門診異動。
-  </div>
 
   <!-- 錯誤訊息列（預設隱藏） -->
   <div id="errBar" class="alert alert-danger d-none" role="alert" style="margin-top:8px;"></div>
 
+  <!-- 預約日期 -->
   <div class="mb-3 mt-2">
     <label class="form-label">預約日期 *</label>
+    <!-- ✅ 注意事項改放到這裡 -->
+    <div class="subnote mb-2">
+      只能選擇今天起後2天~14天內的門診；無選項可選表示預約已額滿。若有日期無法選擇，請對照門診時刻表與最新消息查看是否有門診異動。
+    </div>
+
     <div class="d-flex align-items-center flex-nowrap">
       <input type="date" id="date" class="form-control" style="max-width:70%;" autocomplete="off" />
       <span id="weekday" class="ms-2"></span>
@@ -174,8 +187,9 @@ function aesDec(cipherParam){
     </label>
   </div>
 
-  <button id="submitBtn" class="btn-main w-100">送出預約</button>
-  <a href="query.html" class="d-block mt-3 text-center text-decoration-underline" style="color:#3b7096;">查詢／取消預約</a>
+  <!-- ✅ 兩個上下按鈕 -->
+  <button id="submitBtn" class="btn-main w-100 py-3">送出預約</button>
+  <a class="btn-subtle w-100 d-block text-center py-3 mt-2 text-decoration-none" href="query.html">查詢／取消預約</a>
 </div>
 
 <!-- 預約須知 Modal -->
@@ -213,7 +227,7 @@ const $errBar   = el('errBar');
 const $mask     = el('mask');
 const $dots     = el('dots');
 
-/* 遮罩動畫（保留原有行為） */
+/* 遮罩動畫 */
 let dotTimer=null;
 function showMask(txt){
   $mask.firstChild.nodeValue = (txt||'預約中請稍等，請勿關閉或重新整理頁面');
@@ -265,7 +279,7 @@ async function initDateWindow(){
     $date.max = max.toISOString().split("T")[0];
     $date.value = $date.min;
   }catch(_){
-    const today=new Date(), min=new Date(today.getTime()+86400000), max=new Date(today.getTime()+15*86400000);
+    const today=new Date(), min=new Date(today.getTime()+2*86400000), max=new Date(today.getTime()+14*86400000);
     $date.min=min.toISOString().split("T")[0];
     $date.max=max.toISOString().split("T")[0];
     $date.value=$date.min;
@@ -289,7 +303,6 @@ async function onDateChange(){
 
   try{
     const r = await axios.get(API,{ params:{ action:'getSlots', date:d, t: Date.now() }});
-    // 兼容：可能回傳陣列，或 { slots, nonce, exp, sig, date }
     const data  = r.data;
     const slots = Array.isArray(data) ? data : (Array.isArray(data?.slots) ? data.slots : []);
     if (!Array.isArray(data) && data && data.nonce && data.sig && data.exp){
@@ -306,9 +319,7 @@ async function onDateChange(){
         html += `<option value="${label}"
                        data-time="${o.time||''}"
                        data-start="${o.startNo||1}"
-                       data-remain="${remain}">
-                   ${label}（${o.time||''}，剩 ${remain}/${limit}）
-                 </option>`;
+                       data-remain="${remain}">${label}（${o.time||''}，剩 ${remain}/${limit}）</option>`;
       }
     });
     if (html === '<option value="">請選診別</option>' && (!slots || slots.length === 0)){
@@ -322,19 +333,17 @@ async function onDateChange(){
 }
 
 /* 輸入限制 */
-$idnum.addEventListener("input",e=>{
+el('idnum').addEventListener("input",e=>{
   clearErr();
   e.target.value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,10);
 });
-$phone.addEventListener("input",e=>{
+el('phone').addEventListener("input",e=>{
   clearErr();
   e.target.value = e.target.value.replace(/\D/g,'').slice(0,10);
 });
 
 /* Enter 快速送出 */
-document.addEventListener('keydown', e=>{
-  if(e.key === 'Enter') $submit.click();
-});
+document.addEventListener('keydown', e=>{ if(e.key === 'Enter') $submit.click(); });
 
 /* 預約須知 */
 el('showNotice').onclick = e=>{
@@ -342,7 +351,7 @@ el('showNotice').onclick = e=>{
   new bootstrap.Modal(el('noticeModal')).show();
 };
 
-/* 送出（顯示錯誤於本頁，不跳 success 前先處理） */
+/* 送出 */
 let submitting=false;
 $submit.onclick = async ()=>{
   if(submitting) return;
@@ -353,11 +362,11 @@ $submit.onclick = async ()=>{
   const opt = (si>=0)? $slot.options[si] : null;
   const s  = opt ? (opt.value||'').trim() : '';
 
-  const n  = ($name.value||'').trim();
-  const b  = ($birthday.value||'').trim();
-  const id = ($idnum.value||'').trim().toUpperCase();
-  const ph = ($phone.value||'').trim();
-  const ag = $agree.checked;
+  const n  = (el('name').value||'').trim();
+  const b  = (el('birthday').value||'').trim();
+  const id = (el('idnum').value||'').trim().toUpperCase();
+  const ph = (el('phone').value||'').trim();
+  const ag = el('agree').checked;
 
   if(!d||!s||!n||!b||!id||!ph||!ag){ showErr('資料未填完整'); return; }
   if(!/^[A-Z][12]\d{8}$/.test(id)){ showErr('身分證格式錯誤'); return; }
@@ -368,9 +377,8 @@ $submit.onclick = async ()=>{
   try{
     submitting=true;
     $submit.disabled=true;
-    showMask(); // ✅ 保留原遮罩啟動
+    showMask();
 
-    // 可能需要的 token（後端未啟用也不影響）
     const recaptchaToken = await getRecaptchaToken();
 
     const params = {
@@ -379,7 +387,6 @@ $submit.onclick = async ()=>{
       recaptchaToken,
       t: Date.now()
     };
-    // 若有 nonce（開啟 REQUIRE_NONCE 時）
     if (nonceMeta && nonceMeta.date === d){
       params.nonce = nonceMeta.nonce;
       params.sig   = nonceMeta.sig;
@@ -390,42 +397,26 @@ $submit.onclick = async ()=>{
 
     if(!r.data?.ok){
       const code = r.data?.error || '';
-      if(code === 'duplicate'){
-        showErr('重複預約，請檢查預約資料');
-      }else if(code === 'full'){
-        showErr('名額已滿，請改選其他時段或日期');
-      }else if(code === 'out_of_window'){
-        showErr(r.data?.message || '超出可預約期間');
-      }else if(code === 'robot'){
-        showErr('驗證未通過，請再試一次');
-      }else if(code === 'bad_nonce'){
-        showErr('頁面逾時，請重新選擇日期與診別再送出');
-      }else if(code === 'slow_down'){
-        showErr('操作過於頻繁，請稍後再試');
-      }else{
-        showErr(r.data?.message || '送出失敗，請稍後再試');
-      }
+      if(code === 'duplicate')       showErr('重複預約，請檢查預約資料');
+      else if(code === 'full')       showErr('名額已滿，請改選其他時段或日期');
+      else if(code === 'out_of_window') showErr(r.data?.message || '超出可預約期間');
+      else if(code === 'robot')      showErr('驗證未通過，請再試一次');
+      else if(code === 'bad_nonce')  showErr('頁面逾時，請重新選擇日期與診別再送出');
+      else if(code === 'slow_down')  showErr('操作過於頻繁，請稍後再試');
+      else                           showErr(r.data?.message || '送出失敗，請稍後再試');
       return;
     }
 
     const idFromApi = r?.data?.id || r?.data?.Id || r?.data?.bookingId || r?.data?.data?.id;
-    if (!idFromApi) {
-      console.warn('後端未回傳 id，回應為：', r.data);
-      showErr('送出成功，但取得預約代碼失敗，請稍後再試');
-      return;
-    }
+    if (!idFromApi) { showErr('送出成功，但取得預約代碼失敗，請稍後再試'); return; }
 
-    // ✅ 取回 receipt（若後端啟用 REQUIRE_RECEIPT）
     const receipt = r?.data?.receipt || r?.data?.rcpt || '';
-    if (receipt) {
-      try { sessionStorage.setItem('rcpt:'+String(idFromApi), String(receipt)); } catch(_){}
-    }
+    if (receipt) { try { sessionStorage.setItem('rcpt:'+String(idFromApi), String(receipt)); } catch(_){ } }
     sessionStorage.setItem('lastBookingId', String(idFromApi));
 
-    // 帶 id +（可選）receipt 給 success.html
     const baseDir = new URL('.', location.href);
     const successUrl = new URL('success.html', baseDir);
-    const cipher = aesEnc({ id: idFromApi, receipt }); // 用 receipt 這個鍵名
+    const cipher = aesEnc({ id: idFromApi, receipt });
     successUrl.searchParams.set('cipher', cipher);
     location.assign(successUrl.href);
 
@@ -435,11 +426,11 @@ $submit.onclick = async ()=>{
   }finally{
     submitting=false;
     $submit.disabled=false;
-    hideMask(); // ✅ 保留原遮罩關閉
+    hideMask();
   }
 };
 
-/* 初始化：載視窗→載當日 slot；若設定了 reCAPTCHA，先載入腳本 */
+/* 初始化 */
 (async () => {
   try{ await loadRecaptcha(); }catch(_){}
   await initDateWindow();
@@ -448,4 +439,3 @@ $submit.onclick = async ()=>{
 </script>
 </body>
 </html>
-
