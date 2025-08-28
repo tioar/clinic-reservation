@@ -52,7 +52,7 @@
     .btn-danger{ background:#dc3545; color:#fff !important; }
     .btn-danger:hover{ background:#b02a37; color:#fff !important; }
     .btn-warning{ background:#f59e0b; color:#fff !important; }
-    .btn-warning:hover{ background:#d97706; color:#fff !important; }
+    .btn-warning:hover{ background:#d97706; color:#fff !重要; }
 
     /* ===== Login ===== */
     .login-card{ display:grid; place-items:center; min-height:calc(100vh - 6rem); padding:3rem 1rem; }
@@ -131,11 +131,11 @@
 
     /* 列上色（與你現用一致：整條著色 + 左側色條） */
     tr.slot-early-light  > *{ background:var(--early-light) !important; }
-    tr.slot-early-dark   > *{ background:var(--early-dark)  !important; }
+    tr.slot-early-dark   > *{ background:var(--early-dark)  !重要; }
     tr.slot-noon-light   > *{ background:var(--noon-light)  !important; }
-    tr.slot-noon-dark    > *{ background:var(--noon-dark)   !important; }
-    tr.slot-night-light  > *{ background:var(--night-light) !important; }
-    tr.slot-night-dark   > *{ background:var(--night-dark)  !important; }
+    tr.slot-noon-dark    > *{ background:var(--noon-dark)   !重要; }
+    tr.slot-night-light  > *{ background:var(--night-light) !重要; }
+    tr.slot-night-dark   > *{ background:var(--night-dark)  !重要; }
 
     tr[class^="slot-early"] td:first-child{ box-shadow:inset 6px 0 0 0 var(--early-bar); }
     tr[class^="slot-noon"]  td:first-child{ box-shadow:inset 6px 0 0 0 var(--noon-bar); }
@@ -533,6 +533,13 @@ function switchTab(id){
   if(id==='tab-settings'){ loadWindow(); loadFlags(); loadDaily(); loadSheetLinks(); }
   if(id==='tab-special'){ loadSpecials(); }
 }
+
+/* ✅ 補上分頁事件監聽（事件委派，一次搞定四顆按鈕） */
+document.querySelector('.tabbar').addEventListener('click', (e)=>{
+  const btn = e.target.closest('button[data-tab]');
+  if(!btn) return;
+  switchTab(btn.dataset.tab);
+});
 
 function showApp(){ loginBox.style.display="none"; appBox.style.display="block"; switchTab('tab-today'); }
 function showLogin(){
