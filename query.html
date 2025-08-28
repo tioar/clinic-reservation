@@ -9,8 +9,12 @@
 <link rel="icon" type="image/png" href="favicon.png">
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 
-<!-- reCAPTCHA v3（可留空字串略過） -->
-<script>const RECAPTCHA_SITE_KEY="6LdqprArAAAAACpuAXemZUH3KNER1t1iw07YjGHu";</script>
+<!-- ✅ 與 GAS 對齊的 API 位址 -->
+<script>
+  const API = "https://script.google.com/macros/s/AKfycbzRmUag-TbdRifSp0xB2i4VSH12d3bx5QqawHF0LUM9wqs1iIcRhZX62B0xqqPnX7o9/exec";
+  // 若伺服端啟用 reCAPTCHA，請填 site key；沒啟用可留空字串
+  const RECAPTCHA_SITE_KEY = "6LdqprArAAAAACpuAXemZUH3KNER1t1iw07YjGHu";
+</script>
 
 <style>
   :root{
@@ -23,14 +27,12 @@
     --outline:#cfd3de;
     --outline-text:#5c6170;
   }
-
   body{ background:#f4eefc; }
   .card{
     max-width:780px; margin:32px auto; padding:24px 22px 28px;
     border-radius:24px; border:1px solid var(--line); background:#fff;
     box-shadow:0 12px 28px rgba(98,54,167,.10);
   }
-
   .header{ display:flex; align-items:center; gap:12px; margin-bottom:6px; }
   .logo{
     width:46px;height:46px;border-radius:50%;
@@ -39,27 +41,25 @@
   }
   .header h1{ margin:0; font-size:1.45rem; font-weight:900; color:var(--ink); }
 
-  /* ✅ 注意事項：不縮排（無任何左側額外 margin/padding） */
+  /* ✅ 注意事項：不縮排、獨立一行 */
   .note-bubble{
-    margin:10px 0 14px 0;          /* ← 左邊 0，完全靠左 */
-    padding:12px 14px;
+    margin:10px 0 14px 0; padding:12px 14px;
     background:#f4f0ff; border:1px solid var(--line); border-radius:12px;
     color:#6b5f92; font-weight:700; font-size:.95rem;
   }
 
   .form-control,.form-select{ border-radius:14px; }
 
-  /* 按鈕風格（上紫下灰） */
+  /* 按鈕（上紫下灰，跟 index 一致） */
   .btn-pill{ border-radius:999px; font-weight:800; padding:1rem 1.25rem; }
   .btn-main{ background:var(--purple); color:#fff; border:none; }
   .btn-main:hover{ background:var(--purple-600); color:#fff; }
   .btn-outline-gray{
-    background:#fff; color:var(--outline-text);
-    border:2px solid var(--outline);
+    background:#fff; color:var(--outline-text); border:2px solid var(--outline);
   }
   .btn-outline-gray:hover{ background:#f7f8fb; color:#3a3f47; border-color:#bfc6d2; }
 
-  /* 列表 */
+  /* 結果列表 */
   .list-row{display:grid;grid-template-columns:1.1fr .9fr .7fr 1fr 1fr .6fr .8fr;gap:.5rem;align-items:center}
   .list-head{font-weight:700;color:#4c5680;margin-bottom:.5rem}
   .btn-cancel{background:#dc3545;border:none;color:#fff}
@@ -68,7 +68,6 @@
   /* 遮罩 */
   #ing{position:fixed;inset:0;background:rgba(255,255,255,.9);display:none;align-items:center;justify-content:center;z-index:9999;font-size:18px;color:var(--purple-600);backdrop-filter:blur(2px)}
   #dots{display:inline-block;width:2ch;text-align:left}
-
   @media (max-width:576px){
     .list-row{grid-template-columns:1.1fr .7fr .7fr .9fr 1fr .6fr .8fr}
   }
@@ -83,7 +82,7 @@
     <h1>查詢／取消預約</h1>
   </div>
 
-  <!-- ✅ 注意事項（不縮排版本） -->
+  <!-- 注意事項（不縮排） -->
   <div class="note-bubble">
     線上取消預約只能在預約的門診前一天執行；門診當天請改以電話取消，謝謝。
   </div>
@@ -112,10 +111,7 @@
 </div>
 
 <script>
-/* === 後端 API（與 index/success 同一支） === */
-const API = "https://script.google.com/macros/s/AKfycbzRmUag-TbdRifSp0xB2i4VSH12d3bx5QqawHF0LUM9wqs1iIcRhZX62B0xqqPnX7o9/exec";
-
-/* reCAPTCHA 動態載入 */
+/* ===== reCAPTCHA：動態載入（伺服端未啟用會自動視為通過） ===== */
 let recaptchaLoaded=false, recaptchaLoading=null;
 function loadRecaptcha(){
   if(!RECAPTCHA_SITE_KEY) return Promise.resolve();
@@ -141,7 +137,7 @@ async function getRecaptchaToken(action='query'){
   }catch(_){ return ''; }
 }
 
-/* DOM */
+/* ===== DOM ===== */
 const $pid  = document.getElementById('pid');
 const $btn  = document.getElementById('btnQuery');
 const $res  = document.getElementById('result');
@@ -150,7 +146,7 @@ const $hint = document.getElementById('hint');
 const $ing  = document.getElementById('ing');
 const $dots = document.getElementById('dots');
 
-/* 遮罩點點 */
+/* 遮罩動畫 */
 let dotTimer=null;
 function showing(txt){
   $ing.firstChild.nodeValue = (txt||'處理中請稍等');
@@ -183,20 +179,27 @@ function todayYmd(){
   return `${yyyy}-${mm}-${dd}`;
 }
 
-/* 查詢 */
+/* ===== 查詢（與 GAS 對齊：action=queryByPid，參數 idnum + recaptchaToken） ===== */
 async function queryByPid(){
   const pid = $pid.value.trim().toUpperCase();
-  if(!/^[A-Z][12]\d{8}$/.test(pid)){ alert('請輸入正確的身分證字號'); return; }
+  if(!/^[A-Z][12]\d{8}$/.test(pid)){
+    alert('請輸入正確的身分證字號'); return;
+  }
 
   showing('查詢中請稍等');
   try{
     const recaptchaToken = await getRecaptchaToken('query');
-    const r = await axios.get(API,{ params:{ action:'queryByPid', idnum: pid, recaptchaToken, t: Date.now() }});
+    const r = await axios.get(API,{
+      params:{ action:'queryByPid', idnum: pid, recaptchaToken, t: Date.now() }
+    });
     const payload = (typeof r.data === 'string') ? JSON.parse(r.data) : r.data;
 
-    if(payload?.error === 'robot'){ alert('機器人驗證未通過，請重新操作'); return; }
+    if(payload?.error === 'robot'){
+      alert('機器人驗證未通過，請重新操作'); return;
+    }
 
     const rows = Array.isArray(payload?.items) ? payload.items.filter(x => !x.cancelled) : [];
+
     $list.innerHTML = '';
     $res.style.display='block';
 
@@ -216,12 +219,12 @@ async function queryByPid(){
   }
 }
 
-/* 一列 */
+/* 渲染一列（當天一律禁用取消；與 GAS 規則一致） */
 function appendRow(item, pid){
   const ymd = item.date || '';
   const w   = weekday(ymd);
   const t   = item.time || guessTime(item.slot) || '';
-  const disableCancel = (ymd === todayYmd()); // 當天不可取消
+  const disableCancel = (ymd === todayYmd());
 
   const row = document.createElement('div');
   row.className = 'list-row mb-2';
@@ -233,7 +236,7 @@ function appendRow(item, pid){
     <div>${item.name||''}</div>
     <div>${item.num||''}</div>
     <div>
-      <button class="btn btn-cancel btn-sm" ${disableCancel ? 'disabled' : ''} data-id="${item.id||''}">取消</button>
+      <button class="btn btn-cancel btn-sm" ${disableCancel ? 'disabled' : ''}>取消</button>
     </div>
   `;
   row.querySelector('.btn-cancel').onclick = () => {
@@ -243,7 +246,7 @@ function appendRow(item, pid){
   $list.appendChild(row);
 }
 
-/* 取消（依身分證） */
+/* 取消（與 GAS 對齊：action=cancel，傳 idnum + recaptchaToken；僅取消非當天） */
 async function cancelByPid(pid){
   const ok = confirm(`確認取消此身分證字號 ${pid} 的所有未取消預約？\n（僅能取消非當天門診）`);
   if(!ok) return;
@@ -251,9 +254,11 @@ async function cancelByPid(pid){
   showing('取消中請稍等');
   try{
     const recaptchaToken = await getRecaptchaToken('cancel');
-    const resp = await axios.get(API,{ params:{ action:'cancel', idnum: pid, recaptchaToken, t: Date.now() }});
+    const resp = await axios.get(API,{
+      params:{ action:'cancel', idnum: pid, recaptchaToken, t: Date.now() }
+    });
     if(resp.data && (resp.data.ok || resp.data.success)){
-      alert(resp.data.message || '已取消預約。');
+      alert(resp.data.message || '已取消符合規則的預約。');
       await queryByPid();
     }else{
       alert((resp.data && resp.data.message) || '取消失敗，請稍後再試');
@@ -267,11 +272,11 @@ async function cancelByPid(pid){
 }
 
 /* 綁定與限制 */
-document.getElementById('btnQuery').onclick = queryByPid;
-document.getElementById('pid').addEventListener('input', e=>{
+$btn.onclick = queryByPid;
+$pid.addEventListener('input', e=>{
   e.target.value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,10);
 });
-document.getElementById('pid').addEventListener('keydown', e=>{
+$pid.addEventListener('keydown', e=>{
   if(e.key === 'Enter') queryByPid();
 });
 
