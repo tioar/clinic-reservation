@@ -11,7 +11,7 @@
 <script src="https://cdn.jsdelivr.net/npm/crypto-js@4.2.0/crypto-js.min.js"></script>
 
 <script>
-const API = "https://script.google.com/macros/s/AKfycbzRmUag-TbdRifSp0xB2i4VSH12d3bx5QqawHF0LUM9wqs1iIcRhZX62B0xqqPnX7o9/exec";
+const API = "https://script.google.com/macros/s/AKfycbxWNXkvOyXg3Nkx7rC_NIitZgQUAP1v5-6BHMFgXDGWbPLmcHAw8TCa-5wmRePMF41w/exec";
 const RECAPTCHA_SITE_KEY = "6LdqprArAAAAACpuAXemZUH3KNER1t1iw07YjGHu";
 
 let recaptchaLoaded=false, recaptchaLoading=null;
@@ -112,6 +112,8 @@ function aesEnc(payload, ttlMs = 10 * 60 * 1000){
   .slot-early { background:#e7f7ee !important; color:#0f5132 !important; border-color:#b8ead4 !important; }
   .slot-noon  { background:#fff3df !important; color:#7a4d00 !important; border-color:#ffd79a !important; }
   .slot-night { background:#e8f2ff !important; color:#1d4ed8 !important; border-color:#cfe2ff !important; }
+  /* ⬇️ 新增：約診（粉紅） */
+  .slot-appt  { background:#ffeaf1 !important; color:#9b1246 !important; border-color:#ffc8da !important; }
   .slot-closed{ background:#ffe6e6 !important; color:#b02a37 !important; border-color:#ffcccc !important; }
 
   /* 讓選項可換行（多數瀏覽器可用；iOS 原生選單仍可能單行） */
@@ -146,7 +148,7 @@ function aesEnc(payload, ttlMs = 10 * 60 * 1000){
   <div class="mb-3 mt-2">
     <label class="form-label">預約日期 *</label>
     <div class="note-bubble">
-      只能選擇今天起後 2~14 天內的門診；無選項可選表示預約已額滿。若有日期無法選擇，請對照門診時刻表與最新消息查看是否有門診異動。
+      只能選擇今天起後 2~14 天內的門診；無選項可選表示預約已額滿。若有日期無法選擇，請對照「門診時刻表」與「最新消息」查看是否有門診異動。
     </div>
     <div class="d-flex align-items-center flex-nowrap">
       <input type="date" id="date" class="form-control" style="max-width:70%;" autocomplete="off" />
@@ -256,6 +258,7 @@ function slotKey(label){
   if(s.includes('早')) return 'early';
   if(s.includes('午')) return 'noon';
   if(s.includes('晚')) return 'night';
+  if(s.includes('約')) return 'appt';       // ⬅️ 新增：約診
   if(s.includes('未開放')) return 'closed';
   return '';
 }
@@ -263,7 +266,7 @@ function slotKey(label){
 /* 讓 select 本體跟著已選診別變色 */
 function applySelectTheme(){
   const key = slotKey($slot.value||'');
-  $slot.classList.remove('slot-early','slot-noon','slot-night','slot-closed');
+  $slot.classList.remove('slot-early','slot-noon','slot-night','slot-appt','slot-closed');
   if(key) $slot.classList.add('slot-'+key);
 }
 $slot.addEventListener('change', applySelectTheme);
@@ -299,7 +302,7 @@ async function onDateChange(){
   const d=$date.value;
   updateWeekday(d);
   $slot.innerHTML = '<option value="">讀取中…</option>';
-  $slot.classList.remove('slot-early','slot-noon','slot-night','slot-closed');
+  $slot.classList.remove('slot-early','slot-noon','slot-night','slot-appt','slot-closed');
 
   try{
     const r = await axios.get(API,{ params:{ action:'getSlots', date:d, t: Date.now() }});
