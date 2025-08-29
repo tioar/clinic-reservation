@@ -7,15 +7,14 @@
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
 <link rel="icon" type="image/png" href="favicon.png">
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-
-<!-- 🔐 CryptoJS (AES) 只做遮蔽用 -->
+<!-- CryptoJS (AES) 僅用於 success 參數遮蔽 -->
 <script src="https://cdn.jsdelivr.net/npm/crypto-js@4.2.0/crypto-js.min.js"></script>
 
 <script>
-/* === 後端 API（請與 success / query 同一支） === */
+/* === 後端 API（與 GAS 對齊） === */
 const API = "https://script.google.com/macros/s/AKfycbzRmUag-TbdRifSp0xB2i4VSH12d3bx5QqawHF0LUM9wqs1iIcRhZX62B0xqqPnX7o9/exec";
 
-/* === 可選：reCAPTCHA v3 Site Key（有就填；沒填就自動略過） === */
+/* === 可選：reCAPTCHA v3 Site Key（伺服端若啟用才需要） === */
 const RECAPTCHA_SITE_KEY = "6LdqprArAAAAACpuAXemZUH3KNER1t1iw07YjGHu";
 
 /* 動態載入 reCAPTCHA */
@@ -52,38 +51,31 @@ function aesEnc(payload, ttlMs = 10 * 60 * 1000){
   const cipher = CryptoJS.AES.encrypt(JSON.stringify(obj), AES_KEY).toString();
   return encodeURIComponent(cipher);
 }
-function aesDec(cipherParam){
-  const bytes = CryptoJS.AES.decrypt(decodeURIComponent(cipherParam), AES_KEY);
-  const text  = bytes.toString(CryptoJS.enc.Utf8);
-  if (!text) throw new Error("DECRYPT_FAIL");
-  const data = JSON.parse(text);
-  if (data.exp && Date.now() > data.exp) throw new Error("TOKEN_EXPIRED");
-  return data;
-}
 </script>
 
 <style>
-  /* ===== 紫色主題 ===== */
   :root{
     --purple:#6236a7;
     --purple-600:#4b2c86;
     --lavender:#f6f2fc;
     --ink:#2a2341;
     --muted:#7a6ea3;
-    --line:#ebe6fb;
-    --border:#d9d6ea;
+    --line:#d3c8f5;     /* 邊線色 */
+    --border:#bfb6e9;   /* 輸入框邊線色 */
     --outline:#cfd3de;
     --outline-text:#5c6170;
   }
 
   body{ background:#f4eefc; }
+
+  /* 卡片：框線加粗 */
   .card{
     max-width:780px; margin:32px auto; padding:28px 22px 32px;
-    border-radius:24px; border:1px solid var(--line); background:#fff;
+    border-radius:24px; border:2px solid var(--line); background:#fff;
     box-shadow:0 12px 28px rgba(98,54,167,.10);
   }
 
-  /* ===== 標題：加大、置中 ===== */
+  /* 標題：＋ 與文字加大置中 */
   .header{
     display:flex; align-items:center; justify-content:center;
     gap:14px; margin-bottom:12px; text-align:center;
@@ -98,17 +90,24 @@ function aesDec(cipherParam){
     margin:0; font-size:2rem; line-height:1; font-weight:900; color:var(--ink);
   }
 
-  /* 注意事項：獨立一行（在「預約日期 *」下） */
+  /* 注意事項泡泡（不縮排） */
   .note-bubble{
     margin:10px 0 8px 0;
     color:#6b5f92; font-weight:700; font-size:.95rem;
-    background:#f4f0ff; border:1px solid var(--line); border-radius:12px; padding:10px 12px;
+    background:#f4f0ff; border:1px solid #ebe6fb; border-radius:12px; padding:10px 12px;
   }
 
-  /* ===== 表單：小標一律粗體 ===== */
-  .form-label{ font-weight:800; color:#2f2750; }
-  .form-check-label{ font-weight:800; color:#2f2750; }
-  .form-control,.form-select{ border-radius:14px; }
+  /* 小標粗體、輸入框邊線加粗 */
+  .form-label,.form-check-label{ font-weight:800; color:#2f2750; }
+  .form-control,.form-select{
+    border-radius:14px;
+    border:2px solid var(--border);
+    box-shadow:none;
+  }
+  .form-control:focus,.form-select:focus{
+    border-color:var(--purple);
+    outline:0; box-shadow:0 0 0 .2rem rgba(98,54,167,.15);
+  }
   #weekday{ color:#7b6aa4; font-weight:800; }
 
   /* 診別下拉依詞彙變色 */
@@ -117,7 +116,7 @@ function aesDec(cipherParam){
   .slot-noon { background:#fff3df !important; border-color:#ffd79a !important; color:#7a4d00 !important; }
   .slot-night{ background:#e8f2ff !important; border-color:#cfe2ff !important; color:#1d4ed8 !important; }
 
-  /* ===== 按鈕：上紫下灰（粗體） ===== */
+  /* 按鈕（上紫下灰、粗體） */
   .btn-pill{ border-radius:999px; font-weight:800; padding:1rem 1.25rem; }
   .btn-main{ background:var(--purple); color:#fff; border:none; }
   .btn-main:hover{ background:var(--purple-600); color:#fff; }
@@ -137,11 +136,10 @@ function aesDec(cipherParam){
 </style>
 </head>
 <body>
-<!-- 送出遮罩 -->
 <div id="mask">預約中請稍等，請勿關閉或重新整理頁面<span id="dots">...</span></div>
 
 <div class="card">
-  <!-- 標題（＋ 與文字加大、置中） -->
+  <!-- 標題 -->
   <div class="header">
     <div class="logo">＋</div>
     <h1>陳萬龍診所門診線上預約</h1>
@@ -150,7 +148,6 @@ function aesDec(cipherParam){
   <!-- 預約日期 -->
   <div class="mb-3 mt-2">
     <label class="form-label">預約日期 *</label>
-    <!-- 注意事項：放在「預約日期 *」下面 -->
     <div class="note-bubble">
       只能選擇今天起後2天~14天內的門診；無選項可選表示預約已額滿。若有日期無法選擇，請對照門診時刻表與最新消息查看是否有門診異動。
     </div>
@@ -194,7 +191,7 @@ function aesDec(cipherParam){
     </label>
   </div>
 
-  <!-- 按鈕：上紫下灰（粗體） -->
+  <!-- 按鈕 -->
   <div class="d-grid gap-3">
     <button id="submitBtn" class="btn btn-pill btn-main">送出預約</button>
     <a href="query.html" class="btn btn-pill btn-outline-gray text-decoration-none text-center">查詢／取消預約</a>
@@ -221,7 +218,7 @@ function aesDec(cipherParam){
 </div>
 
 <script>
-/* 工具 */
+/* DOM */
 const el = id => document.getElementById(id);
 const $date     = el('date');
 const $slot     = el('slot');
@@ -231,7 +228,6 @@ const $idnum    = el('idnum');
 const $phone    = el('phone');
 const $agree    = el('agree');
 const $weekday  = el('weekday');
-const $submit   = el('submitBtn');
 const $mask     = el('mask');
 const $dots     = el('dots');
 
@@ -256,7 +252,7 @@ function updateWeekday(d){
   $weekday.textContent = `（星期${wtxt[wd]}）`;
 }
 
-/* slot 標籤判斷 + 下拉主題色切換 */
+/* slot 標籤 + 下拉主題色切換 */
 function slotKey(label){
   const s=String(label||'');
   if(s.includes('早')) return 'early';
@@ -272,7 +268,7 @@ function applySelectTheme(){
 }
 $slot.addEventListener('change', applySelectTheme);
 
-/* 讀取可預約區間；失敗→ D+2～D+14 */
+/* 讀取可預約區間（與 GAS getWindow 一致） */
 async function initDateWindow(){
   try{
     const r = await axios.get(API,{ params:{ action:'getWindow', t: Date.now() }});
@@ -285,7 +281,9 @@ async function initDateWindow(){
     $date.max = max.toISOString().split("T")[0];
     $date.value = $date.min;
   }catch(_){
-    const today=new Date(), min=new Date(today.getTime()+86400000), max=new Date(today.getTime()+15*86400000);
+    const t=new Date();
+    const min=new Date(t.getFullYear(),t.getMonth(),t.getDate()+2);
+    const max=new Date(t.getFullYear(),t.getMonth(),t.getDate()+14);
     $date.min=min.toISOString().split("T")[0];
     $date.max=max.toISOString().split("T")[0];
     $date.value=$date.min;
@@ -293,7 +291,7 @@ async function initDateWindow(){
   updateWeekday($date.value);
 }
 
-/* 日期改變→載入診別 */
+/* 日期改變→載入診別（與 GAS getSlots 一致） */
 $date.addEventListener('change', onDateChange);
 async function onDateChange(){
   const d = $date.value;
@@ -341,7 +339,7 @@ el('showNotice').onclick = e=>{
   new bootstrap.Modal(el('noticeModal')).show();
 };
 
-/* 送出 */
+/* 送出（與 GAS submitData 對齊） */
 let submitting=false;
 el('submitBtn').onclick = async ()=>{
   if(submitting) return;
