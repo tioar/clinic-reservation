@@ -1,10 +1,10 @@
-/* 全站採用 Noto Sans TC，並套用到常見表單元件 */
+/* 全站採用 Noto Sans TC，含常見表單元件；並啟用抗鋸齒 */
 html, body, button, input, select, textarea {
-  font-family: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei UI", "Microsoft JhengHei", system-ui, -apple-system, Arial, sans-serif !important;
+  font-family: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei UI",
+               "Microsoft JhengHei", system-ui, -apple-system, Arial, sans-serif !important;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
-
 
 body {
   font-family: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei UI", "Microsoft JhengHei", sans-serif;
@@ -192,6 +192,7 @@ hr {
 
 /* 整行底色（你 query 頁做整行上色就用這個） */
 .row-appt { background:#fff1f6 !important; }
+
 
 
 
