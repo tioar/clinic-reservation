@@ -14,6 +14,9 @@
   const RECAPTCHA_SITE_KEY = "6LdqprArAAAAACpuAXemZUH3KNER1t1iw07YjGHu";
 </script>
 
+<!-- ★ 載入 reCAPTCHA v3（必要） -->
+<script src="https://www.google.com/recaptcha/api.js?render=6LdqprArAAAAACpuAXemZUH3KNER1t1iw07YjGHu"></script>
+
 <style>
   :root{
     --purple:#6236a7;
@@ -131,13 +134,33 @@ function showing(txt){
 }
 function hideing(){ if(dotTimer) clearInterval(dotTimer); $ing.style.display='none'; }
 
+/* ★ 取得 reCAPTCHA token 的小工具 */
+function recaptchaToken(action){
+  return new Promise((resolve,reject)=>{
+    if(!window.grecaptcha){ resolve(''); return; } // 沒載到就給空字串，後端若沒啟用也能通過
+    grecaptcha.ready(()=>{
+      grecaptcha.execute(RECAPTCHA_SITE_KEY, {action: action||'query'})
+        .then(resolve)
+        .catch(()=>resolve('')); // 失敗時也回空字串，避免整個流程卡住
+    });
+  });
+}
+
 async function queryByPid(){
   const pid = $pid.value.trim().toUpperCase();
   if(!/^[A-Z][12]\d{8}$/.test(pid)){ alert('請輸入正確的身分證字號'); return; }
   showing('查詢中請稍等');
   try{
-    const r = await axios.get(API,{ params:{ action:'queryByPid', idnum: pid, t: Date.now() }});
+    const token = await recaptchaToken('queryByPid'); // ★ 帶 token
+    const r = await axios.get(API,{ params:{ action:'queryByPid', idnum: pid, recaptchaToken: token, t: Date.now() }});
     const payload = (typeof r.data === 'string') ? JSON.parse(r.data) : r.data;
+
+    // 若後端回 robot，提示一次
+    if(payload && payload.error === 'robot'){
+      alert('驗證未通過，請重試。');
+      return;
+    }
+
     const rows = Array.isArray(payload?.items) ? payload.items.filter(x => !x.cancelled) : [];
     $list.innerHTML = ''; $res.style.display='block';
     if(rows.length===0){ $hint.style.display='none'; $list.innerHTML='<div class="text-muted">查無未取消預約</div>'; return; }
@@ -155,7 +178,7 @@ function guessTime(slot){
   if(slot.includes('早')) return '08:30~11:30';
   if(slot.includes('午')) return '14:00~17:00';
   if(slot.includes('晚')) return '18:00~20:30';
-  if(slot.includes('約診')) return '09:00~12:00'; // ★ 新增：備援顯示，可依實際規則調整
+  if(slot.includes('約診')) return '09:00~12:00'; // 備援顯示，若 GAS 有回 time 會優先用
   return '';
 }
 function todayYmd(){
@@ -181,7 +204,9 @@ async function cancelByPid(pid){
   if(!confirm(\`確認取消此身分證字號 \${pid} 的所有未取消預約？\`)) return;
   showing('取消中請稍等');
   try{
-    const resp=await axios.get(API,{ params:{ action:'cancel', idnum: pid, t: Date.now() }});
+    const token = await recaptchaToken('cancel'); // ★ 帶 token
+    const resp=await axios.get(API,{ params:{ action:'cancel', idnum: pid, recaptchaToken: token, t: Date.now() }});
+    if(resp.data && resp.data.error === 'robot'){ alert('驗證未通過，請重試。'); return; }
     if(resp.data && (resp.data.ok||resp.data.success)){ alert(resp.data.message||'已取消符合規則的預約。'); await queryByPid(); }
     else{ alert((resp.data&&resp.data.message)||'取消失敗，請稍後再試'); }
   }catch(e){ console.error(e); alert('取消失敗，請稍後再試'); }
