@@ -57,13 +57,29 @@
   .btn-pill{ border-radius:50rem; font-weight:800; padding:1rem 1.25rem; }
   .btn-main{ background:var(--purple); color:#fff; border:none; }
   .btn-main:hover{ background:var(--purple-600); color:#fff; }
-  .btn-outline-gray{ background:#fff; color:var(--outline-text); border:2px solid var(--outline); }
-  .btn-outline-gray:hover{ background:#f7f8fb; color:#3a3f47; border-color:#bfc6d2; }
+  .btn-outline-gray{ background:#fff; color:#3a3f47; border:2px solid var(--outline); }
+  .btn-outline-gray:hover{ background:#f7f8fb; border-color:#bfc6d2; }
 
-  /* 結果列表 */
-  .list-row{display:grid;grid-template-columns:1.1fr .9fr .7fr 1fr 1fr .6fr .8fr;gap:.5rem;align-items:center}
-  .btn-cancel{background:#dc3545;border:none;color:#fff;font-weight:700}
-  .btn-cancel:hover{background:#b02a37}
+  /* ===== 結果列表 ===== */
+  .list-row{
+    display:grid;
+    grid-template-columns:1.1fr .9fr .7fr 1fr 1fr .6fr .8fr;
+    gap:.5rem; align-items:center
+  }
+
+  /* 預約資訊 chip（依診別變色） */
+  .chip{ display:inline-block; padding:6px 10px; border-radius:12px; font-weight:800; line-height:1; }
+  .chip-early{ background:#e7f7ee; border:1px solid #b8ead4; color:#0f5132; } /* 早診 淺綠 */
+  .chip-noon { background:#fff3df; border:1px solid #ffd79a; color:#7a4d00; } /* 午診 淺橘 */
+  .chip-night{ background:#e8f2ff; border:1px solid #cfe2ff; color:#1d4ed8; } /* 晚診 淺藍 */
+
+  /* 取消按鈕：紅色 pill */
+  .btn-cancel{
+    background:#dc3545; border:none; color:#fff;
+    font-weight:800; border-radius:50rem; padding:.5rem 1rem;
+  }
+  .btn-cancel:hover{ background:#b02a37; color:#fff; }
+  .btn-cancel:disabled{ opacity:.6; }
 
   /* 遮罩 */
   #ing{position:fixed;inset:0;background:rgba(255,255,255,.9);display:none;align-items:center;justify-content:center;z-index:9999;font-size:18px;color:var(--purple-600);backdrop-filter:blur(2px)}
@@ -137,6 +153,7 @@ async function getRecaptchaToken(action='query'){
   }catch(_){ return ''; }
 }
 
+/* DOM */
 const $pid  = document.getElementById('pid');
 const $btn  = document.getElementById('btnQuery');
 const $res  = document.getElementById('result');
@@ -174,6 +191,15 @@ function todayYmd(){
   return `${z.getFullYear()}-${('0'+(z.getMonth()+1)).slice(-2)}-${('0'+z.getDate()).slice(-2)}`;
 }
 
+/* slot → key */
+function slotKey(s){
+  const t=String(s||'');
+  if(t.includes('早')) return 'early';
+  if(t.includes('午')) return 'noon';
+  if(t.includes('晚')) return 'night';
+  return 'early';
+}
+
 async function queryByPid(){
   const pid = $pid.value.trim().toUpperCase();
   if(!/^[A-Z][12]\d{8}$/.test(pid)){ alert('請輸入正確的身分證字號'); return; }
@@ -193,11 +219,19 @@ async function queryByPid(){
 function appendRow(item,pid){
   const ymd=item.date||'', w=weekday(ymd), t=item.time||guessTime(item.slot)||'';
   const disableCancel=(ymd===todayYmd());
+  const key = slotKey(item.slot||'');
+
+  const chip = (txt)=>`<span class="chip chip-${key}">${txt||''}</span>`;
+
   const row=document.createElement('div');
   row.className='list-row mb-2';
   row.innerHTML=`
-    <div>${ymd}</div><div>星期${w}</div><div>${item.slot||''}</div>
-    <div>${t}</div><div>${item.name||''}</div><div>${item.num||''}</div>
+    <div>${chip(ymd)}</div>
+    <div>${chip('星期'+w)}</div>
+    <div>${chip(item.slot||'')}</div>
+    <div>${chip(t)}</div>
+    <div>${chip(item.name||'')}</div>
+    <div>${chip(item.num||'')}</div>
     <div><button class="btn btn-cancel btn-sm" ${disableCancel?'disabled':''}>取消</button></div>`;
   row.querySelector('.btn-cancel').onclick=()=>{ if(!disableCancel) cancelByPid(pid); };
   $list.appendChild(row);
