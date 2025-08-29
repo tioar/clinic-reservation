@@ -74,15 +74,14 @@ function aesEnc(payload, ttlMs = 10 * 60 * 1000){
 
   body{ background:#f4eefc; }
 
-  /* ===== 卡片：改成 2px 粗外框 + 更有層次的陰影（紫色語系） ===== */
-  .card{
-    max-width:780px; margin:32px auto; padding:28px 22px 32px;
-    border-radius:24px; background:#fff;
-    border:2px solid var(--card-border-purple);
-    box-shadow:
-      0 14px 34px rgba(98,54,167,.14),
-      0 2px 0 rgba(98,54,167,.06);
-  }
+/* ===== 卡片：改回 1px 細邊框 ===== */
+ .card{
+  max-width:780px; margin:32px auto; padding:28px 22px 32px;
+  border-radius:24px; background:#fff;
+  border:1px solid var(--line);   /* ✅ 改回 1px 細邊框 */
+  box-shadow:0 12px 28px rgba(98,54,167,.10);
+}
+
 
   /* ===== 標題：視覺更粗（深紫、略放大、微負字距） ===== */
   .header{
@@ -476,3 +475,4 @@ $submit.onclick = async ()=>{
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
+
