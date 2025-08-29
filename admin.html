@@ -31,6 +31,11 @@
       --night-light:#e8f2ff;
       --night-dark:#cfe2ff;
       --night-bar:#3b82f6;
+
+      /* 約診：粉紅 */
+      --appt-light:#fde7ef;
+      --appt-dark:#fbcedf;
+      --appt-bar:#ec4899;
     }
 
     body{
@@ -52,7 +57,7 @@
     .btn-danger{ background:#dc3545; color:#fff !important; }
     .btn-danger:hover{ background:#b02a37; color:#fff !important; }
     .btn-warning{ background:#f59e0b; color:#fff !important; }
-    .btn-warning:hover{ background:#d97706; color:#fff !重要; }
+    .btn-warning:hover{ background:#d97706; color:#fff !important; }
 
     /* ===== Login ===== */
     .login-card{ display:grid; place-items:center; min-height:calc(100vh - 6rem); padding:3rem 1rem; }
@@ -96,7 +101,7 @@
     .date-nav .form-control{ width:160px; border-radius:14px; }
     .totals{ font-weight:900; color:#1f3f57; } .totals .muted{ color:#6b7a90; font-weight:800; }
 
-    /* ===== 上方「早/午/晚」統計卡片（彩色框框） ===== */
+    /* ===== 上方統計卡 ===== */
     .stat{
       border:2px dashed var(--border);
       border-radius:20px;
@@ -114,38 +119,41 @@
     .stat .kv{font-weight:800}
     .stat .note{color:#6b7280;font-weight:700}
 
-    /* 依診別給色（背景+邊框+膠囊） */
     .stat-early{ background:var(--early-light); border-color:var(--early-bar); }
     .stat-early .cap{ background:#dff5ea; color:#065f46; border:1px solid #b8ead4; }
-
     .stat-noon{  background:var(--noon-light);  border-color:var(--noon-bar); }
     .stat-noon  .cap{ background:#ffeccd; color:#7a4d00; border:1px solid #ffd69a; }
-
     .stat-night{ background:var(--night-light); border-color:var(--night-bar); }
     .stat-night .cap{ background:#e1ecff; color:#1d4ed8; border:1px solid #c7dbff; }
+    .stat-appt{ background:var(--appt-light); border-color:var(--appt-bar); }    /* 約診 */
+    .stat-appt .cap{ background:#ffe0ef; color:#9d174d; border:1px solid #f9b3d1; }
 
     /* ===== 表格 ===== */
     .table{ border-radius:16px; overflow:hidden; margin:0; }
     .table td{ border-top:2px solid #e5e7eb !important; }
     .table thead th{ border-bottom:2px solid #cbd5e1 !important; font-weight:900; }
 
-    /* 列上色（與你現用一致：整條著色 + 左側色條） */
+    /* 整列底色 + 左側色條 */
     tr.slot-early-light  > *{ background:var(--early-light) !important; }
-    tr.slot-early-dark   > *{ background:var(--early-dark)  !重要; }
+    tr.slot-early-dark   > *{ background:var(--early-dark)  !important; }
     tr.slot-noon-light   > *{ background:var(--noon-light)  !important; }
-    tr.slot-noon-dark    > *{ background:var(--noon-dark)   !重要; }
-    tr.slot-night-light  > *{ background:var(--night-light) !重要; }
-    tr.slot-night-dark   > *{ background:var(--night-dark)  !重要; }
+    tr.slot-noon-dark    > *{ background:var(--noon-dark)   !important; }
+    tr.slot-night-light  > *{ background:var(--night-light) !important; }
+    tr.slot-night-dark   > *{ background:var(--night-dark)  !important; }
+    tr.slot-appt-light   > *{ background:var(--appt-light)  !important; }   /* 約診 */
+    tr.slot-appt-dark    > *{ background:var(--appt-dark)   !important; }   /* 約診 */
 
     tr[class^="slot-early"] td:first-child{ box-shadow:inset 6px 0 0 0 var(--early-bar); }
     tr[class^="slot-noon"]  td:first-child{ box-shadow:inset 6px 0 0 0 var(--noon-bar); }
     tr[class^="slot-night"] td:first-child{ box-shadow:inset 6px 0 0 0 var(--night-bar); }
+    tr[class^="slot-appt"]  td:first-child{ box-shadow:inset 6px 0 0 0 var(--appt-bar); } /* 約診 */
 
     /* 新增異動區塊的小色塊 */
     .tag{ display:inline-block; width:.8em; height:.8em; border-radius:50%; margin-right:.4em; vertical-align:middle; }
     .tag-early{ background:var(--early-bar); }
     .tag-noon{  background:var(--noon-bar); }
     .tag-night{ background:var(--night-bar); }
+    .tag-appt{  background:var(--appt-bar); }  /* 約診 */
 
     .small-note{ color:#64748b; font-size:.925rem; }
     .small-note code{ background:#f6f7fb; padding:.1rem .25rem; border-radius:6px; }
@@ -377,6 +385,13 @@
           <div class="col-6 col-md-6"><input id="neNightTime"  value=""   class="form-control" placeholder="晚診時段，例如 18:00~20:30" style="border-radius:14px;"></div>
         </div>
 
+        <!-- 約診 -->
+        <div class="row g-2 align-items-center mt-1">
+          <div class="col-12 col-md-3"><span class="tag tag-appt"></span><strong>約診上限</strong></div>
+          <div class="col-6 col-md-3"><input id="neApptLimit" value="0" type="number" class="form-control" placeholder="上限" style="border-radius:14px;"></div>
+          <div class="col-6 col-md-6"><input id="neApptTime"  value=""   class="form-control" placeholder="約診時段，例如 09:00~11:00" style="border-radius:14px;"></div>
+        </div>
+
         <div class="row g-2 align-items-end mt-2">
           <div class="col-6 col-md-3">
             <label class="small-note">起始號碼</label>
@@ -403,8 +418,8 @@
           <table class="table align-middle" id="tbl">
             <colgroup>
               <col style="width:110px;">
-              <col style="width:80px;"><col style="width:80px;"><col style="width:80px;">
-              <col style="width:160px;"><col style="width:160px;"><col style="width:160px;">
+              <col style="width:80px;"><col style="width:80px;"><col style="width:80px;"><col style="width:80px;">   <!-- +約診上限 -->
+              <col style="width:150px;"><col style="width:150px;"><col style="width:150px;"><col style="width:150px;"> <!-- +約診時段 -->
               <col style="width:90px;"><col style="width:90px;">
               <col style="width:200px;">
               <col style="width:220px;">
@@ -412,8 +427,8 @@
             <thead>
               <tr>
                 <th>日期</th>
-                <th>早診上限</th><th>午診上限</th><th>晚診上限</th>
-                <th>早診時段</th><th>午診時段</th><th>晚診時段</th>
+                <th>早診上限</th><th>午診上限</th><th>晚診上限</th><th>約診上限</th>
+                <th>早診時段</th><th>午診時段</th><th>晚診時段</th><th>約診時段</th>
                 <th>起始號碼</th><th>間隔位數</th>
                 <th>備註</th>
                 <th>操作</th>
@@ -431,20 +446,17 @@
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 <script>
 /* ===== API 與共用 ===== */
-const API = "https://script.google.com/macros/s/AKfycbzRmUag-TbdRifSp0xB2i4VSH12d3bx5QqawHF0LUM9wqs1iIcRhZX62B0xqqPnX7o9/exec";
+const API = "https://script.google.com/macros/s/AKfycbxWNXkvOyXg3Nkx7rC_NIitZgQUAP1v5-6BHMFgXDGWbPLmcHAw8TCa-5wmRePMF41w/exec";
 let ADMIN_TOKEN = sessionStorage.getItem('ADMIN_TOKEN')||"";
 
 /* ========= Token 自動續期工具 ========= */
-/** 解析 token 的過期秒數（token 第一段就是 exp） */
 function tokenExpSec(t){ try{ return Number(String(t).split('.')[0])||0; }catch(_){ return 0; } }
-/** 是否已過期（或快到期），preSec=提早 N 秒更新 */
 function tokenExpired(t, preSec=60){
   const exp = tokenExpSec(t);
   if(!exp) return true;
   const now = Math.floor(Date.now()/1000);
   return (exp - now) <= preSec;
 }
-/** 用 sessionStorage 保存/讀取帳密（只存在本分頁生命週期） */
 function saveCred(acc, pw){
   try{
     if(document.getElementById('rememberMe')?.checked){
@@ -457,15 +469,11 @@ function saveCred(acc, pw){
   }catch(_){}
 }
 function loadCred(){
-  return {
-    acc: sessionStorage.getItem('ADMIN_ACC')||'',
-    pw : sessionStorage.getItem('ADMIN_PW')||''
-  };
+  return { acc: sessionStorage.getItem('ADMIN_ACC')||'', pw: sessionStorage.getItem('ADMIN_PW')||'' };
 }
-/** 用保存的帳密重登；成功回 true（並更新 ADMIN_TOKEN） */
 async function reloginWithSaved(){
   const {acc, pw} = loadCred();
-  if(!acc || !pw) return false; // 沒保存帳密就不自動重登
+  if(!acc || !pw) return false;
   try{
     const r = await axios.get(API,{params:{action:'adminLogin',acc,pw}});
     if(r.data?.ok){
@@ -476,19 +484,11 @@ async function reloginWithSaved(){
   }catch(_){}
   return false;
 }
-/**
- * 統一的後台呼叫：自動帶 token；若過期或被回「unauthorized」，會嘗試自動重登一次再重試。
- * 用法：const data = await adminCall('adminDay', {date:'2025-08-29'});
- */
 async function adminCall(action, params={}){
-  // 若沒有 token 或快過期 → 嘗試重登（有保存帳密才會動）
   if(!ADMIN_TOKEN || tokenExpired(ADMIN_TOKEN, 60)){
     await reloginWithSaved();
   }
-  // 打 API
   let r = await axios.get(API,{params:{action, token:ADMIN_TOKEN, ...params}});
-
-  // 若被判定 unauthorized → 自動重登一次再重試
   if(r?.data && r.data.ok===false && r.data.error==='unauthorized'){
     const ok = await reloginWithSaved();
     if(ok){
@@ -527,14 +527,11 @@ function switchTab(id){
     b.classList.toggle('active',a);
   });
   Object.entries(views).forEach(([k,el])=>el.style.display=(k===id?'block':'none'));
-  // 首次切換到各頁面時載入資料
   if(id==='tab-today'){ initTodayTab(); }
   if(id==='tab-tomorrow'){ initTomorrowTab(); }
   if(id==='tab-settings'){ loadWindow(); loadFlags(); loadDaily(); loadSheetLinks(); }
   if(id==='tab-special'){ loadSpecials(); }
 }
-
-/* ✅ 補上分頁事件監聽（事件委派，一次搞定四顆按鈕） */
 document.querySelector('.tabbar').addEventListener('click', (e)=>{
   const btn = e.target.closest('button[data-tab]');
   if(!btn) return;
@@ -544,13 +541,11 @@ document.querySelector('.tabbar').addEventListener('click', (e)=>{
 function showApp(){ loginBox.style.display="none"; appBox.style.display="block"; switchTab('tab-today'); }
 function showLogin(){
   appBox.style.display="none"; loginBox.style.display="block";
-  // 把保存的帳密帶回欄位
   const c = loadCred();
   if(c.acc) document.getElementById('rememberMe').checked = true;
   acc.value = c.acc || '';
   pw.value  = c.pw  || '';
 }
-
 function assertAuthed(){ if(!ADMIN_TOKEN){ showLogin(); throw new Error('no token'); } }
 
 function ymdLocal(d){ const y=d.getFullYear(),m=('0'+(d.getMonth()+1)).slice(-2),da=('0'+d.getDate()).slice(-2); return `${y}-${m}-${da}`; }
@@ -563,6 +558,7 @@ function num(x){ const n=Number(x); return isFinite(n)?n:0; }
 /* ===== 共用：渲染統計 + 表格 ===== */
 function slotKey(label){
   const s=String(label||'').trim();
+  if(s.includes('約')) return 'appt';    /* 約診 */
   if(s.includes('早')) return 'early';
   if(s.includes('午')) return 'noon';
   if(s.includes('晚')) return 'night';
@@ -588,7 +584,7 @@ function renderStats(containerId, slots){
 }
 function renderItems(tableId, items, refreshFnName){
   const tb=document.querySelector(`#${tableId} tbody`); tb.innerHTML='';
-  const counters={ early:0, noon:0, night:0 };
+  const counters={ early:0, noon:0, night:0, appt:0 };
   items.forEach(x=>{
     const tr=document.createElement('tr');
     const key=slotKey(x.slot||'');
@@ -765,6 +761,8 @@ const neNightLimit=document.getElementById('neNightLimit');
 const neEarlyTime=document.getElementById('neEarlyTime');
 const neNoonTime=document.getElementById('neNoonTime');
 const neNightTime=document.getElementById('neNightTime');
+const neApptLimit=document.getElementById('neApptLimit');      /* 約診 */
+const neApptTime=document.getElementById('neApptTime');        /* 約診 */
 const neNote=document.getElementById('neNote');
 const neStartNo=document.getElementById('neStartNo');
 const neStep=document.getElementById('neStep');
@@ -779,9 +777,11 @@ addBtn.onclick = async ()=>{
       早診上限:Number(neEarlyLimit.value||0),
       午診上限:Number(neNoonLimit.value||0),
       晚診上限:Number(neNightLimit.value||0),
+      約診上限:Number(neApptLimit.value||0),            /* 約診 */
       早診時段:neEarlyTime.value||'',
       午診時段:neNoonTime.value||'',
       晚診時段:neNightTime.value||'',
+      約診時段:neApptTime.value||'',                    /* 約診 */
       起始號碼:Number(neStartNo.value||1),
       間隔位數:Math.max(1,Number(neStep.value||1)),
       備註:neNote.value||''
@@ -798,8 +798,8 @@ async function loadSpecials(){
     const tr=document.createElement('tr');
     tr.innerHTML=`
       <td>${x.日期}</td>
-      <td>${x.早診上限||0}</td><td>${x.午診上限||0}</td><td>${x.晚診上限||0}</td>
-      <td>${x.早診時段||''}</td><td>${x.午診時段||''}</td><td>${x.晚診時段||''}</td>
+      <td>${x.早診上限||0}</td><td>${x.午診上限||0}</td><td>${x.晚診上限||0}</td><td>${x.約診上限||0}</td>
+      <td>${x.早診時段||''}</td><td>${x.午診時段||''}</td><td>${x.晚診時段||''}</td><td>${x.約診時段||''}</td>
       <td>${x.起始號碼||1}</td><td>${x.間隔位數||1}</td>
       <td>${x.備註||""}</td>
       <td class="d-flex gap-2">
@@ -824,9 +824,13 @@ async function editRow(id){
        <div class="col-6 col-md-3"><label class="form-label">早診上限</label><input id="edEL" class="form-control" type="number" value="${f["早診上限"]||0}" style="border-radius:14px;"></div>
        <div class="col-6 col-md-3"><label class="form-label">午診上限</label><input id="edNL" class="form-control" type="number" value="${f["午診上限"]||0}" style="border-radius:14px;"></div>
        <div class="col-6 col-md-3"><label class="form-label">晚診上限</label><input id="edTL" class="form-control" type="number" value="${f["晚診上限"]||0}" style="border-radius:14px;"></div>
+       <div class="col-6 col-md-3"><label class="form-label">約診上限</label><input id="edAL" class="form-control" type="number" value="${f["約診上限"]||0}" style="border-radius:14px;"></div>
+
        <div class="col-12 col-md-6"><label class="form-label">早診時段</label><input id="edTE" class="form-control" value='${f["早診時段"]||""}' style="border-radius:14px;"></div>
        <div class="col-12 col-md-6"><label class="form-label">午診時段</label><input id="edTN" class="form-control" value='${f["午診時段"]||""}' style="border-radius:14px;"></div>
        <div class="col-12 col-md-6"><label class="form-label">晚診時段</label><input id="edTLt" class="form-control" value='${f["晚診時段"]||""}' style="border-radius:14px;"></div>
+       <div class="col-12 col-md-6"><label class="form-label">約診時段</label><input id="edTA" class="form-control" value='${f["約診時段"]||""}' style="border-radius:14px;"></div>
+
        <div class="col-12 col-md-6"><label class="form-label">備註</label><input id="edNote" class="form-control" value="${f["備註"]||""}" style="border-radius:14px;"></div>
        <div class="col-6 col-md-3"><label class="form-label">起始號碼</label><input id="edStartNo" class="form-control text-center" type="number" value="${f["起始號碼"]||1}" min="1" style="border-radius:14px;"></div>
        <div class="col-6 col-md-3"><label class="form-label">間隔位數</label><input id="edStep" class="form-control text-center" type="number" value="${f["間隔位數"]||1}" min="1" style="border-radius:14px;"></div>
@@ -847,9 +851,11 @@ async function editRow(id){
       早診上限:document.getElementById('edEL').value,
       午診上限:document.getElementById('edNL').value,
       晚診上限:document.getElementById('edTL').value,
+      約診上限:document.getElementById('edAL').value,               /* 約診 */
       早診時段:document.getElementById('edTE').value,
       午診時段:document.getElementById('edTN').value,
       晚診時段:document.getElementById('edTLt').value,
+      約診時段:document.getElementById('edTA').value,               /* 約診 */
       備註:document.getElementById('edNote').value,
       起始號碼:Number(document.getElementById('edStartNo').value||1),
       間隔位數:Math.max(1,Number(document.getElementById('edStep').value||1))
@@ -864,7 +870,6 @@ window.editRow=editRow; window.delRow=delRow;
 /* ===== 匯出、登入、登出 ===== */
 exportBtn.onclick=()=>{ try{
   assertAuthed();
-  // 直接開檔（用 token 帶參數），避免經過 adminCall 攔截
   const url = `${API}?action=export&token=${encodeURIComponent(ADMIN_TOKEN)}&t=${Date.now()}`;
   window.open(url, '_blank', 'noopener');
 }catch(e){} };
@@ -875,7 +880,6 @@ logoutBtn.onclick=()=>{
   showLogin();
 };
 
-// 登入
 btnLoginPW.onclick=async()=>{
   try{
     const a=acc.value.trim(), p=pw.value.trim();
@@ -883,12 +887,11 @@ btnLoginPW.onclick=async()=>{
     if(r.data?.ok){
       ADMIN_TOKEN=r.data.token;
       sessionStorage.setItem('ADMIN_TOKEN',ADMIN_TOKEN);
-      saveCred(a,p);            // 記住帳密（若有勾）
+      saveCred(a,p);
       showApp();
     }else{ alert('帳號或密碼錯誤'); }
   }catch(e){ console.error(e); alert('登入失敗'); }
 };
-// Enter 快速登入
 [acc,pw].forEach(el=>el.addEventListener('keydown',e=>{ if(e.key==='Enter') btnLoginPW.click(); }));
 
 /* ===== 進入頁 ===== */
