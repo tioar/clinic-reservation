@@ -157,6 +157,14 @@
 
     .small-note{ color:#64748b; font-size:.925rem; }
     .small-note code{ background:#f6f7fb; padding:.1rem .25rem; border-radius:6px; }
+
+    /* ===== 4 欄排版與約診卡片縮窄（大螢幕） ===== */
+    @media (min-width: 992px){
+      .stat-appt.stat-compact{ padding:.6rem .8rem; }   /* 約診卡片更窄 */
+      .stat-appt.stat-compact .kv{ font-size:.95rem; }
+      .stat-appt.stat-compact .small-note{ font-size:.85rem; }
+      .stat .cap{ white-space: nowrap; }
+    }
   </style>
 </head>
 <body>
@@ -564,24 +572,42 @@ function slotKey(label){
   if(s.includes('晚')) return 'night';
   return 'early';
 }
+
+/* 固定順序 + 4 欄佈局 + 約診卡片縮窄 */
 function renderStats(containerId, slots){
-  const box=document.getElementById(containerId); box.innerHTML='';
+  const order = {'早診':1,'午診':2,'晚診':3,'約診':4};
+  const list = Array.isArray(slots) ? [...slots] : [];
+  list.sort((a,b)=>(order[a?.label]||99)-(order[b?.label]||99));
+
+  const box=document.getElementById(containerId);
+  box.innerHTML='';
+  box.classList.add('row','g-3','mt-2');
+
   const frag=document.createDocumentFragment();
-  slots.forEach(s=>{
-    const key = slotKey(s.label);
-    const col=document.createElement('div'); col.className='col-12 col-md-4';
-    col.innerHTML=`
-      <div class="stat stat-${key}">
-        <div class="cap">${s.label}</div>
+  list.forEach(s=>{
+    const label = s.label || '';
+    const key   = slotKey(label);
+    const isAppt= (key==='appt');
+
+    const col=document.createElement('div');
+    col.className='col-6 col-lg-3';     // 手機兩欄、桌機四欄
+
+    col.innerHTML = `
+      <div class="stat stat-${key} ${isAppt?'stat-compact':''}">
+        <div class="cap">${label}</div>
         <div class="flex-grow-1">
           <div class="small-note mb-1">${s.time||''}</div>
-          <div class="kv"><b>${num(s.used)}</b> / ${num(s.limit)} <span class="note">（起始 ${num(s.startNo)}，間隔 ${num(s.step)}）</span></div>
+          <div class="kv">
+            <b>${num(s.used)}</b> / ${num(s.limit)}
+            <span class="note">（起始 ${num(s.startNo)}，間隔 ${num(s.step)}）</span>
+          </div>
         </div>
       </div>`;
     frag.appendChild(col);
   });
   box.appendChild(frag);
 }
+
 function renderItems(tableId, items, refreshFnName){
   const tb=document.querySelector(`#${tableId} tbody`); tb.innerHTML='';
   const counters={ early:0, noon:0, night:0, appt:0 };
