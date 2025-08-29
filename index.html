@@ -11,13 +11,9 @@
 <script src="https://cdn.jsdelivr.net/npm/crypto-js@4.2.0/crypto-js.min.js"></script>
 
 <script>
-/* === 後端 API（與 GAS 對齊） === */
 const API = "https://script.google.com/macros/s/AKfycbzRmUag-TbdRifSp0xB2i4VSH12d3bx5QqawHF0LUM9wqs1iIcRhZX62B0xqqPnX7o9/exec";
-
-/* === reCAPTCHA（若 GAS 未啟用可留空 ""） === */
 const RECAPTCHA_SITE_KEY = "6LdqprArAAAAACpuAXemZUH3KNER1t1iw07YjGHu";
 
-/* 動態載入 reCAPTCHA */
 let recaptchaLoaded=false, recaptchaLoading=null;
 function loadRecaptcha(){
   if(!RECAPTCHA_SITE_KEY) return Promise.resolve();
@@ -43,7 +39,6 @@ async function getRecaptchaToken(){
   }catch(_){ return ""; }
 }
 
-/* === AES 遮蔽（傳到 success 用） === */
 const AES_KEY = "A2x5fT9qR7nC1vB8mK3pZ6sD4uH0yW2j";
 function aesEnc(payload, ttlMs = 10 * 60 * 1000){
   const obj = { ...payload };
@@ -55,56 +50,32 @@ function aesEnc(payload, ttlMs = 10 * 60 * 1000){
 
 <style>
   :root{
-    /* 品牌紫 & 對應強化色 */
     --purple:#6236a7;
     --purple-600:#4b2c86;
-
-    /* 很深、偏黑的紫色（標題用） */
-    --ink-strong:#1b1230;
-
-    /* 卡片的紫色邊線（比原本更有存在感） */
-    --card-border-purple:#c9bdf5;
-
-    /* 其他共用色 */
     --ink:#2a2341;
     --line:#ebe6fb;
     --outline:#cfd3de;
     --outline-text:#5c6170;
   }
-
   body{ background:#f4eefc; }
 
-/* ===== 卡片：改回 1px 細邊框 ===== */
- .card{
-  max-width:780px; margin:32px auto; padding:28px 22px 32px;
-  border-radius:24px; background:#fff;
-  border:1px solid var(--line);   /* ✅ 改回 1px 細邊框 */
-  box-shadow:0 12px 28px rgba(98,54,167,.10);
-}
-
-
-  /* ===== 標題：視覺更粗（深紫、略放大、微負字距） ===== */
-  .header{
-    display:flex; align-items:center; justify-content:center;
-    gap:14px; margin-bottom:12px; text-align:center;
+  /* 卡片：細邊框（保留你的原設定） */
+  .card{
+    max-width:780px; margin:32px auto; padding:28px 22px 32px;
+    border-radius:24px; background:#fff;
+    border:1px solid var(--line);
+    box-shadow:0 12px 28px rgba(98,54,167,.10);
   }
+
+  /* 標題（深紫偏黑、粗體） */
+  .header{ display:flex; align-items:center; justify-content:center; gap:14px; margin-bottom:12px; text-align:center; }
   .header .logo{
     width:60px; height:60px; border-radius:50%;
     display:grid; place-items:center;
     background:var(--purple); color:#fff; font-weight:900; font-size:32px;
-    box-shadow:0 8px 18px rgba(98,54,167,.22);
+    box-shadow:0 6px 14px rgba(98,54,167,.20);
   }
-  .header h1{
-    margin:0;
-    font-size:2.25rem;
-    line-height:1.05;
-    font-weight:900;
-    color:var(--ink-strong);
-    letter-spacing:-0.2px;
-    text-rendering:optimizeLegibility;
-    -webkit-font-smoothing:antialiased;
-    -moz-osx-font-smoothing:grayscale;
-  }
+  .header h1{ margin:0; font-size:2rem; line-height:1; font-weight:900; color:#2a183d; }
 
   /* 注意事項泡泡 */
   .note-bubble{
@@ -113,7 +84,7 @@ function aesEnc(payload, ttlMs = 10 * 60 * 1000){
     background:#f4f0ff; border:1px solid #ebe6fb; border-radius:12px; padding:10px 12px;
   }
 
-  /* 小標粗體；輸入框細邊框 */
+  /* 標籤 & 輸入框 */
   .form-label,.form-check-label{ font-weight:800; color:#2f2750; }
   .form-control,.form-select{
     border-radius:14px;
@@ -126,27 +97,33 @@ function aesEnc(payload, ttlMs = 10 * 60 * 1000){
   }
   #weekday{ color:#7b6aa4; font-weight:800; }
 
-  /* 診別主題色（下拉選擇時依文字自動換色） */
-  .slot-theme{ transition:background-color .18s,border-color .18s,color .18s; }
-  .slot-early{ background:#e7f7ee !important; border-color:#b8ead4 !important; color:#0f5132 !important; }
-  .slot-noon { background:#fff3df !important; border-color:#ffd79a !important; color:#7a4d00 !important; }
-  .slot-night{ background:#e8f2ff !important; border-color:#cfe2ff !important; color:#1d4ed8 !important; }
-  .slot-closed{ background:#ffe8ea !important; border-color:#ffccd2 !important; color:#b4232a !important; }
-
-  /* 圓角膠囊按鈕 */
+  /* 膠囊按鈕 */
   .btn-pill{ border-radius:999px; font-weight:800; padding:1rem 1.25rem; }
   .btn-main{ background:var(--purple); color:#fff; border:none; }
   .btn-main:hover{ background:var(--purple-600); color:#fff; }
-  .btn-outline-gray{
-    background:#fff; color:var(--outline-text);
-    border:2px solid var(--outline);
-  }
-  .btn-outline-gray:hover{
-    background:#f7f8fb; color:#3a3f47; border-color:#bfc6d2;
-  }
+  .btn-outline-gray{ background:#fff; color:#5c6170; border:2px solid var(--outline); }
+  .btn-outline-gray:hover{ background:#f7f8fb; color:#3a3f47; border-color:#bfc6d2; }
 
   /* 錯誤訊息列 */
   #errBar{ margin-top:-8px; }
+
+  /* === 診別色：option 與 select 本體都會套色 === */
+  .slot-theme { transition: background-color .2s, color .2s, border-color .2s; }
+  .slot-early { background:#e7f7ee !important; color:#0f5132 !important; border-color:#b8ead4 !important; }
+  .slot-noon  { background:#fff3df !important; color:#7a4d00 !important; border-color:#ffd79a !important; }
+  .slot-night { background:#e8f2ff !important; color:#1d4ed8 !important; border-color:#cfe2ff !important; }
+  .slot-closed{ background:#ffe6e6 !important; color:#b02a37 !important; border-color:#ffcccc !important; }
+
+  /* 讓選項可換行（多數瀏覽器可用；iOS 原生選單仍可能單行） */
+  select.form-select, select.form-select option{
+    white-space: normal;
+    word-break: break-word;
+  }
+
+  /* 小螢幕：精簡文案，避免被裁切（JS 會配合輸出簡短字） */
+  @media (max-width: 420px){
+    .form-select{ font-size: 15px; line-height:1.2; }
+  }
 
   /* 遮罩 */
   #mask{ position:fixed; inset:0; display:none; align-items:center; justify-content:center;
@@ -164,10 +141,8 @@ function aesEnc(payload, ttlMs = 10 * 60 * 1000){
     <h1>陳萬龍診所門診線上預約</h1>
   </div>
 
-  <!-- 錯誤訊息（預設隱藏） -->
   <div id="errBar" class="alert alert-danger d-none" role="alert"></div>
 
-  <!-- 預約日期 -->
   <div class="mb-3 mt-2">
     <label class="form-label">預約日期 *</label>
     <div class="note-bubble">
@@ -254,20 +229,18 @@ const $errBar   = el('errBar');
 const $mask     = el('mask');
 const $dots     = el('dots');
 
-/* ===== 遮罩動畫 ===== */
+/* 遮罩動畫 */
 let dotTimer=null;
 function showMask(txt){
   $mask.firstChild.nodeValue = (txt||'預約中請稍等，請勿關閉或重新整理頁面');
   $mask.style.display='flex';
   if(dotTimer) clearInterval(dotTimer);
-  dotTimer = setInterval(()=>{
-    $dots.textContent = $dots.textContent==='...' ? '.' : $dots.textContent+'.';
-    if($dots.textContent.length>3) $dots.textContent='.';
-  }, 340);
+  dotTimer = setInterval(()=>{ $dots.textContent = ($dots.textContent==='...') ? '.' : $dots.textContent+'.';
+                               if($dots.textContent.length>3) $dots.textContent='.'; }, 340);
 }
 function hideMask(){ if(dotTimer) clearInterval(dotTimer); $mask.style.display='none'; }
 
-/* ===== UI Helper ===== */
+/* UI Helper */
 function showErr(msg='送出失敗，請稍後再試'){ $errBar.textContent = msg; $errBar.classList.remove('d-none'); }
 function clearErr(){ $errBar.classList.add('d-none'); }
 function updateWeekday(d){
@@ -277,7 +250,7 @@ function updateWeekday(d){
   $weekday.textContent = `（星期${wtxt[wd]}）`;
 }
 
-/* ===== 診別主題色（依 option 文字自動切換） ===== */
+/* 診別 → key */
 function slotKey(label){
   const s=String(label||'');
   if(s.includes('早')) return 'early';
@@ -286,17 +259,17 @@ function slotKey(label){
   if(s.includes('未開放')) return 'closed';
   return '';
 }
+
+/* 讓 select 本體跟著已選診別變色 */
 function applySelectTheme(){
-  const val = $slot.options[$slot.selectedIndex]?.textContent || '';
-  const key = slotKey(val);
+  const key = slotKey($slot.value||'');
   $slot.classList.remove('slot-early','slot-noon','slot-night','slot-closed');
   if(key) $slot.classList.add('slot-'+key);
 }
+$slot.addEventListener('change', applySelectTheme);
 
-/* ===== 可能的 nonce 資訊（GAS 若開啟 REQUIRE_NONCE 時） ===== */
-let nonceMeta = null;
-
-/* ===== 視窗：getWindow ===== */
+/* Window 與 Slots */
+let nonceMeta=null;
 async function initDateWindow(){
   try{
     const r = await axios.get(API,{ params:{ action:'getWindow', t: Date.now() }});
@@ -319,14 +292,11 @@ async function initDateWindow(){
   updateWeekday($date.value);
 }
 
-/* ===== 載入診別：getSlots（含 nonce 相容） ===== */
 $date.addEventListener('change', onDateChange);
-$slot.addEventListener('change', applySelectTheme);
-
 async function onDateChange(){
   clearErr();
-  nonceMeta = null;
-  const d = $date.value;
+  nonceMeta=null;
+  const d=$date.value;
   updateWeekday(d);
   $slot.innerHTML = '<option value="">讀取中…</option>';
   $slot.classList.remove('slot-early','slot-noon','slot-night','slot-closed');
@@ -340,6 +310,8 @@ async function onDateChange(){
       nonceMeta = { nonce:String(data.nonce), sig:String(data.sig), exp:Number(data.exp), date:d };
     }
 
+    const compact = window.matchMedia('(max-width: 420px)').matches;
+
     let html = '<option value="">請選診別</option>';
     slots.forEach(o=>{
       const limit  = Number(o.limit)||0;
@@ -347,28 +319,28 @@ async function onDateChange(){
       const remain = Math.max(0, limit-used);
       if(limit>0 && remain>0){
         const label = o.label || '';
-        html += `<option value="${label}" data-time="${o.time||''}" data-start="${o.startNo||1}" data-remain="${remain}">
-                   ${label}（${o.time||''}，剩 ${remain}/${limit}）
-                 </option>`;
+        const key   = slotKey(label);
+        const time  = o.time || '';
+        // 手機精簡文案（避免被切掉）
+        const text  = compact
+          ? `${label}（${time}）  餘 ${remain}/${limit}`
+          : `${label}（${time}，剩 ${remain}/${limit}）`;
+        html += `<option class="slot-${key}" value="${label}" data-time="${time}" data-start="${o.startNo||1}" data-remain="${remain}">${text}</option>`;
       }
     });
 
-    if ((!slots || slots.length === 0) && html === '<option value="">請選診別</option>'){
-      html = '<option value="">當天未開放</option>';
+    if (html === '<option value="">請選診別</option>' && (!slots || slots.length === 0)){
+      html = '<option class="slot-closed" value="當天未開放">當天未開放</option>';
       $slot.classList.add('slot-closed');
     }
-
     $slot.innerHTML = html;
-    $slot.selectedIndex = 1; // 自動選第一個有效項（若有）
-    applySelectTheme();
-
   }catch(e){
     console.error(e);
     $slot.innerHTML = '<option value="">讀取失敗</option>';
   }
 }
 
-/* ===== 輸入限制 ===== */
+/* 輸入限制 */
 $idnum.addEventListener("input",e=>{
   clearErr();
   e.target.value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,10);
@@ -378,13 +350,13 @@ $phone.addEventListener("input",e=>{
   e.target.value = e.target.value.replace(/\D/g,'').slice(0,10);
 });
 
-/* ===== 預約須知 ===== */
-el('showNotice')?.addEventListener('click', e=>{
+/* 預約須知 */
+document.getElementById('showNotice')?.addEventListener('click', e=>{
   e.preventDefault();
-  new bootstrap.Modal(el('noticeModal')).show();
+  new bootstrap.Modal(document.getElementById('noticeModal')).show();
 });
 
-/* ===== 送出：submit（完整對齊 GAS submitData） ===== */
+/* 送出（與 GAS 對齊） */
 let submitting=false;
 $submit.onclick = async ()=>{
   if(submitting) return;
@@ -414,13 +386,7 @@ $submit.onclick = async ()=>{
 
     const recaptchaToken = await getRecaptchaToken();
 
-    const params = {
-      action:'submit',
-      date:d, slot:s, name:n, birthday:b, id:id, phone:ph,
-      recaptchaToken,
-      t: Date.now()
-    };
-    // 伺服端若開啟 REQUIRE_NONCE，要帶上
+    const params = { action:'submit', date:d, slot:s, name:n, birthday:b, id:id, phone:ph, recaptchaToken, t: Date.now() };
     if (nonceMeta && nonceMeta.date === d){
       params.nonce = nonceMeta.nonce;
       params.sig   = nonceMeta.sig;
@@ -443,7 +409,6 @@ $submit.onclick = async ()=>{
 
     const idFromApi = r?.data?.id || r?.data?.Id || r?.data?.bookingId || r?.data?.data?.id;
     const receipt   = r?.data?.receipt || r?.data?.rcpt || '';
-
     if (receipt && idFromApi) {
       try{ sessionStorage.setItem('rcpt:'+String(idFromApi), String(receipt)); }catch(_){}
     }
@@ -465,7 +430,7 @@ $submit.onclick = async ()=>{
   }
 };
 
-/* ===== 初始化 ===== */
+/* 初始化 */
 (async () => {
   try{ await loadRecaptcha(); }catch(_){}
   await initDateWindow();
@@ -475,4 +440,3 @@ $submit.onclick = async ()=>{
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
-
