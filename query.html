@@ -30,62 +30,37 @@
     box-shadow:0 12px 28px rgba(98,54,167,.10);
   }
 
-  /* ===== 標題：加大、置中 ===== */
-  .header{
-    display:flex; align-items:center; justify-content:center;
-    gap:14px; margin-bottom:14px; text-align:center;
-  }
-  .logo{
-    width:60px;height:60px;border-radius:50%;
-    display:grid;place-items:center;background:var(--purple);color:#fff;
-    font-weight:900;font-size:32px; box-shadow:0 6px 14px rgba(98,54,167,.20);
-  }
+  /* 標題 */
+  .header{ display:flex; align-items:center; justify-content:center; gap:14px; margin-bottom:14px; text-align:center; }
+  .logo{ width:60px;height:60px;border-radius:50%;display:grid;place-items:center;background:var(--purple);color:#fff;font-weight:900;font-size:32px;box-shadow:0 6px 14px rgba(98,54,167,.20);}
   .header h1{ margin:0; font-size:2rem; font-weight:900; color:var(--ink); }
 
-  /* 注意事項 */
-  .note-bubble{
-    margin:10px 0 14px 0; padding:12px 14px;
-    background:#f4f0ff; border:1px solid var(--line); border-radius:12px;
-    color:#6b5f92; font-weight:700; font-size:.95rem;
-  }
-
-  /* 小標一律粗體 */
+  .note-bubble{ margin:10px 0 14px 0; padding:12px 14px; background:#f4f0ff; border:1px solid var(--line); border-radius:12px; color:#6b5f92; font-weight:700; font-size:.95rem; }
   .form-label{ font-weight:800; color:#2f2750; }
   .list-head div{ font-weight:800; color:#2f2750; }
 
-  /* ===== 膠囊按鈕（更圓） ===== */
+  /* 膠囊按鈕 */
   .btn-pill{ border-radius:50rem; font-weight:800; padding:1rem 1.25rem; }
   .btn-main{ background:var(--purple); color:#fff; border:none; }
   .btn-main:hover{ background:var(--purple-600); color:#fff; }
-  .btn-outline-gray{ background:#fff; color:#3a3f47; border:2px solid var(--outline); }
-  .btn-outline-gray:hover{ background:#f7f8fb; border-color:#bfc6d2; }
+  .btn-outline-gray{ background:#fff; color:#5c6170; border:2px solid var(--outline); }
+  .btn-outline-gray:hover{ background:#f7f8fb; color:#3a3f47; border-color:#bfc6d2; }
 
-  /* ===== 結果列表 ===== */
-  .list-row{
-    display:grid;
-    grid-template-columns:1.1fr .9fr .7fr 1fr 1fr .6fr .8fr;
-    gap:.5rem; align-items:center
-  }
+  /* 結果列表 */
+  .list-row{display:grid;grid-template-columns:1.1fr .9fr .7fr 1fr 1fr .6fr .8fr;gap:.5rem;align-items:center; padding:6px 10px; border-radius:12px; font-weight:600;}
+  .row-early { background:#e7f7ee; color:#0f5132; }
+  .row-noon  { background:#fff3df; color:#7a4d00; }
+  .row-night { background:#e8f2ff; color:#1d4ed8; }
+  .row-closed{ background:#ffe6e6; color:#b02a37; }
 
-  /* 預約資訊 chip（依診別變色） */
-  .chip{ display:inline-block; padding:6px 10px; border-radius:12px; font-weight:800; line-height:1; }
-  .chip-early{ background:#e7f7ee; border:1px solid #b8ead4; color:#0f5132; } /* 早診 淺綠 */
-  .chip-noon { background:#fff3df; border:1px solid #ffd79a; color:#7a4d00; } /* 午診 淺橘 */
-  .chip-night{ background:#e8f2ff; border:1px solid #cfe2ff; color:#1d4ed8; } /* 晚診 淺藍 */
-
-  /* 取消按鈕：紅色 pill */
-  .btn-cancel{
-    background:#dc3545; border:none; color:#fff;
-    font-weight:800; border-radius:50rem; padding:.5rem 1rem;
-  }
-  .btn-cancel:hover{ background:#b02a37; color:#fff; }
-  .btn-cancel:disabled{ opacity:.6; }
+  .btn-cancel{background:#dc3545;border:none;color:#fff;font-weight:700;border-radius:50rem;padding:0.25rem 0.75rem;}
+  .btn-cancel:hover{background:#b02a37}
 
   /* 遮罩 */
   #ing{position:fixed;inset:0;background:rgba(255,255,255,.9);display:none;align-items:center;justify-content:center;z-index:9999;font-size:18px;color:var(--purple-600);backdrop-filter:blur(2px)}
   #dots{display:inline-block;width:2ch;text-align:left}
   @media (max-width:576px){
-    .list-row{grid-template-columns:1.1fr .7fr .7fr .9fr 1fr .6fr .8fr}
+    .list-row{grid-template-columns:1.2fr .7fr .7fr .9fr 1fr .6fr .8fr;font-size:14px;}
   }
 </style>
 </head>
@@ -93,7 +68,6 @@
 <div id="ing">處理中請稍等<span id="dots">...</span></div>
 
 <div class="card">
-  <!-- 標題 -->
   <div class="header">
     <div class="logo">＋</div>
     <h1>查詢／取消預約</h1>
@@ -103,7 +77,6 @@
     線上取消預約只能在預約的門診前一天執行；門診當天請改以電話取消，謝謝。
   </div>
 
-  <!-- 查詢區 -->
   <div id="normalBox">
     <div class="mb-3">
       <label class="form-label">身分證字號</label>
@@ -116,9 +89,8 @@
     <hr class="my-4">
   </div>
 
-  <!-- 結果列表 -->
   <div id="result" style="display:none;">
-    <div class="list-row list-head">
+    <div class="list-row list-head" style="background:none; font-weight:800;">
       <div>日期</div><div>星期</div><div>診別</div><div>時間</div><div>姓名</div><div>號碼</div><div>操作</div>
     </div>
     <div id="list"></div>
@@ -127,33 +99,15 @@
 </div>
 
 <script>
-/* reCAPTCHA 載入 */
-let recaptchaLoaded=false, recaptchaLoading=null;
-function loadRecaptcha(){
-  if(!RECAPTCHA_SITE_KEY) return Promise.resolve();
-  if(recaptchaLoaded) return Promise.resolve();
-  if(recaptchaLoading) return recaptchaLoading;
-  recaptchaLoading = new Promise((resolve,reject)=>{
-    const s=document.createElement('script');
-    s.src='https://www.google.com/recaptcha/api.js?render='+encodeURIComponent(RECAPTCHA_SITE_KEY);
-    s.async=true; s.defer=true;
-    s.onload=()=>{recaptchaLoaded=true;resolve();};
-    s.onerror=()=>reject(new Error('recaptcha_load_fail'));
-    document.head.appendChild(s);
-  });
-  return recaptchaLoading;
-}
-async function getRecaptchaToken(action='query'){
-  try{
-    if(!RECAPTCHA_SITE_KEY) return '';
-    await loadRecaptcha();
-    return await new Promise(res=>{
-      grecaptcha.ready(()=> grecaptcha.execute(RECAPTCHA_SITE_KEY,{action}).then(t=>res(t)).catch(()=>res('')));
-    });
-  }catch(_){ return ''; }
+function slotKey(label){
+  if(!label) return '';
+  if(label.includes('早')) return 'early';
+  if(label.includes('午')) return 'noon';
+  if(label.includes('晚')) return 'night';
+  if(label.includes('未開放')) return 'closed';
+  return '';
 }
 
-/* DOM */
 const $pid  = document.getElementById('pid');
 const $btn  = document.getElementById('btnQuery');
 const $res  = document.getElementById('result');
@@ -175,38 +129,12 @@ function showing(txt){
 }
 function hideing(){ if(dotTimer) clearInterval(dotTimer); $ing.style.display='none'; }
 
-function weekday(ymd){
-  const d = new Date(ymd+'T09:00:00+08:00');
-  return ['日','一','二','三','四','五','六'][d.getDay()];
-}
-function guessTime(slot){
-  if(!slot) return '';
-  if(slot.includes('早')) return '08:00~11:00';
-  if(slot.includes('午')) return '14:00~17:00';
-  if(slot.includes('晚')) return '18:00~20:30';
-  return '';
-}
-function todayYmd(){
-  const z = new Date();
-  return `${z.getFullYear()}-${('0'+(z.getMonth()+1)).slice(-2)}-${('0'+z.getDate()).slice(-2)}`;
-}
-
-/* slot → key */
-function slotKey(s){
-  const t=String(s||'');
-  if(t.includes('早')) return 'early';
-  if(t.includes('午')) return 'noon';
-  if(t.includes('晚')) return 'night';
-  return 'early';
-}
-
 async function queryByPid(){
   const pid = $pid.value.trim().toUpperCase();
   if(!/^[A-Z][12]\d{8}$/.test(pid)){ alert('請輸入正確的身分證字號'); return; }
   showing('查詢中請稍等');
   try{
-    const recaptchaToken = await getRecaptchaToken('query');
-    const r = await axios.get(API,{ params:{ action:'queryByPid', idnum: pid, recaptchaToken, t: Date.now() }});
+    const r = await axios.get(API,{ params:{ action:'queryByPid', idnum: pid, t: Date.now() }});
     const payload = (typeof r.data === 'string') ? JSON.parse(r.data) : r.data;
     const rows = Array.isArray(payload?.items) ? payload.items.filter(x => !x.cancelled) : [];
     $list.innerHTML = ''; $res.style.display='block';
@@ -216,33 +144,41 @@ async function queryByPid(){
   finally{ hideing(); }
 }
 
+function weekday(ymd){
+  const d = new Date(ymd+'T09:00:00+08:00');
+  return ['日','一','二','三','四','五','六'][d.getDay()];
+}
+function guessTime(slot){
+  if(!slot) return '';
+  if(slot.includes('早')) return '08:30~11:30';
+  if(slot.includes('午')) return '14:00~17:00';
+  if(slot.includes('晚')) return '18:00~20:30';
+  return '';
+}
+function todayYmd(){
+  const z = new Date();
+  return `${z.getFullYear()}-${('0'+(z.getMonth()+1)).slice(-2)}-${('0'+z.getDate()).slice(-2)}`;
+}
+
 function appendRow(item,pid){
   const ymd=item.date||'', w=weekday(ymd), t=item.time||guessTime(item.slot)||'';
   const disableCancel=(ymd===todayYmd());
   const key = slotKey(item.slot||'');
-
-  const chip = (txt)=>`<span class="chip chip-${key}">${txt||''}</span>`;
-
   const row=document.createElement('div');
-  row.className='list-row mb-2';
+  row.className='list-row row-'+key+' mb-2';
   row.innerHTML=`
-    <div>${chip(ymd)}</div>
-    <div>${chip('星期'+w)}</div>
-    <div>${chip(item.slot||'')}</div>
-    <div>${chip(t)}</div>
-    <div>${chip(item.name||'')}</div>
-    <div>${chip(item.num||'')}</div>
+    <div>${ymd}</div><div>星期${w}</div><div>${item.slot||''}</div>
+    <div>${t}</div><div>${item.name||''}</div><div>${item.num||''}</div>
     <div><button class="btn btn-cancel btn-sm" ${disableCancel?'disabled':''}>取消</button></div>`;
   row.querySelector('.btn-cancel').onclick=()=>{ if(!disableCancel) cancelByPid(pid); };
   $list.appendChild(row);
 }
 
 async function cancelByPid(pid){
-  if(!confirm(`確認取消此身分證字號 ${pid} 的所有未取消預約？\n（僅能取消非當天門診）`)) return;
+  if(!confirm(`確認取消此身分證字號 ${pid} 的所有未取消預約？`)) return;
   showing('取消中請稍等');
   try{
-    const recaptchaToken = await getRecaptchaToken('cancel');
-    const resp=await axios.get(API,{ params:{ action:'cancel', idnum: pid, recaptchaToken, t: Date.now() }});
+    const resp=await axios.get(API,{ params:{ action:'cancel', idnum: pid, t: Date.now() }});
     if(resp.data && (resp.data.ok||resp.data.success)){ alert(resp.data.message||'已取消符合規則的預約。'); await queryByPid(); }
     else{ alert((resp.data&&resp.data.message)||'取消失敗，請稍後再試'); }
   }catch(e){ console.error(e); alert('取消失敗，請稍後再試'); }
@@ -250,9 +186,7 @@ async function cancelByPid(pid){
 }
 
 $btn.onclick=queryByPid;
-$pid.addEventListener('input',e=>{ e.target.value=e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,10); });
 $pid.addEventListener('keydown',e=>{ if(e.key==='Enter') queryByPid(); });
-loadRecaptcha().catch(()=>{});
 </script>
 </body>
 </html>
