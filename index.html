@@ -55,29 +55,36 @@ function aesEnc(payload, ttlMs = 10 * 60 * 1000){
 
 <style>
   :root{
+    /* 品牌紫 & 對應強化色 */
     --purple:#6236a7;
     --purple-600:#4b2c86;
+
+    /* 很深、偏黑的紫色（標題用） */
+    --ink-strong:#1b1230;
+
+    /* 卡片的紫色邊線（比原本更有存在感） */
+    --card-border-purple:#c9bdf5;
+
+    /* 其他共用色 */
     --ink:#2a2341;
     --line:#ebe6fb;
     --outline:#cfd3de;
     --outline-text:#5c6170;
-
-    /* 診別主題色 */
-    --early-bg:#e7f7ee;  --early-border:#b8ead4;  --early-text:#0f5132;
-    --noon-bg:#fff3df;   --noon-border:#ffd79a;   --noon-text:#7a4d00;
-    --night-bg:#e8f2ff;  --night-border:#cfe2ff;  --night-text:#1d4ed8;
-    --closed-bg:#ffe5e5; --closed-border:#ffc2c2; --closed-text:#b42318;
   }
+
   body{ background:#f4eefc; }
 
-  /* 卡片（細邊框） */
+  /* ===== 卡片：改成 2px 粗外框 + 更有層次的陰影（紫色語系） ===== */
   .card{
     max-width:780px; margin:32px auto; padding:28px 22px 32px;
-    border-radius:24px; border:1px solid var(--line); background:#fff;
-    box-shadow:0 12px 28px rgba(98,54,167,.10);
+    border-radius:24px; background:#fff;
+    border:2px solid var(--card-border-purple);
+    box-shadow:
+      0 14px 34px rgba(98,54,167,.14),
+      0 2px 0 rgba(98,54,167,.06);
   }
 
-  /* 標題：＋ 與文字加大置中（視覺更粗一點） */
+  /* ===== 標題：視覺更粗（深紫、略放大、微負字距） ===== */
   .header{
     display:flex; align-items:center; justify-content:center;
     gap:14px; margin-bottom:12px; text-align:center;
@@ -86,11 +93,18 @@ function aesEnc(payload, ttlMs = 10 * 60 * 1000){
     width:60px; height:60px; border-radius:50%;
     display:grid; place-items:center;
     background:var(--purple); color:#fff; font-weight:900; font-size:32px;
-    box-shadow:0 6px 14px rgba(98,54,167,.20);
+    box-shadow:0 8px 18px rgba(98,54,167,.22);
   }
   .header h1{
-    margin:0; font-size:2rem; line-height:1; font-weight:900; color:var(--ink);
-    text-shadow:0 .02em 0 rgba(0,0,0,.08); /* 讓字看起來更「厚」 */
+    margin:0;
+    font-size:2.25rem;
+    line-height:1.05;
+    font-weight:900;
+    color:var(--ink-strong);
+    letter-spacing:-0.2px;
+    text-rendering:optimizeLegibility;
+    -webkit-font-smoothing:antialiased;
+    -moz-osx-font-smoothing:grayscale;
   }
 
   /* 注意事項泡泡 */
@@ -113,12 +127,12 @@ function aesEnc(payload, ttlMs = 10 * 60 * 1000){
   }
   #weekday{ color:#7b6aa4; font-weight:800; }
 
-  /* 診別選單主題（依選擇變色） */
-  .slot-theme{ transition:background-color .2s,border-color .2s,color .2s; }
-  .slot-early{ background:var(--early-bg) !important; border-color:var(--early-border) !important; color:var(--early-text) !important; }
-  .slot-noon { background:var(--noon-bg)  !important; border-color:var(--noon-border)  !important; color:var(--noon-text)  !important; }
-  .slot-night{ background:var(--night-bg) !important; border-color:var(--night-border) !important; color:var(--night-text) !important; }
-  .slot-closed{ background:var(--closed-bg)!important; border-color:var(--closed-border)!important; color:var(--closed-text)!important; }
+  /* 診別主題色（下拉選擇時依文字自動換色） */
+  .slot-theme{ transition:background-color .18s,border-color .18s,color .18s; }
+  .slot-early{ background:#e7f7ee !important; border-color:#b8ead4 !important; color:#0f5132 !important; }
+  .slot-noon { background:#fff3df !important; border-color:#ffd79a !important; color:#7a4d00 !important; }
+  .slot-night{ background:#e8f2ff !important; border-color:#cfe2ff !important; color:#1d4ed8 !important; }
+  .slot-closed{ background:#ffe8ea !important; border-color:#ffccd2 !important; color:#b4232a !important; }
 
   /* 圓角膠囊按鈕 */
   .btn-pill{ border-radius:999px; font-weight:800; padding:1rem 1.25rem; }
@@ -168,7 +182,6 @@ function aesEnc(payload, ttlMs = 10 * 60 * 1000){
 
   <div class="mb-3">
     <label class="form-label">診別 *</label>
-    <!-- 套用 slot-theme 供變色 -->
     <select id="slot" class="form-select slot-theme" autocomplete="off">
       <option value="">請先選擇日期</option>
     </select>
@@ -265,24 +278,21 @@ function updateWeekday(d){
   $weekday.textContent = `（星期${wtxt[wd]}）`;
 }
 
-/* ===== 讓診別選單依值變色 ===== */
-function slotKeyByLabel(label){
-  const s = String(label||'');
-  if (s.includes('早')) return 'early';
-  if (s.includes('午')) return 'noon';
-  if (s.includes('晚')) return 'night';
-  if (s.includes('未開放')) return 'closed';
+/* ===== 診別主題色（依 option 文字自動切換） ===== */
+function slotKey(label){
+  const s=String(label||'');
+  if(s.includes('早')) return 'early';
+  if(s.includes('午')) return 'noon';
+  if(s.includes('晚')) return 'night';
+  if(s.includes('未開放')) return 'closed';
   return '';
 }
 function applySelectTheme(){
-  const si = $slot.selectedIndex;
-  const opt = si>=0 ? $slot.options[si] : null;
-  const label = opt ? opt.textContent : '';
-  const key = slotKeyByLabel(label);
+  const val = $slot.options[$slot.selectedIndex]?.textContent || '';
+  const key = slotKey(val);
   $slot.classList.remove('slot-early','slot-noon','slot-night','slot-closed');
   if(key) $slot.classList.add('slot-'+key);
 }
-$slot.addEventListener('change', applySelectTheme);
 
 /* ===== 可能的 nonce 資訊（GAS 若開啟 REQUIRE_NONCE 時） ===== */
 let nonceMeta = null;
@@ -312,6 +322,8 @@ async function initDateWindow(){
 
 /* ===== 載入診別：getSlots（含 nonce 相容） ===== */
 $date.addEventListener('change', onDateChange);
+$slot.addEventListener('change', applySelectTheme);
+
 async function onDateChange(){
   clearErr();
   nonceMeta = null;
@@ -336,24 +348,24 @@ async function onDateChange(){
       const remain = Math.max(0, limit-used);
       if(limit>0 && remain>0){
         const label = o.label || '';
-        const time  = o.time || '';
-        html += `<option value="${label}" data-time="${time}" data-start="${o.startNo||1}" data-remain="${remain}">
-                   ${label}（${time}，剩 ${remain}/${limit}）
+        html += `<option value="${label}" data-time="${o.time||''}" data-start="${o.startNo||1}" data-remain="${remain}">
+                   ${label}（${o.time||''}，剩 ${remain}/${limit}）
                  </option>`;
       }
     });
 
-    if ((!slots || slots.length===0) || html === '<option value="">請選診別</option>'){
+    if ((!slots || slots.length === 0) && html === '<option value="">請選診別</option>'){
       html = '<option value="">當天未開放</option>';
+      $slot.classList.add('slot-closed');
     }
+
     $slot.innerHTML = html;
-    // 預設先套一次顏色（若只有「當天未開放」會直接變紅）
-    $slot.selectedIndex = 0;
+    $slot.selectedIndex = 1; // 自動選第一個有效項（若有）
     applySelectTheme();
+
   }catch(e){
     console.error(e);
     $slot.innerHTML = '<option value="">讀取失敗</option>';
-    $slot.classList.remove('slot-early','slot-noon','slot-night','slot-closed');
   }
 }
 
@@ -409,6 +421,7 @@ $submit.onclick = async ()=>{
       recaptchaToken,
       t: Date.now()
     };
+    // 伺服端若開啟 REQUIRE_NONCE，要帶上
     if (nonceMeta && nonceMeta.date === d){
       params.nonce = nonceMeta.nonce;
       params.sig   = nonceMeta.sig;
