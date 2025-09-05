@@ -190,29 +190,30 @@ function todayYmd(){
 function appendRow(item,pid){
   const ymd=item.date||'', w=weekday(ymd), t=item.time||guessTime(item.slot)||'';
   const disableCancel=(ymd===todayYmd());
+  const key = slotKey(item.slot||'');
   const row=document.createElement('div');
-  row.className='list-row mb-2';
+  row.className='list-row row-'+key+' mb-2';
   row.innerHTML=`
     <div>${ymd}</div><div>星期${w}</div><div>${item.slot||''}</div>
     <div>${t}</div><div>${item.name||''}</div><div>${item.num||''}</div>
-    <div><button class="btn btn-cancel btn-sm btn-danger" ${disableCancel?'disabled':''}>取消</button></div>`;
+    <div><button class="btn btn-cancel btn-sm" ${disableCancel?'disabled':''}>取消</button></div>`;
   
+  // ✅ 單筆取消，改傳 item.id
   row.querySelector('.btn-cancel').onclick=()=>{ 
-    if(!disableCancel) cancelBooking(item.id, pid); 
+    if(!disableCancel) cancelBooking(item.id); 
   };
   $list.appendChild(row);
 }
 
-async function cancelBooking(rowId, pid){
+async function cancelBooking(rowId){
   if(!confirm(`確認取消這筆預約？`)) return;
   showing('取消中請稍等');
   try{
     const token = await recaptchaToken('cancel');
     const resp = await axios.get(API, {
       params:{
-        action:'cancel',
-        id: rowId,
-        idnum: pid,   // 一併傳身分證字號
+        action:'cancel',   // 使用後端 cancelReservation
+        id: rowId,         // 傳單筆的 rowId
         recaptchaToken: token,
         t: Date.now()
       }
@@ -240,8 +241,3 @@ $pid.addEventListener('keydown',e=>{ if(e.key==='Enter') queryByPid(); });
 </script>
 </body>
 </html>
-
-
-
-
-
