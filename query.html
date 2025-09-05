@@ -199,40 +199,42 @@ function appendRow(item,pid){
     <div><button class="btn btn-cancel btn-sm" ${disableCancel?'disabled':''}>取消</button></div>`;
   
   // ✅ 單筆取消，改傳 item.id
-  row.querySelector('.btn-cancel').onclick=()=>{ 
-    if(!disableCancel) cancelBooking(item.id); 
-  };
+row.querySelector('.btn-cancel').onclick=()=>{ 
+  if(!disableCancel) cancelBooking(item.id, pid); 
+};
+
   $list.appendChild(row);
 }
 
-async function cancelBooking(rowId){
+async function cancelBooking(rowId, pid){
   if(!confirm(`確認取消這筆預約？`)) return;
   showing('取消中請稍等');
   try{
     const token = await recaptchaToken('cancel');
     const resp = await axios.get(API, {
       params:{
-        action:'cancel',   // 使用後端 cancelReservation
-        id: rowId,         // 傳單筆的 rowId
+        action:'cancel',
+        id: rowId,          // 單筆 id
+        idnum: pid,         // ★ 同步帶上身分證字號，後端會驗證
         recaptchaToken: token,
         t: Date.now()
       }
     });
-    if(resp.data && resp.data.error === 'robot'){ 
-      alert('驗證未通過，請重試。'); 
-      return; 
+    if(resp.data && resp.data.error === 'robot'){
+      alert('驗證未通過，請重試。');
+      return;
     }
-    if(resp.data && (resp.data.ok||resp.data.success)){ 
-      alert(resp.data.message||'已取消該筆預約。'); 
-      await queryByPid(); 
-    }else{ 
-      alert((resp.data&&resp.data.message)||'取消失敗，請稍後再試'); 
+    if(resp.data && (resp.data.ok||resp.data.success)){
+      alert(resp.data.message||'已取消該筆預約。');
+      await queryByPid();  // 重新載入列表
+    }else{
+      alert((resp.data&&resp.data.message)||'取消失敗，請稍後再試');
     }
-  }catch(e){ 
-    console.error(e); 
-    alert('取消失敗，請稍後再試'); 
-  }finally{ 
-    hideing(); 
+  }catch(e){
+    console.error(e);
+    alert('取消失敗，請稍後再試');
+  }finally{
+    hideing();
   }
 }
 
@@ -241,3 +243,4 @@ $pid.addEventListener('keydown',e=>{ if(e.key==='Enter') queryByPid(); });
 </script>
 </body>
 </html>
+
