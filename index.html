@@ -150,32 +150,18 @@ function aesEnc(payload, ttlMs = 10 * 60 * 1000){
 
   <div id="errBar" class="alert alert-danger d-none" role="alert"></div>
 
-<div class="mb-3 mt-2">
-  <label class="form-label">預約日期 *</label>
-
-  <div class="note-bubble">
-    <div class="fw-semibold mb-1">🔺開放門診預約對照</div>
-    <div class="text-muted small mb-2">
-      規則：週一～週三、週六、週日 → D+3；週四、週五 → D+4。
-    </div>
-
-    <!-- 不用 .row/.col，避免外層排版被影響 -->
-    <div class="small"
-         style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:.25rem .75rem;align-items:center;">
-      <div><span class="badge bg-light text-dark">週一</span> → 週四</div>
-      <div><span class="badge bg-light text-dark">週二</span> → 週五</div>
-      <div><span class="badge bg-light text-dark">週三</span> → 週六</div>
-      <div><span class="badge bg-light text-dark">週四</span> → 下週一</div>
-      <div><span class="badge bg-light text-dark">週五</span> → 下週二</div>
-      <div><span class="badge bg-light text-dark">週六</span> → 下週二</div>
-      <div><span class="badge bg-light text-dark">週日</span> → 下週三</div>
-    </div>
-
-    <div class="mt-2 small">
-      若當天門診卻沒有選項可選，表示預約名額已滿；如有疑問，請對照「門診時刻表」與「最新消息」確認是否有門診異動。
-    </div>
-  </div>
+<div class="note-bubble">
+  🔺開放門診預約的日期為［當日 > 可預約日］：<br>
+  ［週一 > 週四］<br>
+  ［週二 > 週五］<br>
+  ［週三 > 週六］<br>
+  ［週四 > 下週一］<br>
+  ［週五 > 下週二］<br>
+  ［週六 > 下週二］<br>
+  ［週日 > 下週三］。<br>
+  當天有門診，卻沒有選項可選表示預約人數已額滿；若仍有疑問，請對照「門診時刻表」與「最新消息」查看是否有門診異動。
 </div>
+
 
 
     <div class="d-flex align-items-center flex-nowrap">
@@ -471,6 +457,7 @@ $submit.onclick = async ()=>{
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
+
 
 
 
