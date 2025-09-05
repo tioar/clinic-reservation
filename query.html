@@ -15,7 +15,7 @@
 
 <script>
   /* ↓ 這兩個保持你的既有設定即可（如需換，改這裡） */
-  const API = "https://script.google.com/macros/s/AKfycbzLJmVu2M23bavTeaf04fWndANmDW--nTrUdhfuf5vDf_aXGpIc6OBPxhQBxRfuUIfz/exec";
+  const API = "https://script.google.com/macros/s/AKfycbz1jtOWBJEETvotCU2y022ow4lOlm_TauYpRMG6riUIj88_Vde5d9LHGH5cLC4HYe7X/exec";
   const RECAPTCHA_SITE_KEY = "6LdqprArAAAAACpuAXemZUH3KNER1t1iw07YjGHu";
 </script>
 
@@ -65,6 +65,14 @@
   .btn-cancel{background:#dc3545;border:none;color:#fff;font-weight:700;border-radius:50rem;padding:0.25rem 0.75rem;}
   .btn-cancel:hover{background:#b02a37}
 
+  /* ★ 新增：禁用狀態（灰色、不可點） */
+  .btn-cancel:disabled{
+    background:#adb5bd !important;
+    color:#fff !important;
+    cursor:not-allowed !important;
+    opacity:1 !important;
+  }
+
   /* 遮罩 */
   #ing{position:fixed;inset:0;background:rgba(255,255,255,.9);display:none;align-items:center;justify-content:center;z-index:9999;font-size:18px;color:var(--purple-600);backdrop-filter:blur(2px)}
   #dots{display:inline-block;width:2ch;text-align:left}
@@ -113,7 +121,7 @@ function slotKey(label){
   if(label.includes('早')) return 'early';
   if(label.includes('午')) return 'noon';
   if(label.includes('晚')) return 'night';
-  if(label.includes('約診')) return 'appt';   // ★ 約診
+  if(label.includes('約診')) return 'appt';
   if(label.includes('未開放')) return 'closed';
   return '';
 }
@@ -129,7 +137,8 @@ const $dots = document.getElementById('dots');
 /* 遮罩動畫 */
 let dotTimer=null;
 function showing(txt){
-  $ing.firstChild.nodeValue = (txt||'處理中請稍等');
+  // 以元素的第一個文字節點為標題，保持原結構
+  $ing.childNodes[0].nodeValue = (txt||'處理中請稍等');
   $ing.style.display='flex';
   if(dotTimer) clearInterval(dotTimer);
   dotTimer = setInterval(()=>{
@@ -179,29 +188,30 @@ function guessTime(slot){
   if(slot.includes('早')) return '08:30~11:30';
   if(slot.includes('午')) return '14:00~17:00';
   if(slot.includes('晚')) return '18:00~20:30';
-  if(slot.includes('約診')) return '09:00~12:00'; // ★ 約診備援
+  if(slot.includes('約診')) return '09:00~12:00';
   return '';
-}
-function todayYmd(){
-  const z = new Date();
-  return `${z.getFullYear()}-${('0'+(z.getMonth()+1)).slice(-2)}-${('0'+z.getDate()).slice(-2)}`;
 }
 
 function appendRow(item,pid){
   const ymd=item.date||'', w=weekday(ymd), t=item.time||guessTime(item.slot)||'';
-  const disableCancel=(ymd===todayYmd());
+  const disableCancel = !item.canCancel; // ★ 用後端的可取消旗標
   const key = slotKey(item.slot||'');
   const row=document.createElement('div');
   row.className='list-row row-'+key+' mb-2';
   row.innerHTML=`
     <div>${ymd}</div><div>星期${w}</div><div>${item.slot||''}</div>
     <div>${t}</div><div>${item.name||''}</div><div>${item.num||''}</div>
-    <div><button class="btn btn-cancel btn-sm" ${disableCancel?'disabled':''}>取消</button></div>`;
-  
-  // ✅ 單筆取消，改傳 item.id
-row.querySelector('.btn-cancel').onclick=()=>{ 
-  if(!disableCancel) cancelBooking(item.id, pid); 
-};
+    <div>
+      <button class="btn btn-cancel btn-sm"
+              ${disableCancel ? 'disabled title="當天或已過期，請改電話取消"' : ''}>
+        取消
+      </button>
+    </div>`;
+
+  // 單筆取消：帶 rowId + 身分證字號（後端會驗證為本人且非當天/過去）
+  row.querySelector('.btn-cancel').onclick = () => {
+    if (!disableCancel) cancelBooking(item.id, pid);
+  };
 
   $list.appendChild(row);
 }
@@ -215,7 +225,7 @@ async function cancelBooking(rowId, pid){
       params:{
         action:'cancel',
         id: rowId,          // 單筆 id
-        idnum: pid,         // ★ 同步帶上身分證字號，後端會驗證
+        idnum: pid,         // 同步帶上身分證字號，後端驗證本人
         recaptchaToken: token,
         t: Date.now()
       }
@@ -243,5 +253,3 @@ $pid.addEventListener('keydown',e=>{ if(e.key==='Enter') queryByPid(); });
 </script>
 </body>
 </html>
-
-
