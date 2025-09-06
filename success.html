@@ -192,7 +192,7 @@ function slotCheckinText(slot, meta) {
 
     <div class="d-flex justify-content-center align-items-start gap-2 mb-4 notice-text">
       <div style="font-size:20px;line-height:1.1;">🔸</div>
-      <div>請在預約的門診時間內報到，逾期自動取消。門診當天僅接受電話取消 ☎ (03)5152971。 </div>
+      <div>請在門診時間結束前一小時報到，超過時間自動取消釋出給現場掛號。門診當天僅接受電話取消 ☎ (03)5152971。 </div>
     </div>
 
     <div class="d-flex justify-content-center gap-2 mb-3">
@@ -300,7 +300,7 @@ let dotTimer = setInterval(()=>{
 ${ymd} 星期${wk}（${d.slot||''}） ${timeRange||''} ${docText}
 姓名：${d.name||''}，號碼：${d.num||''} 號。
 
-🔺請在預約的門診結束前一小時到場報到(早診10:30前；午診16:00前；晚診20:00前)；過號需等現場安排，逾期自動取消。取消可至「查詢／取消預約」頁，門診當天僅接受電話取消。🔺`;
+🔺請在預約的門診結束前一小時到場報到(早診10:30前；午診16:00前；晚診20:00前)；過號需等現場安排，超過時間未報到自動取消釋出名額給現場。取消可至「查詢／取消預約」頁，門診當天僅接受電話取消。🔺`;
     shareBtn.onclick = async ()=>{
       try{
         if (navigator.share) await navigator.share({ text: shareText });
@@ -320,5 +320,6 @@ ${ymd} 星期${wk}（${d.slot||''}） ${timeRange||''} ${docText}
 </script>
 </body>
 </html>
+
 
 
