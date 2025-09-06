@@ -289,7 +289,7 @@ let dotTimer = setInterval(()=>{
 
     // 第三行（新增）：依診別顯示報到時間
     const noticeText = slotCheckinText(d.slot || "", slotMeta);
-    slotNotice.innerHTML = noticeText ? `🔸 ${noticeText}` : "";
+    slotNotice.innerHTML = noticeText ? `⭐ ${noticeText}` : "";
 
     filledAt.textContent = d.submittedAt ? fmtTsTW(d.submittedAt) : '';
 
@@ -320,4 +320,5 @@ ${ymd} 星期${wk}（${d.slot||''}） ${timeRange||''} ${docText}
 </script>
 </body>
 </html>
+
 
