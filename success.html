@@ -288,7 +288,8 @@ let dotTimer = setInterval(()=>{
     slotSub.textContent  = `姓名：${d.name||''}，號碼：${d.num||''} 號。`;
 
     // 第三行（新增）：依診別顯示報到時間
-    slotNotice.textContent = slotCheckinText(d.slot || "", slotMeta);
+    const noticeText = slotCheckinText(d.slot || "", slotMeta);
+    slotNotice.innerHTML = noticeText ? `🔸 ${noticeText}` : "";
 
     filledAt.textContent = d.submittedAt ? fmtTsTW(d.submittedAt) : '';
 
@@ -319,3 +320,4 @@ ${ymd} 星期${wk}（${d.slot||''}） ${timeRange||''} ${docText}
 </script>
 </body>
 </html>
+
