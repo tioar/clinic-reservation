@@ -612,7 +612,7 @@ const API = "https://script.google.com/macros/s/AKfycbz1jtOWBJEETvotCU2y022ow4lO
 let ADMIN_TOKEN = sessionStorage.getItem('ADMIN_TOKEN')||"";
 
 // 第二支 GAS（叫號控制）
-const QUEUE_API = "YOUR_QUEUE_GAS_EXEC_URL"; // ← 貼上叫號那支 GAS 的部署 exec 網址
+const QUEUE_API = "https://script.google.com/macros/s/AKfycbzdtqy4EU7MVDWqPGzNEGoP06PzAvsCRuRgh08YBui1mkFlGfiFcZu5vFpW7JNIkBrO/exec"; // ← 貼上叫號那支 GAS 的部署 exec 網址
 const QUEUE_KEY = ""; // 若在 GAS 啟用 ADMIN_KEY 保護，這裡填同值
 
 /* ========= Token 自動續期工具 ========= */
@@ -1192,6 +1192,7 @@ if(ADMIN_TOKEN){ showApp(); } else { showLogin(); }
 </script>
 </body>
 </html>
+
 
 
 
