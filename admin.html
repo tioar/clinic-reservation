@@ -52,6 +52,8 @@
     .btn-ghost:hover, .btn-ghost.active{ background:#64748b; color:#fff !important; }
     .btn-warning{ background:var(--queue-orange); color:#fff !important; }
     .btn-warning:hover{ background:var(--queue-orange-600); color:#fff !important; }
+    .btn-danger{ background:#dc3545; color:#fff !important; }
+    .btn-danger:hover{ background:#b02a37; color:#fff !important; }
 
     /* ===== Login ===== */
     .login-card{ display:grid; place-items:center; min-height:calc(100vh - 6rem); padding:3rem 1rem; }
@@ -83,12 +85,9 @@
     .tabbar{ gap:.5rem; flex-wrap:wrap; }
     .tabbar .btn{ padding:.55rem 1rem; }
     .tabbar .btn:not(.active){ background:#6b7a90; color:#fff; }
-    /* 全部分頁按下都有暈影 */
     .tabbar .btn.active{ background:var(--primary-600); color:#fff; box-shadow:0 6px 14px rgba(47,85,101,.28); }
-    /* 橘色的「叫號控制」按下時用橘色暈影 */
-    .tabbar .btn-queue.active{ background:var(--queue-orange-700) !important; box-shadow:0 6px 14px rgba(245,158,11,.32) !important; }
 
-    /* ===== 日期列 / 統計卡 / 表格（略，與你舊版相同） ===== */
+    /* ===== 日期列 / 統計卡 / 表格 ===== */
     .date-nav{ display:flex; flex-wrap:wrap; align-items:center; gap:.5rem .5rem; }
     .date-nav .form-control{ width:160px; border-radius:14px; }
     .totals{ font-weight:900; color:#1f3f57; } .totals .muted{ color:#6b7a90; font-weight:800; }
@@ -98,6 +97,15 @@
     .stat .cap{ padding:.35rem .7rem; border-radius:999px; font-weight:900; line-height:1; }
     .stat .kv{font-weight:800}
     .stat .note{color:#6b7280;font-weight:700}
+
+    .stat-early{ background:var(--early-light); border-color:var(--early-bar); }
+    .stat-early .cap{ background:#dff5ea; color:#065f46; border:1px solid #b8ead4; }
+    .stat-noon{  background:var(--noon-light);  border-color:var(--noon-bar); }
+    .stat-noon  .cap{ background:#ffeccd; color:#7a4d00; border:1px solid #ffd69a; }
+    .stat-night{ background:var(--night-light); border-color:var(--night-bar); }
+    .stat-night .cap{ background:#e1ecff; color:#1d4ed8; border:1px solid #c7dbff; }
+    .stat-appt{  background:var(--appt-light);  border-color:var(--appt-bar); }
+    .stat-appt .cap{ background:#ffe0ef; color:#9d174d; border:1px solid #f9b3d1; }
 
     .table{ border-radius:16px; overflow:hidden; margin:0; }
     .table td{ border-top:2px solid #e5e7eb !important; }
@@ -126,13 +134,13 @@
     /* ===== 叫號控制：橘色主題 ===== */
     .btn-queue{ background:var(--queue-orange) !important; color:#fff !important; }
     .btn-queue:hover{ background:var(--queue-orange-600) !important; color:#fff !important; }
+    .tabbar .btn-queue.active{ background:var(--queue-orange-700) !important; box-shadow:0 6px 14px rgba(245,158,11,.32) !important; }
 
     #tab-queue .stat{ border-color:var(--queue-orange); }
     #tab-queue .cap{ background:#fff3e0; color:var(--queue-orange-700); }
     #tab-queue .btn-ghost{ border-color:var(--queue-orange); color:var(--queue-orange-700); }
     #tab-queue .btn-ghost:hover{ background:#fff3e0; }
 
-    /* 左側大號碼 */
     .q-now-input{
       width: clamp(140px, 42vw, 260px);
       font-size: clamp(40px, 12vw, 86px);
@@ -146,25 +154,21 @@
     @supports (-webkit-touch-callout: none){
       .q-now-input{ font-variant-numeric: tabular-nums; }
     }
-
     .q-step{ width:56px; height:56px; border-radius:999px; font-size:30px; font-weight:900; line-height:1; padding:0; }
     .q-now-row{ align-items:center; gap:12px; flex-wrap:wrap; }
     .q-actions{ display:flex; align-items:center; gap:12px; margin-left:auto; }
 
-    /* 橘色膠囊標籤（白字、放大） */
     #tab-queue .cap.cap-pill{
       background:var(--queue-orange); color:#fff; border-radius:999px;
       padding:.55rem 1.1rem; font-weight:900; font-size:1.2rem;
     }
 
-    /* Switch 標籤：全部粗體並上色 */
     .qlabel{ font-weight:900; font-size:1.2rem; }
     .qlabel.q-auto{   color:var(--black); }
     .qlabel.q-stop{   color:var(--stop-red); }
     .qlabel.q-closed{ color:var(--coral); }
     .qlabel.q-query{  color:var(--query-green); }
 
-    /* 更大的 switch 與邊框色（未勾也有對應描邊） */
     #tab-queue .form-check-input{ width: 2.8em; height: 1.6em; border-width:2px; }
     #qAuto{    border-color:var(--black) !important; }
     #qStopped{ border-color:var(--stop-red) !important; }
@@ -175,7 +179,6 @@
     #qClosed:checked{  background-color:var(--coral) !important;    border-color:var(--coral) !important; }
     #qQuery:checked{   background-color:var(--query-green) !important; border-color:var(--query-green) !important; }
 
-    /* 三顆主按鈕圓角同尺寸 */
     #qSet, #qReset, #qSaveFlags{
       border-radius:999px !important;
       padding:.60rem 1.20rem !important;
@@ -184,11 +187,9 @@
       line-height:1 !important;
       min-width:130px !important;
     }
-    /* 歸零桃紅 */
     #qReset{ background:#b51695 !important; color:#fff !important; border-color:#b51695 !important; }
     #qReset:hover{ background:#9b127f !important; border-color:#9b127f !important; color:#fff !important; }
 
-    /* 行動裝置（特別針對 iPhone Safari） */
     @media (max-width: 575.98px){
       .q-step{ width:48px; height:48px; font-size:26px; }
       .q-now-row{ justify-content:center; }
@@ -196,7 +197,6 @@
       #qSet, #qReset{ padding:.48rem .9rem !important; font-size:.98rem !important; min-width:0 !important; }
       #tab-queue .cap.cap-pill{ font-size:1.05rem; padding:.45rem .9rem; }
       .qlabel{ font-size:1.1rem; }
-      /* 防止超出卡片 */
       .stat{ padding:.8rem .85rem; }
     }
   </style>
@@ -232,7 +232,7 @@
       <div class="logo">＋</div>
       <div>
         <h3 class="m-0">後台管理</h3>
-        <div class="subtitle"><b>今天名單、明天名單、預約設定、臨時異動</b></div>
+        <div class="subtitle"><b>今天名單、明天名單、預約設定、臨時異動、叫號控制</b></div>
       </div>
       <div class="ms-auto d-flex align-items-center gap-2">
         <button id="exportBtn" class="btn btn-ghost btn-sm">匯出今日起預約名單</button>
@@ -648,7 +648,7 @@ function asObj(p){ try{ return typeof p==='string'?JSON.parse(p):(p||{});}catch{
 function asArr(p){ try{ if(typeof p==='string') p=JSON.parse(p);}catch{} if(Array.isArray(p))return p; if(Array.isArray(p?.rows))return p.rows; if(Array.isArray(p?.items))return p.items; if(Array.isArray(p?.data))return p.data; return []; }
 function num(x){ const n=Number(x); return isFinite(n)?n:0; }
 
-/* ===== 渲染統計 + 表格（略） ===== */
+/* ===== 統計卡 + 表格渲染 ===== */
 function slotKey(label){
   const s=String(label||'').trim();
   if(s.includes('約')) return 'appt';
@@ -690,7 +690,6 @@ function renderStats(containerId, slots){
   });
   box.appendChild(frag);
 }
-
 function renderItems(tableId, items, refreshFnName){
   const tb=document.querySelector(`#${tableId} tbody`); tb.innerHTML='';
   const counters={ early:0, noon:0, night:0, appt:0 };
@@ -1084,4 +1083,3 @@ if(ADMIN_TOKEN){ showApp(); } else { showLogin(); }
 </script>
 </body>
 </html>
-
