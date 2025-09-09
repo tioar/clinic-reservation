@@ -170,7 +170,93 @@
       .stat-appt.stat-compact .small-note{ font-size:.85rem; }
       .stat .cap{ white-space: nowrap; }
     }
-  </style>
+  
+/* === 叫號控制：橘色主題與大字樣式 === */
+.btn-queue{ background:#f59e0b !important; color:#fff !important; }
+.btn-queue:hover{ background:#d97706; color:#fff !important; }
+.btn-queue.active{ background:#b45309 !important; color:#fff !important; box-shadow:0 6px 14px rgba(245,158,11,.32); }
+
+#tab-queue .stat{ border-color:#f59e0b; }
+#tab-queue .cap{ background:#fff3e0; color:#b45309; }
+#tab-queue .btn-ghost{ border-color:#f59e0b; color:#b45309; }
+#tab-queue .btn-ghost:hover{ background:#fff3e0; }
+
+/* 左側大號碼輸入框 */
+.q-now-input{
+  font-size:48px; font-weight:900; color:#d90429; 
+  text-align:center; letter-spacing:1px;
+  border-radius:14px; border:2px solid #f59e0b; background:#fffaf2;
+}
+
+/* 右側彩色粗體標籤 */
+.qlabel{ font-weight:500; font-size:1.35rem; }
+.qlabel.q-auto{ color:#000; }
+.qlabel.q-stop{ color:#d32f2f; }
+.qlabel.q-closed{ color:#ff7f50; }
+.qlabel.q-query{ color:#148f3f; } /* 綠色 */
+
+.tabbar .btn-queue{ background:#f59e0b !important; color:#fff !important; }
+.tabbar .btn-queue:hover{ background:#d97706 !important; }
+.tabbar .btn-queue.active{ background:#b45309 !important; }
+
+#tab-queue .row.g-3 > [class*="col-"]{ display:grid; }
+#tab-queue .row.g-3 > [class*="col-"] > .stat{ height:100%; }
+
+.q-step{ width:56px; height:56px; border-radius:999px; font-size:30px; font-weight:900; line-height:1; padding:0; }
+@media (min-width: 1200px){
+  .q-now-input{ font-size:64px; }
+  .q-step{ width:64px; height:64px; font-size:34px; }
+}
+
+/* Switch colors match labels */
+#qAuto:checked   { background-color:#000 !important; border-color:#000 !important; }
+#qStopped:checked{ background-color:#d32f2f !important; border-color:#d32f2f !important; }
+#qClosed:checked { background-color:#ff7f50 !important; border-color:#ff7f50 !important; }
+#qQuery:checked  { background-color:#148f3f !important; border-color:#148f3f !important; }
+
+/* 歸零：桃紅色 */
+#qReset, .btn-reset{ background:#b51695 !important; color:#fff !important; border-color:#b51695 !important; }
+#qReset:hover, .btn-reset:hover{ background:#9b127f !important; border-color:#9b127f !important; color:#fff !important; }
+
+/* 橘色膠囊標籤（白字、放大） */
+#tab-queue .cap.cap-pill{
+  background:#f59e0b; color:#fff; border-radius:999px;
+  padding:.55rem 1.1rem; font-weight:900; font-size:1.2rem;
+}
+
+/* 叫號數字更大 */
+.q-now-input{
+  font-size:56px; font-weight:900; color:#d90429;
+}
+@media (min-width:1200px){
+  .q-now-input{ font-size:80px; }
+}
+
+/* 更大的 switch 並依 label 上色（未勾/勾選都放大） */
+#tab-queue .form-check-input{
+  width: 2.8em; height: 1.6em; border-width:2px;
+}
+/* 勾選時顏色（已設定於先前）；未勾選保持灰，但描邊跟著各自顏色 */
+#qAuto{ border-color:#000 !important; }
+#qStopped{ border-color:#d32f2f !important; }
+#qClosed{ border-color:#ff7f50 !important; }
+#qQuery{ border-color:#148f3f !important; }
+
+/* 右側兩個需要粗體 */
+.qlabel.q-stop, .qlabel.q-closed{ font-weight:900; }
+
+/* === EQ BUTTONS: 叫號控制三顆按鈕同尺寸、圓角膠囊 === */
+#qSet, #qReset, #qSaveFlags{
+  border-radius:999px !important;
+  padding:.60rem 1.20rem !important;
+  font-size:1.10rem !important;
+  font-weight:900 !important;
+  line-height:1 !important;
+  min-width:130px !important;
+}
+#qReset{ background:#b51695 !important; color:#fff !important; border-color:#b51695 !important; }
+#qReset:hover{ background:#9b127f !important; border-color:#9b127f !important; color:#fff !important; }
+</style>
 </head>
 <body>
 <!-- Login -->
@@ -213,6 +299,7 @@
 
     <!-- Tabs -->
     <div class="tabbar mb-3 d-flex gap-2">
+      <button class="btn btn-queue" id="tabBtnQueue" data-tab="tab-queue">叫號控制</button>
       <button class="btn btn-main active" id="tabBtnToday" data-tab="tab-today">今天名單</button>
       <button class="btn btn-main" id="tabBtnTomorrow" data-tab="tab-tomorrow">明天名單</button>
       <button class="btn btn-main" id="tabBtnSettings" data-tab="tab-settings">預約設定</button>
@@ -452,6 +539,68 @@
         </div>
       </div>
     </section>
+    <!-- ====== 叫號控制（新） ====== -->
+    <section id="tab-queue" style="display:none;">
+      <div class="card mb-3 p-3">
+        <div class="d-flex align-items-center justify-content-between">
+          <div>
+            <h5 class="m-0 fw-bold">叫號控制（叫號試算表）</h5>
+            <div id="qInfo" class="small-note mt-1">讀取中…</div>
+          </div>
+          <div><button id="qReload" class="btn btn-ghost btn-sm">重新整理</button></div>
+        </div>
+
+        <div class="row g-3 mt-2">
+          
+<div class="col-12 col-md-6">
+  <div class="stat">
+    <div class="cap cap-pill">目前號碼</div>
+    <div class="flex-grow-1 w-100">
+      
+      <div class="d-flex align-items-center gap-3 flex-wrap">
+        <button class="btn btn-queue q-step" id="qMinus1" type="button">－</button>
+        <input id="qNow" type="number" class="form-control q-now-input" value="0" style="max-width:220px;">
+        <button class="btn btn-queue q-step" id="qPlus1" type="button">＋</button>
+        <div class="ms-auto d-flex align-items-center gap-3">
+          <button class="btn btn-reset btn-lg" id="qReset" type="button" style="border-radius:14px;">數字歸零</button>
+          <button class="btn btn-main btn-lg" id="qSet" type="button" style="border-radius:14px;">設定</button>
+        </div>
+      </div>
+      <div class="small-note mt-2">此處會直接寫入叫號試算表「工作表1 / 目前號碼」。</div>
+    </div>
+  </div>
+</div>
+<div class="col-12 col-md-6">
+
+            <div class="stat">
+              <div class="cap cap-pill">開關</div>
+              <div class="flex-grow-1">
+                <div class="form-check form-switch">
+                  <input class="form-check-input" type="checkbox" id="qAuto">
+                  <label class="form-check-label"><span class="qlabel q-auto">自動模式（ESP32 上報時覆寫號碼）</span></label>
+                </div>
+                <div class="form-check form-switch">
+                  <input class="form-check-input" type="checkbox" id="qStopped">
+                  <label class="form-check-label"><span class="qlabel q-stop">停止掛號</span></label>
+                </div>
+                <div class="form-check form-switch">
+                  <input class="form-check-input" type="checkbox" id="qClosed">
+                  <label class="form-check-label"><span class="qlabel q-closed">休診沒有看</span></label>
+                </div>
+                <div class="form-check form-switch">
+                  <input class="form-check-input" type="checkbox" id="qQuery">
+                  <label class="form-check-label"><span class="qlabel q-query">查詢開關（LINE 查詢是否開啟）</span></label>
+                </div>
+                <div class="mt-2">
+                  <button class="btn btn-main btn-sm" id="qSaveFlags">儲存開關</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div><!-- /row -->
+      </div>
+    </section>
+
   </div>
 </div>
 
@@ -461,6 +610,10 @@
 /* ===== API 與共用 ===== */
 const API = "https://script.google.com/macros/s/AKfycbz1jtOWBJEETvotCU2y022ow4lOlm_TauYpRMG6riUIj88_Vde5d9LHGH5cLC4HYe7X/exec";
 let ADMIN_TOKEN = sessionStorage.getItem('ADMIN_TOKEN')||"";
+
+// 第二支 GAS（叫號控制）
+const QUEUE_API = "YOUR_QUEUE_GAS_EXEC_URL"; // ← 貼上叫號那支 GAS 的部署 exec 網址
+const QUEUE_KEY = ""; // 若在 GAS 啟用 ADMIN_KEY 保護，這裡填同值
 
 /* ========= Token 自動續期工具 ========= */
 function tokenExpSec(t){ try{ return Number(String(t).split('.')[0])||0; }catch(_){ return 0; } }
@@ -525,17 +678,19 @@ const logoutBtn=document.getElementById('logoutBtn'), exportBtn=document.getElem
 const tabBtnToday=document.getElementById('tabBtnToday'),
       tabBtnTomorrow=document.getElementById('tabBtnTomorrow'),
       tabBtnSettings=document.getElementById('tabBtnSettings'),
-      tabBtnSpecial=document.getElementById('tabBtnSpecial');
+      tabBtnSpecial=document.getElementById('tabBtnSpecial'),
+      tabBtnQueue=document.getElementById('tabBtnQueue');
 
 const views={
   'tab-today':document.getElementById('tab-today'),
   'tab-tomorrow':document.getElementById('tab-tomorrow'),
   'tab-settings':document.getElementById('tab-settings'),
-  'tab-special':document.getElementById('tab-special')
+  'tab-special':document.getElementById('tab-special'),
+  'tab-queue':document.getElementById('tab-queue')
 };
 
 function switchTab(id){
-  [tabBtnToday,tabBtnTomorrow,tabBtnSettings,tabBtnSpecial].forEach(b=>{
+  [tabBtnToday,tabBtnTomorrow,tabBtnSettings,tabBtnSpecial,tabBtnQueue].forEach(b=>{
     const a=(b.dataset.tab||b.id.replace('tabBtn','tab-'))===id;
     b.classList.toggle('active',a);
   });
@@ -544,6 +699,7 @@ function switchTab(id){
   if(id==='tab-tomorrow'){ initTomorrowTab(); }
   if(id==='tab-settings'){ loadWindow(); loadFlags(); loadDaily(); loadSheetLinks(); }
   if(id==='tab-special'){ loadSpecials(); }
+  if(id==='tab-queue'){ initQueueTab(); }
 }
 document.querySelector('.tabbar').addEventListener('click', (e)=>{
   const btn = e.target.closest('button[data-tab]');
@@ -924,6 +1080,112 @@ btnLoginPW.onclick=async()=>{
   }catch(e){ console.error(e); alert('登入失敗'); }
 };
 [acc,pw].forEach(el=>el.addEventListener('keydown',e=>{ if(e.key==='Enter') btnLoginPW.click(); }));
+
+
+/* ===== 叫號控制：API 包裝 ===== */
+async function qGet(){
+  if(!QUEUE_API || QUEUE_API.includes("YOUR_QUEUE")){ 
+    document.getElementById('qInfo').textContent = "https://script.google.com/macros/s/AKfycbzdtqy4EU7MVDWqPGzNEGoP06PzAvsCRuRgh08YBui1mkFlGfiFcZu5vFpW7JNIkBrO/exec";
+    return { ok:false };
+  }
+  const r = await axios.get(QUEUE_API, { params: { action:'adminGet', key:QUEUE_KEY }});
+  return r.data;
+}
+async function qSetFlags(flags){
+  const r = await axios.get(QUEUE_API, { params: { action:'adminSetFlags', key:QUEUE_KEY, ...flags }});
+  return r.data;
+}
+async function qSetNumber(n){
+  const r = await axios.get(QUEUE_API, { params: { action:'adminSetNumber', number:n, key:QUEUE_KEY }});
+  return r.data;
+}
+async function qStep(delta){
+  const r = await axios.get(QUEUE_API, { params: { action:'adminStep', delta, key:QUEUE_KEY }});
+  return r.data;
+}
+
+/* ===== 叫號控制：UI 綁定與初始化 ===== */
+const qInfo   = document.getElementById('qInfo');
+const qNow    = document.getElementById('qNow');
+const qAuto   = document.getElementById('qAuto');
+const qStopped= document.getElementById('qStopped');
+const qClosed = document.getElementById('qClosed');
+const qQuery  = document.getElementById('qQuery');
+
+async function initQueueTab(){
+  try{
+    const d = await qGet();
+    if(!d || !d.ok){ return; }
+    qInfo.textContent = `目前：${d.now ?? '—'} ｜ 自動:${d.auto?'ON':'OFF'} ｜ 止掛:${d.stopped?'ON':'OFF'} ｜ 休診:${d.closed?'ON':'OFF'} ｜ 查詢:${d.query?'ON':'OFF'}`;
+    qNow.value = (d.now ?? 0);
+    qAuto.checked    = !!d.auto;
+    qStopped.checked = !!d.stopped;
+    qClosed.checked  = !!d.closed;
+    qQuery.checked   = !!d.query;
+  }catch(e){
+    console.error(e);
+    qInfo.textContent = '讀取失敗';
+  }
+}
+
+document.getElementById('qReload').onclick = initQueueTab;
+document.getElementById('qSet').onclick = async ()=>{
+  const n = Number(qNow.value||0);
+  const r = await qSetNumber(n);
+  if(!r?.ok){ alert('設定失敗'); return; }
+  initQueueTab();
+};
+document.getElementById('qMinus1').onclick = async ()=>{ await qStep(-1); initQueueTab(); };
+document.getElementById('qPlus1').onclick  = async ()=>{ await qStep(+1); initQueueTab(); };
+document.getElementById('qReset').onclick  = async ()=>{ await qSetNumber(0); initQueueTab(); };
+document.getElementById('qSaveFlags').onclick = async ()=>{
+  const r = await qSetFlags({
+    auto: qAuto.checked,
+    stopped: qStopped.checked,
+    closed: qClosed.checked,
+    query: qQuery.checked
+  });
+
+// Helper: whether API is configured
+const hasQueueApi = (typeof QUEUE_API !== 'undefined') && QUEUE_API && !String(QUEUE_API).includes('YOUR_QUEUE');
+
+// -1 / +1 immediate update + optional backend step
+const btnMinus = document.getElementById('qMinus1');
+const btnPlus  = document.getElementById('qPlus1');
+if (btnMinus) btnMinus.onclick = async ()=>{
+  const cur = Number(qNow.value||0);
+  const nxt = Math.max(0, cur - 1);
+  qNow.value = nxt;
+  if (hasQueueApi) { try { await qStep(-1); } catch(e){} }
+};
+if (btnPlus) btnPlus.onclick = async ()=>{
+  const cur = Number(qNow.value||0);
+  const nxt = cur + 1;
+  qNow.value = nxt;
+  if (hasQueueApi) { try { await qStep(+1); } catch(e){} }
+};
+
+// Reset
+const btnReset = document.getElementById('qReset');
+if (btnReset) btnReset.onclick = async ()=>{
+  qNow.value = 0;
+  if (hasQueueApi) { try { await qSetNumber(0); } catch(e){} }
+  initQueueTab();
+};
+
+
+  if(!r?.ok){ alert('儲存失敗'); return; }
+  initQueueTab();
+};
+
+// 直接輸入數字→即時寫入
+if (qNow) {
+  qNow.addEventListener('change', async () => {
+    const n = Number(qNow.value || 0);
+    await qSetNumber(n);
+    initQueueTab();
+  });
+}
 
 /* ===== 進入頁 ===== */
 if(ADMIN_TOKEN){ showApp(); } else { showLogin(); }
