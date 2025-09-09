@@ -176,16 +176,21 @@
     #tab-queue .btn-ghost{ border-color:#f59e0b; color:#b45309; }
     #tab-queue .btn-ghost:hover{ background:#fff3e0; }
 
+    /* 號碼輸入 */
     .q-now-input{
       font-size:56px; font-weight:900; color:#d90429;
       text-align:center; letter-spacing:1px;
       border-radius:14px; border:2px solid #f59e0b; background:#fffaf2;
     }
+    /* 去掉 number spinners 以免撐寬 */
+    input[type=number].q-now-input::-webkit-outer-spin-button,
+    input[type=number].q-now-input::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0; }
+    input[type=number].q-now-input{ -moz-appearance:textfield; }
 
     .qlabel{ font-weight:500; font-size:1.35rem; }
     .qlabel.q-auto{ color:#000; }
     .qlabel.q-stop{ color:#d32f2f; }
-    .qlabel.q-closed{ color:var(--coral); font-weight:900; }  /* 珊瑚色 */
+    .qlabel.q-closed{ color:var(--coral); font-weight:900; }
     .qlabel.q-query{ color:#148f3f; }
 
     .tabbar .btn-queue{ background:#f59e0b !important; color:#fff !important; }
@@ -204,10 +209,10 @@
     #qStopped{ border-color:#d32f2f !important; }
     #qStopped:checked{ background-color:#d32f2f !important; border-color:#d32f2f !important; }
 
-    #qClosed{ border-color:var(--coral) !important; } /* 未勾選描邊 */
+    #qClosed{ border-color:var(--coral) !important; }
     #qClosed:checked{ background-color:var(--coral) !important; border-color:var(--coral) !important; }
 
-    #qQuery{ border-color:#148f3f !important; }
+    #qQuery{ border-color:#148f3f !重要; }
     #qQuery:checked{ background-color:#148f3f !important; border-color:#148f3f !important; }
 
     /* 橘色膠囊標籤（白字、放大） */
@@ -228,31 +233,43 @@
     #qReset{ background:#b51695 !important; color:#fff !important; border-color:#b51695 !important; }
     #qReset:hover{ background:#9b127f !important; border-color:#9b127f !important; color:#fff !important; }
 
-    /* 叫號行的 layout（桌機 flex、手機 grid） */
+    /* 叫號行：桌機用 flex，手機用 grid */
     .q-line{ display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
     .q-actions{ margin-left:auto; display:flex; gap:12px; }
 
+    /* ======= 手機重排關鍵處理 ======= */
     @media (max-width: 576px){
       #tab-queue .cap.cap-pill{ font-size:1rem; padding:.45rem .9rem; }
 
+      /* 三欄：－ ｜ 號碼（最小 160px） ｜ ＋ */
       .q-line{
         display:grid !important;
-        grid-template-columns:56px 1fr 56px;
+        grid-template-columns:56px minmax(160px,1fr) 56px;
         align-items:center;
         gap:12px;
       }
-      .q-now-input{ max-width:100% !important; width:100%; font-size:48px; }
+
+      /* 號碼輸入吃滿，不被擠壓 */
+      .q-now-input{
+        width:100% !important;
+        max-width:none !important;
+        font-size:48px;
+      }
       .q-step{ width:52px; height:52px; font-size:28px; }
 
+      /* 按鈕區整列換到下方，兩顆各一行（設定在數字歸零下面） */
       .q-actions{
         grid-column:1 / -1;
         margin-left:0;
         width:100%;
-        justify-content:space-between;
+        display:grid !important;
+        grid-template-columns:1fr;
+        gap:10px;
       }
-      #qSet, #qReset{
-        min-width:46%;
-        padding:.7rem 0 !important;
+      #qReset, #qSet{
+        min-width:0 !important;
+        width:100% !important;
+        padding:.75rem 0 !important;
         font-size:1rem !important;
       }
     }
@@ -265,7 +282,7 @@
     <div class="header">
       <div class="logo">＋</div>
       <div>
-        <h1 class="h4 m-0">後台登入</h1>
+        <h1 class="h4 m-0">陳萬龍診所後台登入</h1>
         <div class="small-note mt-1">請輸入管理帳號與密碼</div>
       </div>
     </div>
@@ -288,7 +305,7 @@
     <div class="card-head mb-3">
       <div class="logo">＋</div>
       <div>
-        <h3 class="m-0">後台管理</h3>
+        <h3 class="m-0">診所後台管理</h3>
         <div class="subtitle"><b>今天名單、明天名單、預約設定、臨時異動</b></div>
       </div>
       <div class="ms-auto d-flex align-items-center gap-2">
@@ -557,10 +574,10 @@
               <div class="cap cap-pill">目前號碼</div>
               <div class="flex-grow-1 w-100">
 
-                <!-- 叫號行 -->
+                <!-- 叫號行：－ ｜ 輸入 ｜ ＋；手機時按鈕區換到下方 -->
                 <div class="q-line">
                   <button class="btn btn-queue q-step" id="qMinus1" type="button">－</button>
-                  <input id="qNow" type="number" class="form-control q-now-input" value="0" style="max-width:220px;">
+                  <input id="qNow" type="number" class="form-control q-now-input" value="0">
                   <button class="btn btn-queue q-step" id="qPlus1" type="button">＋</button>
 
                   <div class="q-actions">
@@ -592,7 +609,7 @@
                 </div>
                 <div class="form-check form-switch">
                   <input class="form-check-input" type="checkbox" id="qQuery">
-                  <label class="form-check-label"><span class="qlabel q-query">LINE看診關鍵字回覆</span></label>
+                  <label class="form-check-label"><span class="qlabel q-query">Line回覆開關</span></label>
                 </div>
                 <div class="mt-2">
                   <button class="btn btn-main btn-sm" id="qSaveFlags">儲存開關</button>
@@ -1164,4 +1181,3 @@ if(ADMIN_TOKEN){ showApp(); } else { showLogin(); }
 </script>
 </body>
 </html>
-
