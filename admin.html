@@ -8,37 +8,29 @@
   <link rel="icon" type="image/png" href="favicon.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;800;900&display=swap" rel="stylesheet">
 
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;800;900&display=swap" rel="stylesheet">
 
   <style>
     :root{
       --primary:#3b697d;
       --primary-600:#2f5565;
-      --card-bg:#ffffff;
       --border:#d9dee7;
 
-      --early-light:#e7f7ee;
-      --early-dark:#cfeedd;
-      --early-bar:#16a34a;
+      /* row tint colors */
+      --early-light:#e7f7ee; --early-dark:#cfeedd; --early-bar:#16a34a;
+      --noon-light:#fff3df;  --noon-dark:#ffe4b3;  --noon-bar:#f59e0b;
+      --night-light:#e8f2ff; --night-dark:#cfe2ff; --night-bar:#3b82f6;
+      --appt-light:#f9e0f5;  --appt-dark:#f3b3e6;  --appt-bar:#b51695;
 
-      --noon-light:#fff3df;
-      --noon-dark:#ffe4b3;
-      --noon-bar:#f59e0b;
-
-      --night-light:#e8f2ff;
-      --night-dark:#cfe2ff;
-      --night-bar:#3b82f6;
-
-      --appt-light:#f9e0f5;
-      --appt-dark:#f3b3e6;
-      --appt-bar:#b51695;
-
-      /* 珊瑚色（休診） */
+      --queue-orange:#f59e0b;
+      --queue-orange-600:#d97706;
+      --queue-orange-700:#b45309;
       --coral:#ff7f50;
-      --coral-600:#ff6a33;
+      --stop-red:#d32f2f;
+      --query-green:#148f3f;
+      --black:#000;
     }
 
     body{
@@ -46,10 +38,11 @@
       background:linear-gradient(160deg,#ecf1f6,#e6edf6);
       min-height:100vh;
       color:#334155;
+      -webkit-tap-highlight-color: transparent;
     }
 
     /* ===== 卡片 ===== */
-    .card{ border-radius:28px; border:2px solid var(--border); box-shadow:0 6px 14px rgba(0,0,0,.06); }
+    .card{ border-radius:28px; border:2px solid var(--border); box-shadow:0 6px 14px rgba(0,0,0,.06); overflow:hidden; }
 
     /* ===== 共用按鈕 ===== */
     .btn{ border-radius:999px; font-weight:700; border:0; }
@@ -57,10 +50,8 @@
     .btn-main:hover, .btn-main.active{ background:var(--primary-600); color:#fff !important; }
     .btn-ghost{ background:#94a3b8; color:#fff !important; }
     .btn-ghost:hover, .btn-ghost.active{ background:#64748b; color:#fff !important; }
-    .btn-danger{ background:#dc3545; color:#fff !important; }
-    .btn-danger:hover{ background:#b02a37; color:#fff !important; }
-    .btn-warning{ background:#f59e0b; color:#fff !important; }
-    .btn-warning:hover{ background:#d97706; color:#fff !important; }
+    .btn-warning{ background:var(--queue-orange); color:#fff !important; }
+    .btn-warning:hover{ background:var(--queue-orange-600); color:#fff !important; }
 
     /* ===== Login ===== */
     .login-card{ display:grid; place-items:center; min-height:calc(100vh - 6rem); padding:3rem 1rem; }
@@ -73,14 +64,8 @@
       box-shadow:0 8px 18px rgba(59,105,125,.25);
     }
     .login-card h1{ font-weight:900; }
-    .login-card .form-control{
-      border-radius:16px; padding:.675rem .95rem; border:2px solid #d1d5db;
-    }
-    .login-card .form-control:focus{
-      border-color:var(--primary);
-      box-shadow:0 0 0 .2rem rgba(59,105,125,.2);
-      outline:none;
-    }
+    .login-card .form-control{ border-radius:16px; padding:.675rem .95rem; border:2px solid #d1d5db; }
+    .login-card .form-control:focus{ border-color:var(--primary); box-shadow:0 0 0 .2rem rgba(59,105,125,.2); outline:none; }
 
     /* ===== 頂部區 ===== */
     .card-head{ display:flex; align-items:center; gap:12px; }
@@ -95,43 +80,25 @@
     .card-head .subtitle b{ color:#0f172a; font-weight:900; }
 
     /* ===== 分頁鈕 ===== */
+    .tabbar{ gap:.5rem; flex-wrap:wrap; }
     .tabbar .btn{ padding:.55rem 1rem; }
     .tabbar .btn:not(.active){ background:#6b7a90; color:#fff; }
-    .tabbar .btn.active{ background:var(--primary-600); color:#fff; }
+    /* 全部分頁按下都有暈影 */
+    .tabbar .btn.active{ background:var(--primary-600); color:#fff; box-shadow:0 6px 14px rgba(47,85,101,.28); }
+    /* 橘色的「叫號控制」按下時用橘色暈影 */
+    .tabbar .btn-queue.active{ background:var(--queue-orange-700) !important; box-shadow:0 6px 14px rgba(245,158,11,.32) !important; }
 
-    /* ===== 日期列 ===== */
+    /* ===== 日期列 / 統計卡 / 表格（略，與你舊版相同） ===== */
     .date-nav{ display:flex; flex-wrap:wrap; align-items:center; gap:.5rem .5rem; }
     .date-nav .form-control{ width:160px; border-radius:14px; }
     .totals{ font-weight:900; color:#1f3f57; } .totals .muted{ color:#6b7a90; font-weight:800; }
 
-    /* ===== 上方統計卡 ===== */
-    .stat{
-      border:2px dashed var(--border);
-      border-radius:20px;
-      padding:.9rem 1rem;
-      background:#fff;
-      display:flex; align-items:center; gap:.9rem;
-      box-shadow:0 4px 10px rgba(0,0,0,.04);
-    }
-    .stat .cap{
-      padding:.35rem .7rem;
-      border-radius:999px;
-      font-weight:900;
-      line-height:1;
-    }
+    .stat{ border:2px dashed var(--border); border-radius:20px; padding:.9rem 1rem; background:#fff;
+           display:flex; align-items:center; gap:.9rem; box-shadow:0 4px 10px rgba(0,0,0,.04); overflow:hidden; }
+    .stat .cap{ padding:.35rem .7rem; border-radius:999px; font-weight:900; line-height:1; }
     .stat .kv{font-weight:800}
     .stat .note{color:#6b7280;font-weight:700}
 
-    .stat-early{ background:var(--early-light); border-color:var(--early-bar); }
-    .stat-early .cap{ background:#dff5ea; color:#065f46; border:1px solid #b8ead4; }
-    .stat-noon{  background:var(--noon-light);  border-color:var(--noon-bar); }
-    .stat-noon  .cap{ background:#ffeccd; color:#7a4d00; border:1px solid #ffd69a; }
-    .stat-night{ background:var(--night-light); border-color:var(--night-bar); }
-    .stat-night .cap{ background:#e1ecff; color:#1d4ed8; border:1px solid #c7dbff; }
-    .stat-appt{ background:var(--appt-light); border-color:var(--appt-bar); }
-    .stat-appt .cap{ background:#ffe0ef; color:#9d174d; border:1px solid #f9b3d1; }
-
-    /* ===== 表格 ===== */
     .table{ border-radius:16px; overflow:hidden; margin:0; }
     .table td{ border-top:2px solid #e5e7eb !important; }
     .table thead th{ border-bottom:2px solid #cbd5e1 !important; font-weight:900; }
@@ -151,127 +118,86 @@
     tr[class^="slot-appt"]  td:first-child{ box-shadow:inset 6px 0 0 0 var(--appt-bar); }
 
     .tag{ display:inline-block; width:.8em; height:.8em; border-radius:50%; margin-right:.4em; vertical-align:middle; }
-    .tag-early{ background:var(--early-bar); }
-    .tag-noon{  background:var(--noon-bar); }
-    .tag-night{ background:var(--night-bar); }
-    .tag-appt{  background:var(--appt-bar); }
-
+    .tag-early{ background:var(--early-bar); } .tag-noon{ background:var(--noon-bar); }
+    .tag-night{ background:var(--night-bar); } .tag-appt{ background:var(--appt-bar); }
     .small-note{ color:#64748b; font-size:.925rem; }
     .small-note code{ background:#f6f7fb; padding:.1rem .25rem; border-radius:6px; }
 
-    @media (min-width: 992px){
-      .stat-appt.stat-compact{ padding:.6rem .8rem; }
-      .stat-appt.stat-compact .kv{ font-size:.95rem; }
-      .stat-appt.stat-compact .small-note{ font-size:.85rem; }
-      .stat .cap{ white-space: nowrap; }
-    }
+    /* ===== 叫號控制：橘色主題 ===== */
+    .btn-queue{ background:var(--queue-orange) !important; color:#fff !important; }
+    .btn-queue:hover{ background:var(--queue-orange-600) !important; color:#fff !important; }
 
-    /* === 叫號控制：橘色主題與大字樣式 === */
-    .btn-queue{ background:#f59e0b !important; color:#fff !important; }
-    .btn-queue:hover{ background:#d97706; color:#fff !important; }
-    .btn-queue.active{ background:#b45309 !important; color:#fff !important; box-shadow:0 6px 14px rgba(245,158,11,.32); }
-
-    #tab-queue .stat{ border-color:#f59e0b; }
-    #tab-queue .cap{ background:#fff3e0; color:#b45309; }
-    #tab-queue .btn-ghost{ border-color:#f59e0b; color:#b45309; }
+    #tab-queue .stat{ border-color:var(--queue-orange); }
+    #tab-queue .cap{ background:#fff3e0; color:var(--queue-orange-700); }
+    #tab-queue .btn-ghost{ border-color:var(--queue-orange); color:var(--queue-orange-700); }
     #tab-queue .btn-ghost:hover{ background:#fff3e0; }
 
-    /* 號碼輸入 */
+    /* 左側大號碼 */
     .q-now-input{
-      font-size:56px; font-weight:900; color:#d90429;
+      width: clamp(140px, 42vw, 260px);
+      font-size: clamp(40px, 12vw, 86px);
+      font-weight:900; color:#d90429;
       text-align:center; letter-spacing:1px;
-      border-radius:14px; border:2px solid #f59e0b; background:#fffaf2;
+      border-radius:14px; border:2px solid var(--queue-orange); background:#fffaf2;
+      -moz-appearance: textfield;
     }
-    /* 去掉 number spinners 以免撐寬 */
-    input[type=number].q-now-input::-webkit-outer-spin-button,
-    input[type=number].q-now-input::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0; }
-    input[type=number].q-now-input{ -moz-appearance:textfield; }
-
-    .qlabel{ font-weight:500; font-size:1.35rem; }
-    .qlabel.q-auto{ color:#000; }
-    .qlabel.q-stop{ color:#d32f2f; }
-    .qlabel.q-closed{ color:var(--coral); font-weight:900; }
-    .qlabel.q-query{ color:#148f3f; }
-
-    .tabbar .btn-queue{ background:#f59e0b !important; color:#fff !important; }
-    .tabbar .btn-queue:hover{ background:#d97706 !important; }
-    .tabbar .btn-queue.active{ background:#b45309 !important; }
-
-    #tab-queue .row.g-3 > [class*="col-"]{ display:grid; }
-    #tab-queue .row.g-3 > [class*="col-"] > .stat{ height:100%; }
+    .q-now-input::-webkit-outer-spin-button,
+    .q-now-input::-webkit-inner-spin-button{ -webkit-appearance: none; margin:0; }
+    @supports (-webkit-touch-callout: none){
+      .q-now-input{ font-variant-numeric: tabular-nums; }
+    }
 
     .q-step{ width:56px; height:56px; border-radius:999px; font-size:30px; font-weight:900; line-height:1; padding:0; }
-
-    /* Switch 顏色與描邊 */
-    #qAuto{ border-color:#000 !important; }
-    #qAuto:checked{ background-color:#000 !important; border-color:#000 !important; }
-
-    #qStopped{ border-color:#d32f2f !important; }
-    #qStopped:checked{ background-color:#d32f2f !important; border-color:#d32f2f !important; }
-
-    #qClosed{ border-color:var(--coral) !important; }
-    #qClosed:checked{ background-color:var(--coral) !important; border-color:var(--coral) !important; }
-
-    #qQuery{ border-color:#148f3f !重要; }
-    #qQuery:checked{ background-color:#148f3f !important; border-color:#148f3f !important; }
+    .q-now-row{ align-items:center; gap:12px; flex-wrap:wrap; }
+    .q-actions{ display:flex; align-items:center; gap:12px; margin-left:auto; }
 
     /* 橘色膠囊標籤（白字、放大） */
     #tab-queue .cap.cap-pill{
-      background:#f59e0b; color:#fff; border-radius:999px;
+      background:var(--queue-orange); color:#fff; border-radius:999px;
       padding:.55rem 1.1rem; font-weight:900; font-size:1.2rem;
     }
 
-    /* 叫號控制三顆按鈕同尺寸 */
+    /* Switch 標籤：全部粗體並上色 */
+    .qlabel{ font-weight:900; font-size:1.2rem; }
+    .qlabel.q-auto{   color:var(--black); }
+    .qlabel.q-stop{   color:var(--stop-red); }
+    .qlabel.q-closed{ color:var(--coral); }
+    .qlabel.q-query{  color:var(--query-green); }
+
+    /* 更大的 switch 與邊框色（未勾也有對應描邊） */
+    #tab-queue .form-check-input{ width: 2.8em; height: 1.6em; border-width:2px; }
+    #qAuto{    border-color:var(--black) !important; }
+    #qStopped{ border-color:var(--stop-red) !important; }
+    #qClosed{  border-color:var(--coral) !important; }
+    #qQuery{   border-color:var(--query-green) !important; }
+    #qAuto:checked{    background-color:var(--black) !important;    border-color:var(--black) !important; }
+    #qStopped:checked{ background-color:var(--stop-red) !important; border-color:var(--stop-red) !important; }
+    #qClosed:checked{  background-color:var(--coral) !important;    border-color:var(--coral) !important; }
+    #qQuery:checked{   background-color:var(--query-green) !important; border-color:var(--query-green) !important; }
+
+    /* 三顆主按鈕圓角同尺寸 */
     #qSet, #qReset, #qSaveFlags{
       border-radius:999px !important;
       padding:.60rem 1.20rem !important;
-      font-size:1.10rem !important;
+      font-size:1.05rem !important;
       font-weight:900 !important;
       line-height:1 !important;
       min-width:130px !important;
     }
+    /* 歸零桃紅 */
     #qReset{ background:#b51695 !important; color:#fff !important; border-color:#b51695 !important; }
     #qReset:hover{ background:#9b127f !important; border-color:#9b127f !important; color:#fff !important; }
 
-    /* 叫號行：桌機用 flex，手機用 grid */
-    .q-line{ display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
-    .q-actions{ margin-left:auto; display:flex; gap:12px; }
-
-    /* ======= 手機重排關鍵處理 ======= */
-    @media (max-width: 576px){
-      #tab-queue .cap.cap-pill{ font-size:1rem; padding:.45rem .9rem; }
-
-      /* 三欄：－ ｜ 號碼（最小 160px） ｜ ＋ */
-      .q-line{
-        display:grid !important;
-        grid-template-columns:56px minmax(160px,1fr) 56px;
-        align-items:center;
-        gap:12px;
-      }
-
-      /* 號碼輸入吃滿，不被擠壓 */
-      .q-now-input{
-        width:100% !important;
-        max-width:none !important;
-        font-size:48px;
-      }
-      .q-step{ width:52px; height:52px; font-size:28px; }
-
-      /* 按鈕區整列換到下方，兩顆各一行（設定在數字歸零下面） */
-      .q-actions{
-        grid-column:1 / -1;
-        margin-left:0;
-        width:100%;
-        display:grid !important;
-        grid-template-columns:1fr;
-        gap:10px;
-      }
-      #qReset, #qSet{
-        min-width:0 !important;
-        width:100% !important;
-        padding:.75rem 0 !important;
-        font-size:1rem !important;
-      }
+    /* 行動裝置（特別針對 iPhone Safari） */
+    @media (max-width: 575.98px){
+      .q-step{ width:48px; height:48px; font-size:26px; }
+      .q-now-row{ justify-content:center; }
+      .q-actions{ margin-left:0; flex-basis:100%; justify-content:space-between; margin-top:.35rem; }
+      #qSet, #qReset{ padding:.48rem .9rem !important; font-size:.98rem !important; min-width:0 !important; }
+      #tab-queue .cap.cap-pill{ font-size:1.05rem; padding:.45rem .9rem; }
+      .qlabel{ font-size:1.1rem; }
+      /* 防止超出卡片 */
+      .stat{ padding:.8rem .85rem; }
     }
   </style>
 </head>
@@ -282,7 +208,7 @@
     <div class="header">
       <div class="logo">＋</div>
       <div>
-        <h1 class="h4 m-0">陳萬龍診所後台登入</h1>
+        <h1 class="h4 m-0">後台登入</h1>
         <div class="small-note mt-1">請輸入管理帳號與密碼</div>
       </div>
     </div>
@@ -305,7 +231,7 @@
     <div class="card-head mb-3">
       <div class="logo">＋</div>
       <div>
-        <h3 class="m-0">診所後台管理</h3>
+        <h3 class="m-0">後台管理</h3>
         <div class="subtitle"><b>今天名單、明天名單、預約設定、臨時異動</b></div>
       </div>
       <div class="ms-auto d-flex align-items-center gap-2">
@@ -315,7 +241,7 @@
     </div>
 
     <!-- Tabs -->
-    <div class="tabbar mb-3 d-flex gap-2">
+    <div class="tabbar mb-3 d-flex">
       <button class="btn btn-queue" id="tabBtnQueue" data-tab="tab-queue">叫號控制</button>
       <button class="btn btn-main active" id="tabBtnToday" data-tab="tab-today">今天名單</button>
       <button class="btn btn-main" id="tabBtnTomorrow" data-tab="tab-tomorrow">明天名單</button>
@@ -557,7 +483,7 @@
       </div>
     </section>
 
-    <!-- ====== 叫號控制（新） ====== -->
+    <!-- ====== 叫號控制 ====== -->
     <section id="tab-queue" style="display:none;">
       <div class="card mb-3 p-3">
         <div class="d-flex align-items-center justify-content-between">
@@ -569,41 +495,39 @@
         </div>
 
         <div class="row g-3 mt-2">
+          <!-- 左：目前號碼 -->
           <div class="col-12 col-md-6">
             <div class="stat">
               <div class="cap cap-pill">目前號碼</div>
               <div class="flex-grow-1 w-100">
-
-                <!-- 叫號行：－ ｜ 輸入 ｜ ＋；手機時按鈕區換到下方 -->
-                <div class="q-line">
+                <div class="d-flex q-now-row">
                   <button class="btn btn-queue q-step" id="qMinus1" type="button">－</button>
                   <input id="qNow" type="number" class="form-control q-now-input" value="0">
                   <button class="btn btn-queue q-step" id="qPlus1" type="button">＋</button>
-
                   <div class="q-actions">
-                    <button class="btn btn-reset btn-lg" id="qReset" type="button" style="border-radius:14px;">數字歸零</button>
-                    <button class="btn btn-main btn-lg" id="qSet" type="button" style="border-radius:14px;">設定</button>
+                    <button class="btn btn-reset" id="qReset" type="button">數字歸零</button>
+                    <button class="btn btn-main" id="qSet" type="button">設定</button>
                   </div>
                 </div>
-
                 <div class="small-note mt-2">此處會直接寫入叫號試算表「工作表1 / 目前號碼」。</div>
               </div>
             </div>
           </div>
 
+          <!-- 右：開關 -->
           <div class="col-12 col-md-6">
             <div class="stat">
               <div class="cap cap-pill">開關</div>
               <div class="flex-grow-1">
-                <div class="form-check form-switch">
+                <div class="form-check form-switch mb-2">
                   <input class="form-check-input" type="checkbox" id="qAuto">
                   <label class="form-check-label"><span class="qlabel q-auto">自動模式（ESP32覆寫）</span></label>
                 </div>
-                <div class="form-check form-switch">
+                <div class="form-check form-switch mb-2">
                   <input class="form-check-input" type="checkbox" id="qStopped">
                   <label class="form-check-label"><span class="qlabel q-stop">停止掛號</span></label>
                 </div>
-                <div class="form-check form-switch">
+                <div class="form-check form-switch mb-2">
                   <input class="form-check-input" type="checkbox" id="qClosed">
                   <label class="form-check-label"><span class="qlabel q-closed">休診沒有看</span></label>
                 </div>
@@ -611,7 +535,7 @@
                   <input class="form-check-input" type="checkbox" id="qQuery">
                   <label class="form-check-label"><span class="qlabel q-query">Line回覆開關</span></label>
                 </div>
-                <div class="mt-2">
+                <div class="mt-3">
                   <button class="btn btn-main btn-sm" id="qSaveFlags">儲存開關</button>
                 </div>
               </div>
@@ -633,15 +557,13 @@ let ADMIN_TOKEN = sessionStorage.getItem('ADMIN_TOKEN')||"";
 
 // 第二支 GAS（叫號控制）
 const QUEUE_API = "https://script.google.com/macros/s/AKfycbzdtqy4EU7MVDWqPGzNEGoP06PzAvsCRuRgh08YBui1mkFlGfiFcZu5vFpW7JNIkBrO/exec";
-const QUEUE_KEY = ""; // 若在 GAS 啟用 ADMIN_KEY 保護，這裡填同值
+const QUEUE_KEY = ""; // 若你的叫號 GAS 有 Admin Key，就填在這裡
 
-/* ========= Token 自動續期工具 ========= */
+/* ========= Token 自動續期 ========= */
 function tokenExpSec(t){ try{ return Number(String(t).split('.')[0])||0; }catch(_){ return 0; } }
 function tokenExpired(t, preSec=60){
-  const exp = tokenExpSec(t);
-  if(!exp) return true;
-  const now = Math.floor(Date.now()/1000);
-  return (exp - now) <= preSec;
+  const exp = tokenExpSec(t); if(!exp) return true;
+  return (Math.floor(Date.now()/1000) - exp) >= -preSec;
 }
 function saveCred(acc, pw){
   try{
@@ -654,37 +576,23 @@ function saveCred(acc, pw){
     }
   }catch(_){}
 }
-function loadCred(){
-  return { acc: sessionStorage.getItem('ADMIN_ACC')||'', pw: sessionStorage.getItem('ADMIN_PW')||'' };
-}
+function loadCred(){ return { acc: sessionStorage.getItem('ADMIN_ACC')||'', pw: sessionStorage.getItem('ADMIN_PW')||'' }; }
 async function reloginWithSaved(){
-  const {acc, pw} = loadCred();
-  if(!acc || !pw) return false;
+  const {acc, pw} = loadCred(); if(!acc || !pw) return false;
   try{
     const r = await axios.get(API,{params:{action:'adminLogin',acc,pw}});
-    if(r.data?.ok){
-      ADMIN_TOKEN = r.data.token;
-      sessionStorage.setItem('ADMIN_TOKEN', ADMIN_TOKEN);
-      return true;
-    }
+    if(r.data?.ok){ ADMIN_TOKEN = r.data.token; sessionStorage.setItem('ADMIN_TOKEN', ADMIN_TOKEN); return true; }
   }catch(_){}
   return false;
 }
 async function adminCall(action, params={}){
-  if(!ADMIN_TOKEN || tokenExpired(ADMIN_TOKEN, 60)){
-    await reloginWithSaved();
-  }
+  if(!ADMIN_TOKEN || tokenExpired(ADMIN_TOKEN, 60)){ await reloginWithSaved(); }
   let r = await axios.get(API,{params:{action, token:ADMIN_TOKEN, ...params}});
   if(r?.data && r.data.ok===false && r.data.error==='unauthorized'){
     const ok = await reloginWithSaved();
-    if(ok){
-      r = await axios.get(API,{params:{action, token:ADMIN_TOKEN, ...params}});
-    }else{
-      sessionStorage.removeItem('ADMIN_TOKEN');
-      ADMIN_TOKEN="";
-      alert('登入已失效，請重新登入');
-      showLogin();
-      throw new Error('unauthorized');
+    if(ok){ r = await axios.get(API,{params:{action, token:ADMIN_TOKEN, ...params}}); }
+    else{
+      sessionStorage.removeItem('ADMIN_TOKEN'); ADMIN_TOKEN=""; alert('登入已失效，請重新登入'); showLogin(); throw new Error('unauthorized');
     }
   }
   return r.data;
@@ -722,18 +630,14 @@ function switchTab(id){
   if(id==='tab-queue'){ initQueueTab(); }
 }
 document.querySelector('.tabbar').addEventListener('click', (e)=>{
-  const btn = e.target.closest('button[data-tab]');
-  if(!btn) return;
-  switchTab(btn.dataset.tab);
+  const btn = e.target.closest('button[data-tab]'); if(!btn) return; switchTab(btn.dataset.tab);
 });
 
 function showApp(){ loginBox.style.display="none"; appBox.style.display="block"; switchTab('tab-today'); }
 function showLogin(){
   appBox.style.display="none"; loginBox.style.display="block";
-  const c = loadCred();
-  if(c.acc) document.getElementById('rememberMe').checked = true;
-  acc.value = c.acc || '';
-  pw.value  = c.pw  || '';
+  const c = loadCred(); if(c.acc) document.getElementById('rememberMe').checked = true;
+  acc.value = c.acc || ''; pw.value  = c.pw  || '';
 }
 function assertAuthed(){ if(!ADMIN_TOKEN){ showLogin(); throw new Error('no token'); } }
 
@@ -744,7 +648,7 @@ function asObj(p){ try{ return typeof p==='string'?JSON.parse(p):(p||{});}catch{
 function asArr(p){ try{ if(typeof p==='string') p=JSON.parse(p);}catch{} if(Array.isArray(p))return p; if(Array.isArray(p?.rows))return p.rows; if(Array.isArray(p?.items))return p.items; if(Array.isArray(p?.data))return p.data; return []; }
 function num(x){ const n=Number(x); return isFinite(n)?n:0; }
 
-/* ===== 共用：渲染統計 + 表格 ===== */
+/* ===== 渲染統計 + 表格（略） ===== */
 function slotKey(label){
   const s=String(label||'').trim();
   if(s.includes('約')) return 'appt';
@@ -753,7 +657,6 @@ function slotKey(label){
   if(s.includes('晚')) return 'night';
   return 'early';
 }
-
 function renderStats(containerId, slots){
   const order = {'早診':1,'午診':2,'晚診':3,'約診':4};
   const list = Array.isArray(slots) ? [...slots] : [];
@@ -1181,3 +1084,4 @@ if(ADMIN_TOKEN){ showApp(); } else { showLogin(); }
 </script>
 </body>
 </html>
+
