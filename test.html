@@ -451,7 +451,7 @@ function openDay(dateYMD, meta){
 function selectRow(row){
   $panel.querySelectorAll('.tile').forEach(x=>x.classList.remove('selected'));
   row.classList.add('selected');
-  const mapVal={early:'morning',noon:'afternoon',night:'evening',appt:'appointment'};
+  const mapVal={early:'早診',noon:'午診',night:'晚診',appt:'約診'};
   $('date').value = row.dataset.date;
   $('slot').value = mapVal[row.dataset.slot]||'';
 
