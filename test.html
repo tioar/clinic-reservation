@@ -3,31 +3,28 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>月曆預約（手機優化＋兩列 pill）</title>
+  <title>月曆預約（手機三行／動態載入／同意須知修正）</title>
   <link rel="icon" type="image/png" href="favicon.png">
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
   <style>
-    :root{
-      --primary:#6236a7; --primary-600:#522e93; --bg:#f7f6fb; --card:#ffffff; --line:#ebe6fb; --muted:#6b5f92;
-    }
+    :root{ --primary:#6236a7; --bg:#f7f6fb; --card:#ffffff; --line:#ebe6fb; --muted:#6b5f92; }
     *{box-sizing:border-box}
     html,body{width:100%;max-width:100%}
     body{margin:0;background:var(--bg);color:#1f1330;font-family:"Noto Sans TC","Microsoft JhengHei",system-ui,sans-serif}
     .wrap{max-width:960px;margin:16px auto;padding:12px}
 
-    /* === Card === */
-    .card{background:var(--card);border:1px solid var(--line);border-radius:18px;box-shadow:0 10px 24px rgba(98,54,167,.10)}
+    .card{background:var(--card);border:1px solid var(--line);border-radius:18px;box-shadow:0 10px 24px rgba(98,54,167,.1)}
     .section{padding:14px}
 
-    /* === Calendar header === */
+    /* Header */
     .cal-head{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-bottom:1px solid var(--line)}
-    .cal-title{font-weight:900;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+    .cal-title{font-weight:900;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
     .loader{color:#6b5f92;font-size:.95rem;white-space:nowrap}
     .nav{display:flex;gap:8px}
     .nav button{border:none;background:var(--primary);color:#fff;border-radius:12px;padding:.35rem .7rem;font-weight:900;cursor:pointer}
     .nav button[disabled]{opacity:.45;cursor:not-allowed}
 
-    /* === Calendar grid === */
+    /* Calendar grid */
     .grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px;padding:10px}
     .wday{font-size:.9rem;color:var(--muted);text-align:center;font-weight:800;overflow:hidden}
     .day{border:1px solid #e6e8f0;border-radius:14px;min-height:74px;padding:8px;display:flex;flex-direction:column;gap:6px;background:#fff;transition:.12s;overflow:hidden}
@@ -37,13 +34,15 @@
     .day.clickable:hover{box-shadow:0 0 0 2px #d7caf6}
     .day.disabled{background:#f1f2f6;color:#8b90a3;border-color:#e5e7eb;opacity:.85;pointer-events:none}
 
-    .pill{display:inline-block;border:1px solid #e3e6ee;border-radius:999px;padding:.05rem .5rem .1rem;font-weight:800;white-space:nowrap}
+    .pill{display:inline-flex;align-items:center;gap:.35rem;border:1px solid #e3e6ee;border-radius:999px;padding:.05rem .5rem .1rem;font-weight:800;white-space:nowrap}
+    .pill .lbl{white-space:nowrap}
+    .pill .remain{white-space:nowrap}
     .pill.early{background:#e7f7ee;color:#065f46;border-color:#b8ead4}
     .pill.noon {background:#fff3df;color:#7a4d00;border-color:#ffd79a}
     .pill.night{background:#e8f2ff;color:#1d4ed8;border-color:#cfe2ff}
     .pill.appt {background:#fde7ef;color:#b51695;border-color:#ff99e6}
 
-    /* === Day panel (slot tiles) === */
+    /* Day panel tiles */
     #dayPanel{display:none}
     #dayPanel .head{font-weight:900;margin:6px 0 10px}
     .slot-grid{display:grid;grid-template-columns:1fr;gap:10px}
@@ -53,30 +52,30 @@
     .tile .doc{color:#6b5f92;font-weight:800}
     .tile.selected{background:#f3edff;box-shadow:0 0 0 2px #cdbbff}
 
-    /* === Pick banner === */
     .picked{display:none;margin-top:8px;color:#3b2c5f}
     .picked b{color:var(--primary)}
 
-    /* === Form === */
+    /* Form */
     .form-card .label{font-weight:700;margin-bottom:6px}
     .form-card input{width:100%;padding:.6rem .7rem;border:1px solid #ced2db;border-radius:12px}
     .form-card button{background:var(--primary);color:#fff;border:none;border-radius:14px;padding:.7rem 1.1rem;font-weight:900;cursor:pointer}
-    .form-card button:disabled{opacity:.6;cursor:not-allowed}
+    .agree{display:inline-flex;align-items:center;gap:.45rem;color:#1f1330}
+    .agree a{color:#6236a7;text-decoration:underline}
 
-    /* === Mobile tweaks === */
+    /* Mobile tweaks */
     @media (max-width:600px){
       .wrap{padding:8px}
       .grid{gap:4px;padding:8px}
       .day{min-height:56px;border-radius:12px;padding:6px}
       .day .d{font-size:.95rem}
+      /* pill 變三行、每行一個；僅顯示標籤，不顯示剩餘數 */
       .day .meta{
-        display:grid;             /* 兩欄排列 */
-        grid-template-columns:repeat(2,minmax(0,1fr));
-        gap:4px;
-        max-height:2.6em;         /* 兩行高度 */
-        overflow:hidden;          /* 超出隱藏 */
+        display:block;           /* 改為縱向 */
+        max-height:4.4em;        /* 約三行 */
+        overflow:hidden;
       }
-      .pill{padding:.03rem .42rem .06rem;font-size:.78rem;text-align:center}
+      .pill{display:block;width:100%;padding:.03rem .42rem .06rem;font-size:.78rem}
+      .pill .remain{display:none} /* 手機隱藏「剩餘 N」 */
       .nav button{border-radius:10px}
       .tile{padding:10px;border-radius:12px}
     }
@@ -124,7 +123,10 @@
       </div>
     </div>
     <div style="margin-top:10px">
-      <label><input id="agree" type="checkbox"/> 我已閱讀並同意預約須知</label>
+      <label class="agree">
+        <input id="agree" type="checkbox" />
+        <span>我已閱讀並同意 <a href="#" target="_blank" rel="noopener">預約須知</a></span>
+      </label>
     </div>
     <div style="margin-top:12px">
       <button id="submitBtn">送出預約</button>
@@ -175,16 +177,16 @@ $phone.addEventListener("input",e=>{ e.target.value=e.target.value.replace(/\D/g
 /* 週標立即畫 */
 $whead.innerHTML = W.map(w=>`<div class="wday">${w}</div>`).join('');
 
-/* 動態載入點點 */
+/* 動態載入點點（不含年月） */
 let dotsTimer=null;
 function showLoadingDots(on){
   if(on){
     $loader.style.display='inline';
     let n=0;
-    $loader.textContent = `${fmtTitle(curMonth)} 載入中.`;
+    $loader.textContent = '載入中.';
     dotsTimer = setInterval(()=>{
-      n=(n+1)%6; // 1~5 個點循環
-      $loader.textContent = `${fmtTitle(curMonth)} 載入中${'.'.repeat(n+1)}`;
+      n=(n+1)%6; // 1~6 個點循環
+      $loader.textContent = '載入中' + '.'.repeat(n+1);
     }, 350);
   }else{
     if(dotsTimer){ clearInterval(dotsTimer); dotsTimer=null; }
@@ -210,7 +212,7 @@ async function getWindow(){
 /* 骨架 */
 function renderSkeleton(monthDate){
   const first = firstOfMonth(monthDate), last=endOfMonth(monthDate);
-  $title.textContent = fmtTitle(first);
+  $title.textContent = fmtTitle(first);  // 僅顯示一次標題
   showLoadingDots(true);
 
   const minMonth = firstOfMonth(WINDOW_MIN), maxMonth = firstOfMonth(WINDOW_MAX);
@@ -247,7 +249,7 @@ async function fetchMonthDays(monthDate){
           const label=String(x.label||'');
           const slot = label.includes('早')?'early':label.includes('午')?'noon':label.includes('晚')?'night':label.includes('約')?'appt':'other';
           const time = x.time||x.timeRange||'';
-          const doctor = x.doctor||'陳萬龍醫師';
+          const doctor = (x.doctor||'陳萬龍醫師').replace(/[［\[]?(.+?)[］\]]?/, '$1'); // 移除資料內自帶的括號
           const status = limit<=0? 'closed' : (remain<=0? 'full':'open');
           return {slot,cap:limit,used,remain,status,time,doctor,label};
         });
@@ -260,7 +262,7 @@ async function fetchMonthDays(monthDate){
   return map;
 }
 
-/* 補數據（pill 只顯示「剩餘 A」） */
+/* 補數據（桌機顯示剩餘，手機自動隱藏） */
 function hydrateMonth(monthDate, dayMap){
   const first=firstOfMonth(monthDate), last=endOfMonth(monthDate);
   let html=''; const pad=first.getDay();
@@ -277,8 +279,8 @@ function hydrateMonth(monthDate, dayMap){
       cls+=' clickable';
       const pills = meta.slots.filter(s=>s.status==='open').map(s=>{
         const tag = s.slot==='early'?'early':s.slot==='noon'?'noon':s.slot==='night'?'night':'appt';
-        const label = s.slot==='early'?'早':s.slot==='noon'?'午':s.slot==='night'?'晚':'約';
-        return `<span class="pill ${tag}">${label} 剩餘 ${Math.max(0,s.remain)}</span>`;
+        const label = s.slot==='early'?'早診':s.slot==='noon'?'午診':s.slot==='night'?'晚診':'約診';
+        return `<span class="pill ${tag}"><span class="lbl">${label}</span><span class="remain"> 剩餘 ${Math.max(0,s.remain)}</span></span>`;
       }).join('');
       inner+=`<div class="meta">${pills}</div>`;
     }
@@ -293,16 +295,17 @@ function hydrateMonth(monthDate, dayMap){
   showLoadingDots(false);
 }
 
-/* 展開當日診別（方塊；只顯示剩餘 A） */
+/* 當日診別（只顯示一次醫師名；剩餘 A） */
 function openDay(dateYMD, meta){
   const mapSlot = {early:'早診', noon:'午診', night:'晚診', appt:'約診'};
   const open = (meta.slots||[]).filter(s=>s.status==='open');
   if(!open.length){ $panel.style.display='none'; return; }
+
   let html = `<div class="head">${dateYMD}（星期${W[new Date(dateYMD).getDay()]}）</div><div class="slot-grid">`;
   html += open.map(s=>{
     const label = mapSlot[s.slot] || s.label || '';
     const time  = s.time || '';
-    const doc   = s.doctor ? `［${s.doctor}］` : '';
+    const doc   = s.doctor ? `［${s.doctor}］` : '';  // 只保留一個
     return `<div class="tile" data-date="${dateYMD}" data-slot="${s.slot}">
       <div><strong>${label}</strong> ${time} <span class="doc">${doc}</span></div>
       <div class="remain">剩餘 ${Math.max(0,s.remain)}</div>
@@ -329,12 +332,12 @@ function openDay(dateYMD, meta){
 
 /* 月切換 */
 document.getElementById('btnPrev').addEventListener('click',async()=>{
-  const nm = addMonths(curMonth,-1);
-  curMonth = nm; await bootMonth(curMonth);
+  curMonth = addMonths(curMonth,-1);
+  await bootMonth(curMonth);
 });
 document.getElementById('btnNext').addEventListener('click',async()=>{
-  const nm = addMonths(curMonth, 1);
-  curMonth = nm; await bootMonth(curMonth);
+  curMonth = addMonths(curMonth, 1);
+  await bootMonth(curMonth);
 });
 
 /* 啟動 */
@@ -343,7 +346,6 @@ async function bootMonth(m){
   const dayMap = await fetchMonthDays(m);
   hydrateMonth(m, dayMap);
 }
-
 (async function init(){
   await getWindow();
   await bootMonth(curMonth);
