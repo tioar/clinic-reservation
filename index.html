@@ -59,15 +59,16 @@ body{margin:0;background:var(--bg);color:#1f1330;font-family:"Noto Sans TC","Mic
   box-shadow: 0 0 0 2px #e9ddff;
 }
 
-/* ✅ 今天樣式（新增） */
+/* ✅ 今天樣式（深灰格子＋白日期；膠囊白底黑字） */
 .day.today{
-  background:#eceff4;            /* 深一點的灰底 */
-  border-color:#d7dbe5;
+  background:#374151;           /* 深灰底 */
+  border-color:#1f2937;
 }
-.pill.today{                      /* 深灰膠囊，白字 */
-  background:#374151;
-  color:#fff;
-  border-color:#374151;
+.day.today .d{ color:#ffffff; } /* 日期白字 */
+.pill.today{
+  background:#ffffff;           /* 白底黑字 */
+  color:#111827;
+  border-color:#e5e7eb;
 }
 
 /* pills in calendar cells */
@@ -88,7 +89,6 @@ body{margin:0;background:var(--bg);color:#1f1330;font-family:"Noto Sans TC","Mic
 .tile .doc{color:#6b5f92;font-weight:800}
 /* 左側主文字整行粗體 */
 .tile .main{font-weight:900}
-
 
 /* 👉 時段卡片：選到依診別「底色＋字色」 */
 .tile.selected{background:#fff;box-shadow:none}
