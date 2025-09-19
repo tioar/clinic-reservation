@@ -7,7 +7,7 @@
 <link rel="icon" type="image/png" href="favicon.png">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;600;800;900&display=swap" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
-<!-- === 依照附檔：axios / crypto-js === -->
+<!-- 依照附檔：axios / crypto-js -->
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/crypto-js@4.2.0/crypto-js.min.js"></script>
 
@@ -73,7 +73,8 @@ body{margin:0;background:var(--bg);color:#1f1330;font-family:"Noto Sans TC","Mic
 .picked .hl{color:#6236a7;font-weight:900}
 
 /* ===== Form ===== */
-.form-grid{display:grid;gap:10px;grid-template-columns:1fr 1fr}
+/* 👉 這裡改成單欄：每個欄位一行 */
+.form-grid{display:grid;gap:12px;grid-template-columns:1fr}
 .form-label-strong{font-weight:700;margin-bottom:6px}
 .form-input{width:100%;padding:.6rem .7rem;border:1px solid #ced2db;border-radius:12px;font-size:1rem;line-height:1.25;height:auto}
 .btn-main{background:var(--primary);color:#fff;border:none;border-radius:14px;padding:.7rem 1.1rem;font-weight:900}
@@ -81,7 +82,7 @@ body{margin:0;background:var(--bg);color:#1f1330;font-family:"Noto Sans TC","Mic
 .agree{display:flex;align-items:center;gap:.5rem;flex-wrap:nowrap}
 .agree a{color:#6236a7;text-decoration:underline}
 
-/* ===== 全頁遮罩（和附檔一致風格） ===== */
+/* ===== 全頁遮罩（與附檔一致體驗） ===== */
 #mask{ position:fixed; inset:0; display:none; align-items:center; justify-content:center;
        z-index:9999; font-size:18px; color:#4b2c86;
        background:rgba(255,255,255,.92); backdrop-filter:blur(2px); }
@@ -94,7 +95,7 @@ body{margin:0;background:var(--bg);color:#1f1330;font-family:"Noto Sans TC","Mic
 .chip-strong{background:#f3f0ff;color:#4a2f82;border-color:#e4ddff}
 .chip-range{background:#f8fafc;color:#334155}
 
-/* ===== Mobile ===== */
+/* ===== Mobile 補強 ===== */
 @media (max-width:600px){
   .wrap{padding:8px}
   .page-head{margin:4px 4px 12px}
@@ -102,14 +103,13 @@ body{margin:0;background:var(--bg);color:#1f1330;font-family:"Noto Sans TC","Mic
   .grid{gap:4px;padding:8px}
   .day{min-height:auto;border-radius:12px;padding:6px}
   .day .d{font-size:.95rem}
-  /* pill：一行一顆，避免擠壓裁切；手機不顯示剩餘數字 */
+  /* pill：一行一顆；手機不顯示剩餘數字 */
   .day .meta{display:block}
   .pill{display:block;width:100%;text-align:center;padding:.12rem .4rem;font-size:.78rem;line-height:1.15;min-width:auto;margin-bottom:4px}
   .pill .remain{display:none}
   .tile{padding:10px;border-radius:12px}
-  .form-grid{grid-template-columns:1fr 1fr}
 
-  /* 出生年月日再縮小，避免溢出；維持 type=date 但 inputmode=numeric */
+  /* 出生年月日縮小；維持 date + 數字鍵盤 */
   #birthday.form-input[type="date"]{
     font-size:13px;padding:.40rem .50rem;line-height:1.05;height:auto;max-width:100%;border-radius:10px
   }
@@ -151,19 +151,33 @@ body{margin:0;background:var(--bg);color:#1f1330;font-family:"Noto Sans TC","Mic
     <div class="section picked" id="picked"></div>
   </div>
 
-  <!-- 表單 -->
+  <!-- 表單（每欄一行） -->
   <div class="cardish section mt-3">
     <input type="hidden" id="date"/><input type="hidden" id="slot"/>
     <!-- Invisible reCAPTCHA：token 放這裡 -->
     <input type="hidden" id="g-recaptcha-response" name="g-recaptcha-response"/>
 
     <div class="form-grid">
-      <div><div class="form-label-strong">姓名 *</div><input id="name" type="text" class="form-input" autocomplete="off"/></div>
-      <div><div class="form-label-strong">出生年月日 *</div>
+      <div>
+        <div class="form-label-strong">姓名 *</div>
+        <input id="name" type="text" class="form-input" autocomplete="off"/>
+      </div>
+
+      <div>
+        <div class="form-label-strong">出生年月日 *</div>
         <!-- 維持 date，但加 inputmode=numeric（支援裝置會叫出數字鍵盤） -->
-        <input id="birthday" type="date" class="form-input" inputmode="numeric" autocomplete="off"/></div>
-      <div><div class="form-label-strong">身分證字號 *</div><input id="idnum" type="text" maxlength="10" class="form-input" placeholder="A123456789" autocomplete="off"/></div>
-      <div><div class="form-label-strong">連絡電話 *</div><input id="phone" type="text" maxlength="10" inputmode="numeric" class="form-input" placeholder="0958xxxxxx" autocomplete="off"/></div>
+        <input id="birthday" type="date" class="form-input" inputmode="numeric" autocomplete="off"/>
+      </div>
+
+      <div>
+        <div class="form-label-strong">身分證字號 *</div>
+        <input id="idnum" type="text" maxlength="10" class="form-input" placeholder="A123456789" autocomplete="off"/>
+      </div>
+
+      <div>
+        <div class="form-label-strong">連絡電話 *</div>
+        <input id="phone" type="text" maxlength="10" inputmode="numeric" class="form-input" placeholder="0958xxxxxx" autocomplete="off"/>
+      </div>
     </div>
 
     <div class="mt-2">
@@ -173,12 +187,7 @@ body{margin:0;background:var(--bg);color:#1f1330;font-family:"Noto Sans TC","Mic
       <button id="submitBtn" class="btn-main">送出預約</button>
       <a class="btn-ghost text-center text-decoration-none" href="query.html">查詢／取消預約</a>
     </div>
-
-    <div class="mt-3 text-secondary" style="font-size:.85rem">
-      本服務採用 Google reCAPTCHA 保護，並遵守
-      <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">隱私權政策</a> 與
-      <a href="https://policies.google.com/terms" target="_blank" rel="noopener">使用條款</a>。
-    </div>
+    <!-- 依你的要求：刪除底部 reCAPTCHA 說明文案 -->
   </div>
 </div>
 
@@ -224,16 +233,16 @@ body{margin:0;background:var(--bg);color:#1f1330;font-family:"Noto Sans TC","Mic
 
 <!-- Bootstrap -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<!-- Invisible reCAPTCHA（和附檔一致做法） -->
+<!-- Invisible reCAPTCHA（與附檔一致做法） -->
 <script src="https://www.google.com/recaptcha/api.js?render=6LdqprArAAAAACpuAXemZUH3KNER1t1iw07YjGHu"></script>
 
 <script>
 /* ===== 常數（與附檔一致） ===== */
 const API = "https://script.google.com/macros/s/AKfycbz1jtOWBJEETvotCU2y022ow4lOlm_TauYpRMG6riUIj88_Vde5d9LHGH5cLC4HYe7X/exec";
 const RECAPTCHA_SITE_KEY = "6LdqprArAAAAACpuAXemZUH3KNER1t1iw07YjGHu"; // 可換成正式 key
-const AES_KEY = "A2x5fT9qR7nC1vB8mK3pZ6sD4uH0yW2j";               // 如需更換亦可
+const AES_KEY = "A2x5fT9qR7nC1vB8mK3pZ6sD4uH0yW2j";
 
-/* ===== reCAPTCHA 載入 & 取 token（與附檔一致風格） ===== */
+/* ===== reCAPTCHA ===== */
 let recaptchaLoaded=false, recaptchaLoading=null;
 function loadRecaptcha(){
   if(!RECAPTCHA_SITE_KEY) return Promise.resolve();
@@ -259,7 +268,7 @@ async function getRecaptchaToken(){
   }catch(_){ return ""; }
 }
 
-/* ===== AES 加密（與附檔一致） ===== */
+/* ===== AES 加密 ===== */
 function aesEnc(payload, ttlMs = 10 * 60 * 1000){
   const obj = { ...payload };
   if (ttlMs && Number.isFinite(ttlMs)) obj.exp = Date.now() + ttlMs;
@@ -277,8 +286,8 @@ const $prev   = $('btnPrev');
 const $next   = $('btnNext');
 const $panel  = $('dayPanel');
 const $picked = $('picked');
-const $date   = $('date');   // hidden
-const $slot   = $('slot');   // hidden
+const $date   = $('date');
+const $slot   = $('slot');
 const $name   = $('name');
 const $birthday = $('birthday');
 const $idnum  = $('idnum');
@@ -286,7 +295,7 @@ const $phone  = $('phone');
 const $agree  = $('agree');
 const $submit = $('submitBtn');
 
-/* ===== 遮罩（與附檔一致體驗） ===== */
+/* ===== 遮罩 ===== */
 const $mask = $('mask'); const $dots = $('dots');
 let dotTimer=null;
 function showMask(txt){
@@ -324,7 +333,7 @@ function showLoadingDots(on){
 /* 週標題 */
 $whead.innerHTML=W.map(w=>`<div class="wday">${w}</div>`).join('');
 
-/* 窗口（沿用你附檔邏輯） */
+/* 視窗 */
 async function getWindow(){
   try{
     const r=await axios.get(API,{ params:{ action:'getWindow', t: Date.now() }});
@@ -359,8 +368,8 @@ function renderSkeleton(monthDate){
   $days.innerHTML=html; $panel.style.display='none'; $picked.style.display='none';
 }
 
-/* 逐日抓 slot（沿用你附檔資料結構） */
-let nonceMetaByDate={}; // 依日期保存 nonce/sig/exp
+/* 逐日抓 slot */
+let nonceMetaByDate={};
 async function fetchMonthDays(monthDate){
   const first=firstOfMonth(monthDate), last=endOfMonth(monthDate);
   const jobs=[];
@@ -437,14 +446,9 @@ function openDay(dateYMD, meta){
   $panel.innerHTML=html; $panel.style.display='block';
 
   const rows = $panel.querySelectorAll('.tile');
-  rows.forEach(row=>{
-    row.addEventListener('click',()=>selectRow(row));
-  });
+  rows.forEach(row=>row.addEventListener('click',()=>selectRow(row)));
 
-  // ★ 當天只有一個診別 → 自動選取
-  if (rows.length === 1){
-    selectRow(rows[0]);
-  }
+  if (rows.length === 1){ selectRow(rows[0]); } // 自動選取
 }
 
 /* 選取一列 → 帶入隱藏欄位 與 已選提示 */
@@ -454,7 +458,6 @@ function selectRow(row){
   const mapVal={early:'早診',noon:'午診',night:'晚診',appt:'約診'};
   $('date').value = row.dataset.date;
   $('slot').value = mapVal[row.dataset.slot]||'';
-
   const chosen=`${row.dataset.date}｜<span class="hl">${row.dataset.label} ${row.dataset.time} ${row.dataset.doc?`［${row.dataset.doc}］`:''}</span>  剩餘 ${row.dataset.rem}/${row.dataset.cap} 人`;
   $picked.innerHTML=`已選擇：<b>${chosen}</b>`;
   $picked.style.display='block';
@@ -465,20 +468,19 @@ function selectRow(row){
 $('btnPrev').addEventListener('click',async()=>{curMonth=addMonths(curMonth,-1);await bootMonth(curMonth)});
 $('btnNext').addEventListener('click',async()=>{curMonth=addMonths(curMonth, 1);await bootMonth(curMonth)});
 
-/* ===== 送出（完全比照你附檔流程：reCAPTCHA → API → AES 加密後跳轉） ===== */
+/* ===== 送出（與附檔流程一致） ===== */
 let submitting=false;
 $submit.addEventListener('click', async (e)=>{
   e.preventDefault();
   if(submitting) return;
 
-  // 驗證基本欄位
   const d = ($('date').value||'').trim();
   const s = ($('slot').value||'').trim();
-  const n = ($name.value||'').trim();
-  const b = ($birthday.value||'').trim();
-  const id= ($idnum.value||'').trim().toUpperCase();
-  const ph= ($phone.value||'').trim();
-  const ag= $agree.checked;
+  const n = ($('name').value||'').trim();
+  const b = ($('birthday').value||'').trim();
+  const id= ($('idnum').value||'').trim().toUpperCase();
+  const ph= ($('phone').value||'').trim();
+  const ag= $('agree').checked;
 
   if(!d||!s||!n||!b||!id||!ph||!ag){ alert('資料未填完整'); return; }
   if(!/^[A-Z][12]\d{8}$/.test(id)){ alert('身分證格式錯誤'); return; }
@@ -494,16 +496,7 @@ $submit.addEventListener('click', async (e)=>{
     const recaptchaToken = await getRecaptchaToken();
     $('g-recaptcha-response').value = recaptchaToken;
 
-    // 取得對應日期的 nonce/sig/exp（若有）
-    const nonceMeta = nonceMetaByDate[d] || null;
-
-    // 送出（GET，與附檔一致）
     const params = { action:'submit', date:d, slot:s, name:n, birthday:b, id:id, phone:ph, recaptchaToken, t: Date.now() };
-    if (nonceMeta){
-      params.nonce = nonceMeta.nonce;
-      params.sig   = nonceMeta.sig;
-      params.exp   = nonceMeta.exp;
-    }
     const r = await axios.get(API,{ params });
 
     if(!r.data?.ok){
@@ -512,21 +505,17 @@ $submit.addEventListener('click', async (e)=>{
       else if(code==='full')          alert('名額已滿，請改選其他時段或日期');
       else if(code==='out_of_window') alert(r.data?.message || '超出可預約期間');
       else if(code==='robot')         alert('驗證未通過（reCAPTCHA），請再試一次');
-      else if(code==='bad_nonce')     alert('頁面逾時，請重新選擇日期與診別再送出');
-      else if(code==='slow_down')     alert('操作過於頻繁，請稍後再試');
       else                            alert(r.data?.message || '送出失敗，請稍後再試');
       return;
     }
 
     const idFromApi = r?.data?.id || r?.data?.Id || r?.data?.bookingId || r?.data?.data?.id;
     const receipt   = r?.data?.receipt || r?.data?.rcpt || '';
-
     try{
       if (receipt && idFromApi) sessionStorage.setItem('rcpt:'+String(idFromApi), String(receipt));
       sessionStorage.setItem('lastBookingId', String(idFromApi));
     }catch(_){}
 
-    // 加密後跳 success.html
     const baseDir   = new URL('.', location.href);
     const successUrl= new URL('success.html', baseDir);
     const cipher    = aesEnc({ id: idFromApi, receipt });
