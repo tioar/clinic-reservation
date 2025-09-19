@@ -67,7 +67,7 @@ function slotCheckinText(slot, meta) {
   // 約診：若後端有 checkinBy 則顯示；沒有就顯示預設句（可改成空字串表示不顯示）
   if (slot.includes("約")) {
     if (meta && meta.checkinBy) return `約診請在 ${meta.checkinBy} 前報到`;
-    return "約診最晚報到時間為診結束前一小時";
+    return "最晚報到時間為門診結束前一小時";
   }
   // 一般門診
   const map = [
@@ -320,6 +320,7 @@ ${ymd} 星期${wk}（${d.slot||''}） ${timeRange||''} ${docText}
 </script>
 </body>
 </html>
+
 
 
 
