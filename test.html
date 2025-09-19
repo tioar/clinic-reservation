@@ -14,25 +14,29 @@ html,body{width:100%;max-width:100%}
 body{margin:0;background:var(--bg);color:#1f1330;font-family:"Noto Sans TC","Microsoft JhengHei",system-ui,sans-serif}
 .wrap{max-width:960px;margin:16px auto;padding:12px}
 
-/* Page header */
-.page-head{display:flex;align-items:center;gap:14px;margin:6px 8px 14px}
-.page-head .logo{width:60px;height:60px;border-radius:50%;display:grid;place-items:center;background:var(--primary);color:#fff;font-weight:900;font-size:32px;box-shadow:0 8px 18px rgba(98,54,167,.18)}
-.page-head h1{margin:0;font-weight:900;font-size:clamp(1.4rem,2.2vw,2rem);color:#2a183d}
+/* ===== Page header（置中） ===== */
+.page-head{display:flex;align-items:center;justify-content:center;gap:14px;margin:6px 8px 14px}
+.page-head .logo{width:64px;height:64px;border-radius:50%;display:grid;place-items:center;background:var(--primary);color:#fff;font-weight:900;font-size:34px;box-shadow:0 8px 18px rgba(98,54,167,.18)}
+.page-head h1{margin:0;font-weight:900;font-size:clamp(1.5rem,2.6vw,2.2rem);color:#2a183d}
 
-/* Card */
+/* ===== Card ===== */
 .cardish{background:var(--card);border:1px solid var(--line);border-radius:18px;box-shadow:0 10px 24px rgba(98,54,167,.1)}
 .section{padding:14px}
 
-/* Calendar */
-.cal-head{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-bottom:1px solid var(--line)}
+/* ===== Calendar head ===== */
+.cal-head{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-bottom:1px solid transparent /* 移除下分隔線 */ }
 .cal-title{font-weight:900;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.cal-title .title-text{font-size:clamp(1.2rem,2.4vw,1.6rem);font-weight:900} /* 月份放大 */
 .loader{color:#6b5f92;font-size:.95rem;white-space:nowrap;min-width:6.5em}
 .nav{display:flex;gap:8px}
 .nav button{border:none;background:var(--primary);color:#fff;border-radius:12px;padding:.35rem .7rem;font-weight:900;cursor:pointer}
 .nav button[disabled]{opacity:.45;cursor:not-allowed}
-.rule-bar{padding:10px 12px;border-bottom:1px solid var(--line);display:flex;justify-content:flex-start}
-.rule-btn{border:none;background:#efe9ff;color:#4a2f82;font-weight:800;border-radius:999px;padding:.35rem .8rem}
 
+/* 規則按鈕（無上下線、較小） */
+.rule-bar{padding:6px 12px 0 12px}
+.rule-btn{border:none;background:#efe9ff;color:#4a2f82;font-weight:800;border-radius:999px;padding:.32rem .75rem;font-size:.9rem}
+
+/* ===== Calendar grid ===== */
 .grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px;padding:10px}
 .wday{font-size:.9rem;color:var(--muted);text-align:center;font-weight:800}
 .day{border:1px solid #e6e8f0;border-radius:14px;min-height:74px;padding:8px;display:flex;flex-direction:column;gap:6px;background:#fff;transition:.12s;overflow:hidden}
@@ -50,7 +54,7 @@ body{margin:0;background:var(--bg);color:#1f1330;font-family:"Noto Sans TC","Mic
 .pill.night{background:#e8f2ff;color:#1d4ed8;border-color:#cfe2ff}
 .pill.appt {background:#fde7ef;color:#b51695;border-color:#ff99e6}
 
-/* Day panel (slot list) */
+/* ===== Day panel ===== */
 #dayPanel{display:none}
 #dayPanel .head{font-weight:900;margin:6px 0 10px}
 .slot-grid{display:grid;grid-template-columns:1fr;gap:10px}
@@ -64,7 +68,7 @@ body{margin:0;background:var(--bg);color:#1f1330;font-family:"Noto Sans TC","Mic
 .picked b{color:#000}
 .picked .hl{color:#6236a7;font-weight:900}
 
-/* Form */
+/* ===== Form ===== */
 .form-grid{display:grid;gap:10px;grid-template-columns:1fr 1fr}
 .form-label-strong{font-weight:700;margin-bottom:6px}
 .form-input{width:100%;padding:.6rem .7rem;border:1px solid #ced2db;border-radius:12px;font-size:1rem;line-height:1.25;height:auto}
@@ -73,59 +77,60 @@ body{margin:0;background:var(--bg);color:#1f1330;font-family:"Noto Sans TC","Mic
 .agree{display:flex;align-items:center;gap:.5rem;flex-wrap:nowrap}
 .agree a{color:#6236a7;text-decoration:underline}
 
-/* 規則彈窗一列一行（含手機） */
-.rule-line{display:flex;align-items:center;gap:10px;flex-wrap:nowrap;white-space:nowrap;font-weight:800;font-size:clamp(12px,3.2vw,16px)}
+/* ===== 規則 Modal：每列一行（含手機） ===== */
+.rule-line{display:flex;align-items:center;gap:10px;flex-wrap:nowrap;white-space:nowrap;font-weight:800;
+  font-size:clamp(12px,3.2vw,16px);min-width:0;letter-spacing:.5px}
 .chip{display:inline-flex;align-items:center;gap:6px;padding:.25rem .6rem;border-radius:999px;border:1px solid #e6e8f0;background:#fff}
 .chip-strong{background:#f3f0ff;color:#4a2f82;border-color:#e4ddff}
 .chip-range{background:#f8fafc;color:#334155}
 
-/* 手機：pill 改「上下橫排」（一行一顆）、日期欄位再縮小 */
+/* ===== Mobile ===== */
 @media (max-width:600px){
   .wrap{padding:8px}
   .page-head{margin:4px 4px 12px}
-  .page-head .logo{width:52px;height:52px;font-size:28px}
-
+  .page-head .logo{width:56px;height:56px;font-size:30px}
   .grid{gap:4px;padding:8px}
   .day{min-height:auto;border-radius:12px;padding:6px}
   .day .d{font-size:.95rem}
-
-  /* 關鍵：每顆 pill 佔一整行，避免被擠壓或裁切 */
+  /* pill：一行一顆，避免擠壓裁切；手機不顯示剩餘數字 */
   .day .meta{display:block}
   .pill{display:block;width:100%;text-align:center;padding:.12rem .4rem;font-size:.78rem;line-height:1.15;min-width:auto;margin-bottom:4px}
-  .pill .remain{display:none} /* 手機只顯示「早診/午診/晚診/約診」 */
-
+  .pill .remain{display:none}
   .tile{padding:10px;border-radius:12px}
   .form-grid{grid-template-columns:1fr 1fr}
 
-  /* 再把原生 date 欄位縮小，避免外觀超出卡片 */
+  /* 出生年月日再縮小，避免溢出 */
   input.form-input[type="date"]{
-    font-size:14px;            /* 再縮字級 */
-    padding:.42rem .52rem;     /* 再降內距 */
-    line-height:1.05;          /* 壓低行高 */
-    height:auto;
-    max-width:100%;
-    border-radius:10px;
+    font-size:13px;padding:.40rem .50rem;line-height:1.05;height:auto;max-width:100%;border-radius:10px
   }
-  input[type="date"]::-webkit-datetime-edit{padding:.18rem .28rem}
+  input[type="date"]::-webkit-datetime-edit{padding:.16rem .26rem}
   input[type="date"]::-webkit-datetime-edit-fields-wrapper{padding:0}
   input[type="date"]::-webkit-calendar-picker-indicator{transform:scale(.9)}
-  /* 規則彈窗裡的 chip 也縮小，確保整列不換行 */
   .chip{padding:.18rem .46rem;font-size:.9em}
 }
 </style>
 </head>
 <body>
 <div class="wrap">
-  <!-- 頁首 -->
+  <!-- 頁首（置中） -->
   <div class="page-head"><div class="logo">＋</div><h1>陳萬龍診所門診線上預約</h1></div>
 
   <div class="cardish">
     <div class="cal-head">
-      <div class="cal-title"><span id="calTitle">—</span><span id="calLoader" class="loader" style="display:none">載入中…</span></div>
-      <div class="nav"><button id="btnPrev" aria-label="上一月">←</button><button id="btnNext" aria-label="下一月">→</button></div>
+      <div class="cal-title">
+        <span class="title-text" id="calTitle">—</span>
+        <span id="calLoader" class="loader" style="display:none">載入中…</span>
+      </div>
+      <div class="nav">
+        <button id="btnPrev" aria-label="上一月">←</button>
+        <button id="btnNext" aria-label="下一月">→</button>
+      </div>
     </div>
 
-    <div class="rule-bar"><button class="rule-btn" id="openRules">🔺 開放門診預約日期規則</button></div>
+    <!-- 規則按鈕（無上下分隔線） -->
+    <div class="rule-bar">
+      <button class="rule-btn" id="openRules">開放預約日期規則</button>
+    </div>
 
     <div class="grid" id="whead"></div>
     <div class="grid" id="days"></div>
@@ -152,12 +157,12 @@ body{margin:0;background:var(--bg);color:#1f1330;font-family:"Noto Sans TC","Mic
   </div>
 </div>
 
-<!-- 規則 Modal（每列一行） -->
+<!-- 規則 Modal（每列一行不換行） -->
 <div class="modal fade" id="rulesModal" tabindex="-1">
   <div class="modal-dialog modal-lg modal-dialog-centered">
     <div class="modal-content" style="border-radius:18px">
       <div class="modal-header" style="background:#f3edff;border-bottom:1px solid #e9e0ff;border-top-left-radius:18px;border-top-right-radius:18px">
-        <h5 class="modal-title" style="font-weight:900;color:#4a2f82">🔺 開放門診預約日期對照</h5>
+        <h5 class="modal-title" style="font-weight:900;color:#4a2f82">開放預約日期規則</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body" style="background:#f6f3ff">
@@ -182,10 +187,10 @@ body{margin:0;background:var(--bg);color:#1f1330;font-family:"Noto Sans TC","Mic
     <div class="modal-content">
       <div class="modal-header"><h5 class="modal-title">預約須知與個資告知</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
       <div class="modal-body" style="text-align:left">
-        <p>1. 個資用途：僅供預約與聯繫，不另作他用。</p>
-        <p>2. 報到時間：請於各時段結束前 1 小時完成報到（早 10:30／午 16:00／晚 20:00），逾時釋出名額。</p>
-        <p>3. 取消方式：前一日線上辦理；當日請電洽 (03) 515-2971。</p>
-        <p>4. 依醫療需求，現場看診順序可能調整。</p>
+        <p>1. 個資用途：本院蒐集之個人資料（姓名、電話、身分證字號）僅用於掛號與醫療聯繫，不對外提供另作他用。</p>
+        <p>2. 報到時間：請於預約的門診結束前一小時到場報到(早診10:30前；午診16:00前；晚診20:00前)，逾時視同放棄，會釋出名額給現場掛號。</p>
+        <p>3. 取消方式：前一日線上辦理；當日請電洽 (03)5152971。</p>
+        <p>4. 本院保留因醫療需求調整看診順序之權利。</p>
         <p>5. 勾選同意表示理解並接受上述內容。</p>
       </div>
     </div>
@@ -194,7 +199,7 @@ body{margin:0;background:var(--bg);color:#1f1330;font-family:"Noto Sans TC","Mic
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-/* ===== 工具 ===== */
+/* ===== API & Utils ===== */
 const API="https://script.google.com/macros/s/AKfycbz1jtOWBJEETvotCU2y022ow4lOlm_TauYpRMG6riUIj88_Vde5d9LHGH5cLC4HYe7X/exec";
 const pad2=n=>String(n).padStart(2,'0');
 const ymd=d=>`${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;
@@ -217,10 +222,7 @@ const $picked=document.getElementById('picked');
 const $date=document.getElementById('date');
 const $slot=document.getElementById('slot');
 
-/* 週標題 */
-$whead.innerHTML=W.map(w=>`<div class="wday">${w}</div>`).join('');
-
-/* 規則/須知 */
+/* 規則/須知開啟 */
 document.getElementById('openRules').addEventListener('click',()=>new bootstrap.Modal(document.getElementById('rulesModal')).show());
 document.getElementById('showNotice').addEventListener('click',e=>{e.preventDefault(); new bootstrap.Modal(document.getElementById('noticeModal')).show();});
 
@@ -246,7 +248,10 @@ async function getWindow(){
   }
 }
 
-/* 畫骨架 */
+/* 週標題 */
+$whead.innerHTML=W.map(w=>`<div class="wday">${w}</div>`).join('');
+
+/* 骨架 */
 function renderSkeleton(monthDate){
   const first=firstOfMonth(monthDate), last=endOfMonth(monthDate);
   $title.textContent=fmtTitle(first);
@@ -266,7 +271,7 @@ function renderSkeleton(monthDate){
   $days.innerHTML=html; $panel.style.display='none'; $picked.style.display='none';
 }
 
-/* 取 slot（逐日，容錯） */
+/* 逐日抓 slot */
 async function fetchMonthDays(monthDate){
   const first=firstOfMonth(monthDate), last=endOfMonth(monthDate);
   const jobs=[];
@@ -323,7 +328,7 @@ function hydrateMonth(monthDate, dayMap){
   showLoadingDots(false);
 }
 
-/* 展開當日時段 */
+/* 展開當日 */
 function openDay(dateYMD, meta){
   const mapSlot={early:'早診',noon:'午診',night:'晚診',appt:'約診'};
   const open=(meta.slots||[]).filter(s=>s.status==='open');
@@ -353,7 +358,7 @@ function openDay(dateYMD, meta){
   });
 }
 
-/* 月份切換 */
+/* 切月 */
 document.getElementById('btnPrev').addEventListener('click',async()=>{curMonth=addMonths(curMonth,-1);await bootMonth(curMonth)});
 document.getElementById('btnNext').addEventListener('click',async()=>{curMonth=addMonths(curMonth, 1);await bootMonth(curMonth)});
 
