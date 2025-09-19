@@ -3,9 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>月曆預約（手機三行／動態載入／同意須知修正）</title>
+  <title>月曆預約（手機三行／不重覆醫師／查詢取消）</title>
   <link rel="icon" type="image/png" href="favicon.png">
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;600;800;900&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
   <style>
     :root{ --primary:#6236a7; --bg:#f7f6fb; --card:#ffffff; --line:#ebe6fb; --muted:#6b5f92; }
     *{box-sizing:border-box}
@@ -29,12 +30,19 @@
     .wday{font-size:.9rem;color:var(--muted);text-align:center;font-weight:800;overflow:hidden}
     .day{border:1px solid #e6e8f0;border-radius:14px;min-height:74px;padding:8px;display:flex;flex-direction:column;gap:6px;background:#fff;transition:.12s;overflow:hidden}
     .day .d{font-weight:900;color:#24163a}
-    .day .meta{margin-top:auto;font-size:.82rem;line-height:1.25;color:#5c6170;display:flex;flex-wrap:wrap;gap:6px;overflow:hidden}
+    .day .meta{margin-top:auto;color:#5c6170;display:flex;flex-wrap:wrap;gap:6px;overflow:hidden}
     .day.clickable{cursor:pointer}
     .day.clickable:hover{box-shadow:0 0 0 2px #d7caf6}
     .day.disabled{background:#f1f2f6;color:#8b90a3;border-color:#e5e7eb;opacity:.85;pointer-events:none}
 
-    .pill{display:inline-flex;align-items:center;gap:.35rem;border:1px solid #e3e6ee;border-radius:999px;padding:.05rem .5rem .1rem;font-weight:800;white-space:nowrap}
+    /* pill：完整包住文字，必要時微縮不破圖 */
+    .pill{
+      display:inline-flex; align-items:center; justify-content:center;
+      gap:.35rem; border:1px solid #e3e6ee; border-radius:999px;
+      padding:.2rem .6rem; font-weight:900;
+      font-size:clamp(.78rem,.9vw,.9rem); line-height:1.1;
+      white-space:nowrap; min-width:3.8em;
+    }
     .pill .lbl{white-space:nowrap}
     .pill .remain{white-space:nowrap}
     .pill.early{background:#e7f7ee;color:#065f46;border-color:#b8ead4}
@@ -53,13 +61,18 @@
     .tile.selected{background:#f3edff;box-shadow:0 0 0 2px #cdbbff}
 
     .picked{display:none;margin-top:8px;color:#3b2c5f}
-    .picked b{color:var(--primary)}
+    .picked b{color:#000}
+    .picked .hl{color:#6236a7;font-weight:900}
 
     /* Form */
     .form-card .label{font-weight:700;margin-bottom:6px}
     .form-card input{width:100%;padding:.6rem .7rem;border:1px solid #ced2db;border-radius:12px}
-    .form-card button{background:var(--primary);color:#fff;border:none;border-radius:14px;padding:.7rem 1.1rem;font-weight:900;cursor:pointer}
-    .agree{display:inline-flex;align-items:center;gap:.45rem;color:#1f1330}
+    .form-card .btn-main{background:var(--primary);color:#fff;border:none;border-radius:14px;padding:.7rem 1.1rem;font-weight:900;cursor:pointer}
+    .form-card .btn-ghost{background:#fff;border:1px solid #d7dbe5;border-radius:14px;padding:.7rem 1.1rem;font-weight:900;color:#3a3f47}
+
+    /* 同意須知（維持橫向） */
+    .agree{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap}
+    .agree span{word-break:keep-all}        /* 不要一字一行 */
     .agree a{color:#6236a7;text-decoration:underline}
 
     /* Mobile tweaks */
@@ -68,15 +81,13 @@
       .grid{gap:4px;padding:8px}
       .day{min-height:56px;border-radius:12px;padding:6px}
       .day .d{font-size:.95rem}
-      /* pill 變三行、每行一個；僅顯示標籤，不顯示剩餘數 */
+      /* 手機：pill 單行，最多三行；只顯示標籤（隱藏剩餘數） */
       .day .meta{
-        display:block;           /* 改為縱向 */
-        max-height:4.4em;        /* 約三行 */
-        overflow:hidden;
+        display:block; max-height:4.6em; overflow:hidden;
+        font-size:.82rem; line-height:1.2;
       }
-      .pill{display:block;width:100%;padding:.03rem .42rem .06rem;font-size:.78rem}
-      .pill .remain{display:none} /* 手機隱藏「剩餘 N」 */
-      .nav button{border-radius:10px}
+      .pill{display:block;width:100%;text-align:center;padding:.16rem .4rem;font-size:.82rem}
+      .pill .remain{display:none}
       .tile{padding:10px;border-radius:12px}
     }
   </style>
@@ -122,20 +133,44 @@
         <input id="phone" type="text" maxlength="10" inputmode="numeric" placeholder="0958xxxxxx"/>
       </div>
     </div>
-    <div style="margin-top:10px">
+
+    <!-- 同意須知：橫向一行；點連結開 modal -->
+    <div class="mt-2">
       <label class="agree">
         <input id="agree" type="checkbox" />
-        <span>我已閱讀並同意 <a href="#" target="_blank" rel="noopener">預約須知</a></span>
+        <span>我已閱讀並同意 <a href="#" id="showNotice">預約須知</a></span>
       </label>
     </div>
-    <div style="margin-top:12px">
-      <button id="submitBtn">送出預約</button>
+
+    <div class="d-grid gap-2 mt-3">
+      <button id="submitBtn" class="btn btn-main">送出預約</button>
+      <a class="btn btn-ghost text-decoration-none text-center" href="query.html">查詢／取消預約</a>
     </div>
   </div>
 </div>
 
+<!-- 預約須知 Modal（可自行改內容） -->
+<div class="modal fade" id="noticeModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">預約須知與個資告知</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" style="text-align:left;">
+        <p>1. 本院蒐集之個人資料（姓名、電話、身分證字號）僅用於掛號與醫療聯繫，不對外提供。</p>
+        <p>2. 請於預約的門診結束前一小時到場報到(早診10:30前；午診16:00前；晚診20:00前)，逾時視同放棄，會釋出名額給現場掛號。</p>
+        <p>3. 如需取消，請於前一日線上辦理；當日請以電話通知(03)5152971。</p>
+        <p>4. 本院保留因醫療需求調整看診順序之權利。</p>
+        <p>5. 點選同意即表示您已了解並接受上述說明。</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-/* ===== 設定 ===== */
+/* ===== 設定（沿用你的 GAS API） ===== */
 const API = "https://script.google.com/macros/s/AKfycbz1jtOWBJEETvotCU2y022ow4lOlm_TauYpRMG6riUIj88_Vde5d9LHGH5cLC4HYe7X/exec";
 
 /* ===== 小工具 ===== */
@@ -170,7 +205,12 @@ const $idnum = document.getElementById('idnum');
 const $phone = document.getElementById('phone');
 const $agree = document.getElementById('agree');
 
-/* 限制輸入 */
+/* 同意須知 */
+document.getElementById('showNotice')?.addEventListener('click', e=>{
+  e.preventDefault(); new bootstrap.Modal(document.getElementById('noticeModal')).show();
+});
+
+/* 輸入限制 */
 $idnum.addEventListener("input",e=>{ e.target.value=e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,10); });
 $phone.addEventListener("input",e=>{ e.target.value=e.target.value.replace(/\D/g,'').slice(0,10); });
 
@@ -182,12 +222,8 @@ let dotsTimer=null;
 function showLoadingDots(on){
   if(on){
     $loader.style.display='inline';
-    let n=0;
-    $loader.textContent = '載入中.';
-    dotsTimer = setInterval(()=>{
-      n=(n+1)%6; // 1~6 個點循環
-      $loader.textContent = '載入中' + '.'.repeat(n+1);
-    }, 350);
+    let n=0; $loader.textContent='載入中.';
+    dotsTimer=setInterval(()=>{ n=(n+1)%6; $loader.textContent='載入中'+'.'.repeat(n+1); },350);
   }else{
     if(dotsTimer){ clearInterval(dotsTimer); dotsTimer=null; }
     $loader.style.display='none';
@@ -199,8 +235,8 @@ async function getWindow(){
   try{
     const r=await fetch(`${API}?action=getWindow&t=${Date.now()}`);
     const data=await r.json();
-    const min = data?.startDate ? new Date(data.startDate) : new Date(NOW.getFullYear(),NOW.getMonth(),NOW.getDate()+Number(data?.start??2));
-    const max = data?.endDate   ? new Date(data.endDate)   : new Date(NOW.getFullYear(),NOW.getMonth(),NOW.getDate()+Number(data?.end??14));
+    const min = data?.startDate ? new Date(data.startDate) : new Date(NOW.getFullYear(),NOW.getMonth(),NOW.getDate() + Number(data?.start ?? 2));
+    const max = data?.endDate   ? new Date(data.endDate)   : new Date(NOW.getFullYear(),NOW.getMonth(),NOW.getDate() + Number(data?.end   ?? 14));
     WINDOW_MIN = new Date(min.getFullYear(),min.getMonth(),min.getDate());
     WINDOW_MAX = new Date(max.getFullYear(),max.getMonth(),max.getDate());
   }catch{
@@ -212,7 +248,7 @@ async function getWindow(){
 /* 骨架 */
 function renderSkeleton(monthDate){
   const first = firstOfMonth(monthDate), last=endOfMonth(monthDate);
-  $title.textContent = fmtTitle(first);  // 僅顯示一次標題
+  $title.textContent = fmtTitle(first);
   showLoadingDots(true);
 
   const minMonth = firstOfMonth(WINDOW_MIN), maxMonth = firstOfMonth(WINDOW_MAX);
@@ -249,7 +285,7 @@ async function fetchMonthDays(monthDate){
           const label=String(x.label||'');
           const slot = label.includes('早')?'early':label.includes('午')?'noon':label.includes('晚')?'night':label.includes('約')?'appt':'other';
           const time = x.time||x.timeRange||'';
-          const doctor = (x.doctor||'陳萬龍醫師').replace(/[［\[]?(.+?)[］\]]?/, '$1'); // 移除資料內自帶的括號
+          const doctor = String(x.doctor||'陳萬龍醫師').replace(/[［\[]|[］\]]/g,''); // 去除資料內的括號
           const status = limit<=0? 'closed' : (remain<=0? 'full':'open');
           return {slot,cap:limit,used,remain,status,time,doctor,label};
         });
@@ -295,7 +331,7 @@ function hydrateMonth(monthDate, dayMap){
   showLoadingDots(false);
 }
 
-/* 當日診別（只顯示一次醫師名；剩餘 A） */
+/* 當日診別（只顯示一次醫師名；選取時用 data-* 組字串避免重覆） */
 function openDay(dateYMD, meta){
   const mapSlot = {early:'早診', noon:'午診', night:'晚診', appt:'約診'};
   const open = (meta.slots||[]).filter(s=>s.status==='open');
@@ -305,8 +341,10 @@ function openDay(dateYMD, meta){
   html += open.map(s=>{
     const label = mapSlot[s.slot] || s.label || '';
     const time  = s.time || '';
-    const doc   = s.doctor ? `［${s.doctor}］` : '';  // 只保留一個
-    return `<div class="tile" data-date="${dateYMD}" data-slot="${s.slot}">
+    const doc   = s.doctor ? `［${s.doctor}］` : '';  // 只保留一次
+    return `<div class="tile"
+                data-date="${dateYMD}" data-slot="${s.slot}"
+                data-label="${label}" data-time="${time}" data-doc="${s.doctor||''}" data-remain="${Math.max(0,s.remain)}">
       <div><strong>${label}</strong> ${time} <span class="doc">${doc}</span></div>
       <div class="remain">剩餘 ${Math.max(0,s.remain)}</div>
     </div>`;
@@ -318,12 +356,15 @@ function openDay(dateYMD, meta){
     tile.addEventListener('click', ()=>{
       $panel.querySelectorAll('.tile').forEach(x=>x.classList.remove('selected'));
       tile.classList.add('selected');
+
       // 回填隱藏欄位
       document.getElementById('date').value = tile.dataset.date;
       const mapVal={early:'morning',noon:'afternoon',night:'evening',appt:'appointment'};
       document.getElementById('slot').value = mapVal[tile.dataset.slot]||'';
-      // 提示
-      $picked.innerHTML=`已選擇：<b>${tile.dataset.date}｜${tile.textContent.trim()}</b>`;
+
+      // 以 data-* 組「已選擇」字串，避免從 textContent 抓到重覆字
+      const chosen = `${tile.dataset.date}｜<span class="hl">${tile.dataset.label} ${tile.dataset.time} ［${tile.dataset.doc}］</span>  剩餘 ${tile.dataset.remain}`;
+      $picked.innerHTML=`已選擇：<b>${chosen}</b>`;
       $picked.style.display='block';
       document.getElementById('submitBtn').scrollIntoView({behavior:'smooth', block:'center'});
     });
@@ -332,12 +373,10 @@ function openDay(dateYMD, meta){
 
 /* 月切換 */
 document.getElementById('btnPrev').addEventListener('click',async()=>{
-  curMonth = addMonths(curMonth,-1);
-  await bootMonth(curMonth);
+  curMonth = addMonths(curMonth,-1); await bootMonth(curMonth);
 });
 document.getElementById('btnNext').addEventListener('click',async()=>{
-  curMonth = addMonths(curMonth, 1);
-  await bootMonth(curMonth);
+  curMonth = addMonths(curMonth, 1); await bootMonth(curMonth);
 });
 
 /* 啟動 */
