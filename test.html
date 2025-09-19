@@ -32,14 +32,14 @@ body{margin:0;background:var(--bg);color:#1f1330;font-family:"Noto Sans TC","Mic
 .cal-title .title-text{font-size:clamp(1.2rem,2.4vw,1.6rem);font-weight:900}
 .loader{color:#6b5f92;font-size:.95rem;white-space:nowrap;min-width:6.5em}
 
-/* nav arrows -> 純三角形 */
+/* nav arrows -> 純三角形（無圓形背景） */
 .nav{display:flex;gap:10px}
 .nav-btn{border:none;background:none;cursor:pointer;width:0;height:0;border-style:solid}
 .nav-btn.prev{border-width:12px 16px 12px 0;border-color:transparent var(--primary) transparent transparent}
 .nav-btn.next{border-width:12px 0 12px 16px;border-color:transparent transparent transparent var(--primary)}
 .nav-btn[disabled]{opacity:.35;cursor:not-allowed}
 
-/* rule button pill */
+/* 規則按鈕 */
 .rule-bar{padding:6px 12px 0 12px}
 .rule-btn{border:none;background:#efe9ff;color:#4a2f82;font-weight:800;border-radius:999px;padding:.42rem .9rem;font-size:.92rem}
 
@@ -78,19 +78,19 @@ body{margin:0;background:var(--bg);color:#1f1330;font-family:"Noto Sans TC","Mic
 /* = Form 一欄一行 + 防溢出 = */
 .form-grid{display:grid;gap:14px;grid-template-columns:1fr}
 .form-grid > div{min-width:0}
-.form-label-strong{font-weight:700;margin-bottom:6px}
+.form-label-strong{font-weight:900;margin-bottom:6px;color:#1f1330} /* 粗體黑色，星號會跟著黑粗 */
 .form-input{
   width:100%;min-width:0;max-width:100%;
   padding:.6rem .7rem;border:1px solid #ced2db;border-radius:12px;
   font-size:1rem;line-height:1.25;height:auto
 }
+
+/* 日期輸入：使用假 placeholder 避免 iOS/Safari 疊字 */
 input[type="date"].form-input{
   appearance:none;-webkit-appearance:none;
   width:100%;min-width:0;max-width:100%;
   padding:.55rem .7rem;font-size:1rem;border-radius:12px
 }
-
-/* iOS/Safari 不顯示 date placeholder → 做一個假提示文字 */
 .date-wrap{position:relative}
 .date-hint{
   position:absolute;left:12px;top:50%;transform:translateY(-50%);
@@ -103,8 +103,8 @@ input[type="date"].form-input{
 .btn-main{background:var(--primary);color:#fff;border:none}
 .btn-ghost{background:#fff;border:1px solid #d7dbe5;color:#3a3f47}
 
-/* agree 必填 * 標記 */
-label.agree span::after{content:" *";color:#d00;font-weight:900}
+/* 同意條款自動補黑色粗體 * */
+label.agree span::after{content:" *";color:#000;font-weight:900}
 
 /* 遮罩 */
 #mask{position:fixed;inset:0;display:none;align-items:center;justify-content:center;z-index:9999;font-size:18px;color:#4b2c86;background:rgba(255,255,255,.92);backdrop-filter:blur(2px)}
@@ -117,7 +117,7 @@ label.agree span::after{content:" *";color:#d00;font-weight:900}
 .chip-strong{background:#f3f0ff;color:#4a2f82;border-color:#e4ddff}
 .chip-range{background:#f8fafc;color:#334155}
 
-/* Mobile 微調 */
+/* Mobile 微調：加大 date 文字避免 iOS 放大、維持不外凸 */
 @media (max-width:600px){
   .wrap{padding:8px}
   .page-head{margin:4px 4px 12px}
@@ -129,10 +129,8 @@ label.agree span::after{content:" *";color:#d00;font-weight:900}
   .pill{display:block;width:100%;text-align:center;padding:.12rem .4rem;font-size:.78rem;line-height:1.15;min-width:auto;margin-bottom:4px}
   .pill .remain{display:none}
   .tile{padding:10px;border-radius:14px}
-  input[type="date"].form-input{font-size:14px;padding:.45rem .55rem;border-radius:10px}
-  input[type="date"]::-webkit-datetime-edit{padding:.12rem .2rem}
-  input[type="date"]::-webkit-datetime-edit-fields-wrapper{padding:0}
-  input[type="date"]::-webkit-calendar-picker-indicator{transform:scale(.9)}
+
+  input[type="date"].form-input{font-size:16px;padding:.48rem .6rem;border-radius:10px}
 }
 </style>
 </head>
@@ -171,7 +169,10 @@ label.agree span::after{content:" *";color:#d00;font-weight:900}
     <input type="hidden" id="g-recaptcha-response" name="g-recaptcha-response"/>
 
     <div class="form-grid">
-      <div><div class="form-label-strong">姓名 *</div><input id="name" type="text" class="form-input" autocomplete="off"/></div>
+      <div>
+        <div class="form-label-strong">姓名 *</div>
+        <input id="name" type="text" class="form-input" autocomplete="off"/>
+      </div>
 
       <div>
         <div class="form-label-strong">出生年月日 *</div>
@@ -182,8 +183,15 @@ label.agree span::after{content:" *";color:#d00;font-weight:900}
         </div>
       </div>
 
-      <div><div class="form-label-strong">身分證字號 *</div><input id="idnum" type="text" maxlength="10" class="form-input" placeholder="A123456789" autocomplete="off"/></div>
-      <div><div class="form-label-strong">連絡電話 *</div><input id="phone" type="text" maxlength="10" inputmode="numeric" class="form-input" placeholder="0958xxxxxx" autocomplete="off"/></div>
+      <div>
+        <div class="form-label-strong">身分證字號 *</div>
+        <input id="idnum" type="text" maxlength="10" class="form-input" placeholder="A123456789" autocomplete="off"/>
+      </div>
+
+      <div>
+        <div class="form-label-strong">連絡電話 *</div>
+        <input id="phone" type="text" maxlength="10" inputmode="numeric" class="form-input" placeholder="0958xxxxxx" autocomplete="off"/>
+      </div>
     </div>
 
     <div class="mt-2">
@@ -306,7 +314,6 @@ $('showNotice').addEventListener('click',e=>{e.preventDefault(); new bootstrap.M
 (function(){
   const wrap = document.getElementById('dateWrap');
   const input = document.getElementById('birthday');
-  const hint  = document.getElementById('dateHint');
   const refresh = () => {
     if (!input.value) wrap.classList.remove('has-value'); else wrap.classList.add('has-value');
   };
@@ -406,7 +413,7 @@ function hydrateMonth(monthDate, dayMap){
       cls+=' clickable';
       const pills=meta.slots.filter(s=>s.status==='open').map(s=>{
         const tag=s.slot==='early'?'early':s.slot==='noon'?'noon':s.slot==='night'?'night':'appt';
-        const label=s.slot==='early'?'早診':s.slot==='noon'?'午診':s.slot==='night'?'晚診':'約診';
+        const label=s.slot==='early'?'早診':s.slot==='noon'?'午診':s.slot==='夜'?'晚診':'約診';
         return `<span class="pill ${tag}"><span class="lbl">${label}</span> <span class="remain">剩餘 ${Math.max(0,s.remain)} 人</span></span>`;
       }).join('');
       inner+=`<div class="meta">${pills}</div>`;
