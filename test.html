@@ -111,6 +111,9 @@ input[type="date"]::-webkit-calendar-picker-indicator{padding:0 8px 0 0}
 /* 同意條款自動補黑色粗體 * */
 label.agree span::after{content:" *";color:#000;font-weight:900}
 
+/* 身分證欄顯示大寫 */
+.force-upper{text-transform:uppercase}
+
 /* 遮罩 */
 #mask{position:fixed;inset:0;display:none;align-items:center;justify-content:center;z-index:9999;font-size:18px;color:#4b2c86;background:rgba(255,255,255,.92);backdrop-filter:blur(2px)}
 #dots{display:inline-block;width:2ch;text-align:left}
@@ -183,13 +186,16 @@ label.agree span::after{content:" *";color:#000;font-weight:900}
         <div class="form-label-strong">出生年月日 *</div>
         <div class="date-wrap" id="dateWrap">
           <input id="birthday" type="date" class="form-input" inputmode="numeric" autocomplete="off" />
-          <span class="date-hint" id="dateHint"> 年 /月/日</span>
+          <span class="date-hint" id="dateHint">年／月／日</span>
         </div>
       </div>
 
       <div>
         <div class="form-label-strong">身分證字號 *</div>
-        <input id="idnum" type="text" maxlength="10" class="form-input" placeholder="A123456789" autocomplete="off"/>
+        <input id="idnum" type="text" maxlength="10"
+               class="form-input force-upper"
+               placeholder="A123456789" autocomplete="off"
+               autocapitalize="characters" />
       </div>
 
       <div>
@@ -203,7 +209,7 @@ label.agree span::after{content:" *";color:#000;font-weight:900}
     </div>
     <div class="d-grid gap-2 mt-3">
       <button id="submitBtn" class="btn-main">送出預約</button>
-      <a class="btn-ghost text-center text-decoration-none" href="query.html">查詢/取消預約</a>
+      <a class="btn-ghost text-center text-decoration-none" href="query.html">查詢／取消預約</a>
     </div>
   </div>
 </div>
@@ -220,7 +226,8 @@ label.agree span::after{content:" *";color:#000;font-weight:900}
         <div class="p-2 rounded-3" style="background:#efeaff;border:1px solid #e5dcff">
           <div class="rule-line"><span class="chip chip-strong">週一</span><span>可預約 →</span><span class="chip chip-range">［ 週四 ~ 下下週一 ］</span></div>
           <div class="rule-line"><span class="chip chip-strong">週二</span><span>可預約 →</span><span class="chip chip-range">［ 週五 ~ 下下週二 ］</span></div>
-          <div class="rule-line"><span class="chip chip-強">週三</span><span>可預約 →</span><span class="chip chip-range">［ 週六 ~ 下下週三 ］</span></div>
+          <!-- 修正：chip-強 -> chip-strong -->
+          <div class="rule-line"><span class="chip chip-strong">週三</span><span>可預約 →</span><span class="chip chip-range">［ 週六 ~ 下下週三 ］</span></div>
           <div class="rule-line"><span class="chip chip-strong">週四</span><span>可預約 →</span><span class="chip chip-range">［ 下週一 ~ 下下週四 ］</span></div>
           <div class="rule-line"><span class="chip chip-strong">週五</span><span>可預約 →</span><span class="chip chip-range">［ 下週二 ~ 下下週五 ］</span></div>
           <div class="rule-line"><span class="chip chip-strong">週六</span><span>可預約 →</span><span class="chip chip-range">［ 下週二 ~ 下下週六 ］</span></div>
@@ -322,6 +329,18 @@ $('showNotice').addEventListener('click',e=>{e.preventDefault(); new bootstrap.M
   input.addEventListener('focus', ()=>wrap.classList.add('focus'));
   input.addEventListener('blur', ()=>wrap.classList.remove('focus'));
   refresh();
+})();
+
+/* 讓身分證輸入即時轉大寫（含貼上） */
+(function () {
+  const idInput = document.getElementById('idnum');
+  const toUpper = () => {
+    if (!idInput) return;
+    const pos = idInput.selectionStart;
+    idInput.value = idInput.value.toUpperCase().replace(/\s+/g,'');
+    try { idInput.setSelectionRange(pos,pos); } catch(_){}
+  };
+  ['input','change','paste','blur'].forEach(ev=>idInput.addEventListener(ev,toUpper));
 })();
 
 /* 週標題 */
