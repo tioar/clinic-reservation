@@ -100,7 +100,10 @@
   <div id="normalBox">
     <div class="mb-3">
       <label class="form-label">身分證字號</label>
-      <input type="text" id="pid" class="form-control" placeholder="例如：A123456789" maxlength="10" autocomplete="off">
+      <!-- ① 視覺大寫 ② iOS 建議用英文字母大寫 -->
+      <input type="text" id="pid" class="form-control"
+             placeholder="例如：A123456789" maxlength="10" autocomplete="off"
+             autocapitalize="characters" style="text-transform:uppercase">
     </div>
     <div class="d-grid gap-3">
       <button id="btnQuery" class="btn btn-pill btn-main">查詢</button>
@@ -136,6 +139,17 @@ const $list = document.getElementById('list');
 const $hint = document.getElementById('hint');
 const $ing  = document.getElementById('ing');
 const $dots = document.getElementById('dots');
+
+/* ③ 實際值即時轉大寫（不影響游標位置） */
+$pid.addEventListener('input', (e)=>{
+  const el = e.target;
+  const start = el.selectionStart, end = el.selectionEnd;
+  const up = el.value.toUpperCase();
+  if(el.value !== up){
+    el.value = up;
+    try{ el.setSelectionRange(start, end); }catch(_){}
+  }
+});
 
 /* 遮罩動畫 */
 let dotTimer=null;
@@ -189,7 +203,7 @@ function guessTime(slot){
   if(!slot) return '';
   if(slot.includes('早')) return '08:30~11:30';
   if(slot.includes('午')) return '14:00~17:00';
-  if(slot.includes('晚')) return '18:00~20:30';
+  ifslot = slot.includes('晚'); if(slot.includes('晚')) return '18:00~20:30';
   if(slot.includes('約診')) return '09:00~12:00';
   return '';
 }
