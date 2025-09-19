@@ -3,74 +3,70 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>月曆預約（單月切換版）</title>
+  <title>月曆預約（單月切換＋方塊選診別）</title>
   <link rel="icon" type="image/png" href="favicon.png">
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
   <style>
-    :root{
-      --primary:#6236a7; --primary-600:#522e93; --bg:#f7f6fb; --card:#ffffff; --line:#ebe6fb; --muted:#6b5f92;
-      --ok:#0ea5e9; --warn:#f59e0b; --good:#10b981; --bad:#ef4444;
-    }
-    *{box-sizing:border-box}
-    body{margin:0;background:var(--bg);color:#1f1330;font-family:"Noto Sans TC","Microsoft JhengHei",system-ui,sans-serif}
+    :root{ --primary:#6236a7; --primary-600:#522e93; --bg:#f7f6fb; --card:#ffffff; --line:#ebe6fb; --muted:#6b5f92; }
+    *{box-sizing:border-box} body{margin:0;background:var(--bg);color:#1f1330;font-family:"Noto Sans TC","Microsoft JhengHei",system-ui,sans-serif}
     .wrap{max-width:960px;margin:20px auto;padding:16px}
 
-    /* ===== Card & Rounded style ===== */
     .card{background:var(--card);border:1px solid var(--line);border-radius:20px;box-shadow:0 10px 24px rgba(98,54,167,.10)}
     .section{padding:16px}
-    .title{font-weight:900;color:var(--primary);margin:0 0 8px}
     .hint{color:#6c6286;font-size:.95rem;margin-bottom:12px}
 
-    /* ===== Calendar ===== */
     .cal-head{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-bottom:1px solid var(--line)}
-    .cal-title{font-weight:900}
+    .cal-title{font-weight:900;display:flex;align-items:center;gap:8px}
+    .loading-dots{font-size:.9rem;color:#6b5f92;display:inline-block;min-width:6ch}
+    .loading-dots::after{content:"載入中";margin-right:.25ch}
+    .loading-dots b{display:inline-block;width:3ch;text-align:left}
+    @keyframes dots{0%{content:"."}33%{content:".."}66%{content:"..."}}
+    .loading-dots b::after{content:".";animation:dots 1s steps(1,end) infinite}
+
     .nav{display:flex;gap:8px}
     .nav button{border:none;background:var(--primary);color:#fff;border-radius:12px;padding:.35rem .7rem;font-weight:900;cursor:pointer}
     .nav button[disabled]{opacity:.45;cursor:not-allowed}
 
     .grid{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;padding:12px}
     .wday{font-size:.9rem;color:var(--muted);text-align:center;font-weight:800}
-
     .day{border:1px solid #e6e8f0;border-radius:16px;min-height:88px;padding:8px;display:flex;flex-direction:column;gap:6px;background:#fff;transition:.15s}
     .day .d{font-weight:900;color:#24163a}
     .day .meta{margin-top:auto;font-size:.86rem;line-height:1.35;color:#5c6170}
     .day.clickable{cursor:pointer}
     .day.clickable:hover{box-shadow:0 0 0 2px #d7caf6}
     .day.disabled{background:#f1f2f6;color:#8b90a3;border-color:#e5e7eb;opacity:.8;pointer-events:none}
-    .day.full{background:#f8f8fa}
 
+    /* 診別方塊 */
+    #dayPanel{display:none}
+    #dayPanel .head{font-weight:900;margin-bottom:8px}
+    .slot-grid{display:grid;grid-template-columns:1fr;gap:10px}
+    .slot-tile{display:flex;align-items:center;gap:12px;border:1px solid #e0e4ef;border-radius:16px;padding:12px;cursor:pointer;transition:.15s;background:#fff}
+    .slot-tile:hover{box-shadow:0 0 0 2px #e6dbff}
+    .slot-tile .remain{margin-left:auto;font-weight:900}
+    .slot-tile .doc{color:#6b5f92;font-weight:800}
+    .slot-tile.selected{background:#f3edff;box-shadow:0 0 0 2px #cdbbff}
     .pill{display:inline-block;border:1px solid #e3e6ee;border-radius:999px;padding:.1rem .55rem;font-weight:800;margin-right:.3rem;white-space:nowrap}
     .pill.early{background:#e7f7ee;color:#065f46;border-color:#b8ead4}
     .pill.noon {background:#fff3df;color:#7a4d00;border-color:#ffd79a}
     .pill.night{background:#e8f2ff;color:#1d4ed8;border-color:#cfe2ff}
     .pill.appt {background:#fde7ef;color:#b51695;border-color:#ff99e6}
 
-    /* ===== Day panel (slot selector) ===== */
-    #dayPanel{display:none}
-    #dayPanel .head{font-weight:900;margin-bottom:8px}
-    .slot-row{display:flex;align-items:center;gap:12px;border:1px dashed #e0e4ef;border-radius:16px;padding:12px;margin:10px 0;cursor:pointer;transition:.15s}
-    .slot-row:hover{box-shadow:0 0 0 2px #e6dbff}
-    .slot-row.full{opacity:.45;cursor:not-allowed}
-    .slot-row .remain{margin-left:auto;font-weight:900}
-    .slot-row .doc{color:#6b5f92;font-weight:800}
-    .slot-row.selected{background:#f3edff;box-shadow:0 0 0 2px #cdbbff}
-
-    /* ===== Form mini banner ===== */
     .picked{display:none;margin-top:8px;color:#3b2c5f}
     .picked b{color:var(--primary)}
 
-    @media (max-width:600px){
-      .grid{gap:6px;padding:10px}
-      .day{min-height:76px;border-radius:14px}
-      .nav button{border-radius:10px}
-    }
+    .form-card .label{font-weight:700;margin-bottom:6px}
+    .form-card input, .form-card select{width:100%;padding:.6rem .7rem;border:1px solid #ced2db;border-radius:12px}
+    .form-card button{background:var(--primary);color:#fff;border:none;border-radius:14px;padding:.7rem 1.1rem;font-weight:900;cursor:pointer}
+    .form-card button:disabled{opacity:.6;cursor:not-allowed}
+
+    @media (max-width:600px){ .grid{gap:6px;padding:10px} .day{min-height:76px;border-radius:14px} .nav button{border-radius:10px} }
   </style>
 </head>
 <body>
 <div class="wrap">
   <div class="card">
     <div class="cal-head">
-      <div class="cal-title" id="calTitle">—</div>
+      <div class="cal-title"><span id="calTitle">—</span><span id="loader" class="loading-dots" aria-live="polite" style="display:none"><b></b></span></div>
       <div class="nav">
         <button id="btnPrev">←</button>
         <button id="btnNext">→</button>
@@ -82,18 +78,14 @@
     <div class="section picked" id="picked"></div>
   </div>
 
-  <!-- 表單（id 與你現有 index.html 對齊） -->
-  <div class="card section" style="margin-top:16px">
-    <div style="font-weight:900;margin-bottom:8px;color:var(--primary)">預約表單</div>
-    <div class="hint">選取診別後會自動帶入此表單，只需填寫個人資料再一次送出即可。</div>
+  <!-- 表單區：取消顯示「預約日期」，但保留隱藏欄位以便送出 -->
+  <div class="card section form-card" style="margin-top:16px">
+    <div class="hint">選上方「診別方塊」即選取（會變色），此處只需填個人資料再一次送出。</div>
+    <input type="date" id="date" hidden /> <!-- 隱藏：由月曆帶入 -->
     <div style="display:grid;gap:10px;grid-template-columns:1fr 1fr">
       <div>
-        <label>預約日期 *</label>
-        <input type="date" id="date" style="width:100%" />
-      </div>
-      <div>
-        <label>診別 *</label>
-        <select id="slot" style="width:100%">
+        <div class="label">診別 *</div>
+        <select id="slot" disabled>
           <option value="">請先於上方選擇日期/診別</option>
           <option value="morning">早診</option>
           <option value="afternoon">午診</option>
@@ -101,51 +93,51 @@
           <option value="appointment">約診</option>
         </select>
       </div>
+      <div></div>
       <div>
-        <label>姓名 *</label>
-        <input id="name" type="text" style="width:100%"/>
+        <div class="label">姓名 *</div>
+        <input id="name" type="text"/>
       </div>
       <div>
-        <label>出生年月日 *</label>
-        <input id="birthday" type="date" style="width:100%"/>
+        <div class="label">出生年月日 *</div>
+        <input id="birthday" type="date"/>
       </div>
       <div>
-        <label>身分證字號 *</label>
-        <input id="idnum" type="text" maxlength="10" style="width:100%" placeholder="A123456789"/>
+        <div class="label">身分證字號 *</div>
+        <input id="idnum" type="text" maxlength="10" placeholder="A123456789"/>
       </div>
       <div>
-        <label>連絡電話 *</label>
-        <input id="phone" type="text" maxlength="10" inputmode="numeric" style="width:100%" placeholder="0958xxxxxx"/>
+        <div class="label">連絡電話 *</div>
+        <input id="phone" type="text" maxlength="10" inputmode="numeric" placeholder="0958xxxxxx"/>
       </div>
     </div>
     <div style="margin-top:10px">
       <label><input id="agree" type="checkbox"/> 我已閱讀並同意預約須知</label>
     </div>
     <div style="margin-top:12px">
-      <button id="submitBtn" style="background:var(--primary);color:#fff;border:none;border-radius:14px;padding:.7rem 1.1rem;font-weight:900">送出預約</button>
+      <button id="submitBtn">送出預約</button>
     </div>
   </div>
 </div>
 
 <script>
-/* ========= 設定 ========= */
+/* ===== 設定（沿用你現有 index.html 的 API） ===== */
 const API = "https://script.google.com/macros/s/AKfycbz1jtOWBJEETvotCU2y022ow4lOlm_TauYpRMG6riUIj88_Vde5d9LHGH5cLC4HYe7X/exec";
 
-/* ========= 小工具 ========= */
-const pad2 = n=>String(n).padStart(2,'0');
-const ymd = d=>`${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;
-const firstOfMonth = d=>new Date(d.getFullYear(), d.getMonth(), 1);
-const endOfMonth = d=>new Date(d.getFullYear(), d.getMonth()+1, 0);
-const addMonths = (d,n)=>new Date(d.getFullYear(), d.getMonth()+n, 1);
-const W = ['日','一','二','三','四','五','六'];
+/* ===== 小工具 ===== */
+const pad2=n=>String(n).padStart(2,'0');
+const ymd=d=>`${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;
+const firstOfMonth=d=>new Date(d.getFullYear(), d.getMonth(), 1);
+const endOfMonth=d=>new Date(d.getFullYear(), d.getMonth()+1, 0);
+const addMonths=(d,n)=>new Date(d.getFullYear(), d.getMonth()+n, 1);
+const W=['日','一','二','三','四','五','六'];
 
-/* ========= DOM ========= */
-const NOW = new Date();
-const MIN_MONTH = firstOfMonth(NOW);
-const MAX_MONTH = firstOfMonth(addMonths(NOW,1));
-let curMonth = firstOfMonth(NOW);
-
+/* ===== DOM ===== */
+const NOW=new Date();
+let WINDOW_MIN=null, WINDOW_MAX=null;   // 從 getWindow 取得
+let curMonth=firstOfMonth(NOW);
 const $title = document.getElementById('calTitle');
+const $loader= document.getElementById('loader');
 const $whead = document.getElementById('whead');
 const $days  = document.getElementById('days');
 const $prev  = document.getElementById('btnPrev');
@@ -153,172 +145,182 @@ const $next  = document.getElementById('btnNext');
 const $panel = document.getElementById('dayPanel');
 const $picked= document.getElementById('picked');
 
-/* 週標題立即畫 */
-$whead.innerHTML = W.map(w=>`<div class="wday">${w}</div>`).join('');
+/* 表單元素 */
+const $date = document.getElementById('date');       // 隱藏
+const $slot = document.getElementById('slot');       // 將鎖定為已選診別
+const $name = document.getElementById('name');
+const $birthday = document.getElementById('birthday');
+const $idnum = document.getElementById('idnum');
+const $phone = document.getElementById('phone');
+const $agree = document.getElementById('agree');
+const $submit= document.getElementById('submitBtn');
 
-/* ========= 先畫骨架，避免空白 ========= */
-function renderSkeleton(monthDate){
-  const first = firstOfMonth(monthDate), last = endOfMonth(monthDate);
-  $title.innerHTML = `${first.getFullYear()} / ${pad2(first.getMonth()+1)} 　<span id="badgeLoading" style="font-size:.85rem;color:#6b5f92;">（載入中…）</span>`;
-  $prev.disabled = first.getTime() <= MIN_MONTH.getTime();
-  $next.disabled = first.getTime() >= MAX_MONTH.getTime();
+/* 輸入限制 */
+$idnum.addEventListener("input",e=>{ e.target.value=e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,10); });
+$phone.addEventListener("input",e=>{ e.target.value=e.target.value.replace(/\D/g,'').slice(0,10); });
 
-  let html = '';
-  const pad = first.getDay();
-  for(let i=0;i<pad;i++) html += `<div></div>`;
-  for(let d=1; d<=last.getDate(); d++){
-    html += `<div class="day disabled"><div class="d">${d}</div><div class="meta">—</div></div>`;
+/* 週標立即畫 */
+$whead.innerHTML = ['日','一','二','三','四','五','六'].map(w=>`<div class="wday">${w}</div>`).join('');
+
+/* 取得可預約視窗 */
+async function getWindow(){
+  try{
+    const r=await fetch(`${API}?action=getWindow&t=${Date.now()}`);
+    const data=await r.json();
+    const min = data?.startDate ? new Date(data.startDate) : new Date(NOW.getFullYear(),NOW.getMonth(),NOW.getDate()+Number(data?.start??2));
+    const max = data?.endDate   ? new Date(data.endDate)   : new Date(NOW.getFullYear(),NOW.getMonth(),NOW.getDate()+Number(data?.end??14));
+    WINDOW_MIN = new Date(min.getFullYear(),min.getMonth(),min.getDate());
+    WINDOW_MAX = new Date(max.getFullYear(),max.getMonth(),max.getDate());
+  }catch{
+    WINDOW_MIN = new Date(NOW.getFullYear(),NOW.getMonth(),NOW.getDate()+2);
+    WINDOW_MAX = new Date(NOW.getFullYear(),NOW.getMonth(),NOW.getDate()+14);
   }
-  $days.innerHTML = html;
-  $panel.style.display='none';
-  $picked.style.display='none';
 }
 
-/* ========= 用資料「補水」既有骨架 ========= */
-function hydrateMonth(monthDate, dayMap){
-  const first = firstOfMonth(monthDate), last = endOfMonth(monthDate);
-  let html = '';
-  const pad = first.getDay();
+/* 先畫骨架（避免空白） */
+function renderSkeleton(monthDate){
+  const first = firstOfMonth(monthDate), last=endOfMonth(monthDate);
+  $title.textContent = `${first.getFullYear()} / ${pad2(first.getMonth()+1)}`;
+  $loader.style.display = 'inline-block';
+  $prev.disabled = first <= firstOfMonth(WINDOW_MIN);
+  $next.disabled = firstOfMonth(addMonths(first,1)) > firstOfMonth(WINDOW_MAX);
+
+  let html=''; const pad=first.getDay();
   for(let i=0;i<pad;i++) html += `<div></div>`;
   for(let d=1; d<=last.getDate(); d++){
     const cur = new Date(first.getFullYear(), first.getMonth(), d);
-    const key = ymd(cur);
-    const meta = dayMap[key];
-    let cls = 'day', inner = `<div class="d">${d}</div>`;
+    // 不在視窗 → 直接灰
+    const inWindow = cur >= WINDOW_MIN && cur <= WINDOW_MAX;
+    const cls = inWindow ? 'day' : 'day disabled';
+    html += `<div class="${cls}" data-ymd="${ymd(cur)}"><div class="d">${d}</div><div class="meta">—</div></div>`;
+  }
+  $days.innerHTML=html;
+  $panel.style.display='none'; $picked.style.display='none';
+}
 
+/* 批量抓某月資料（逐日；前端容錯你現在的結構） */
+async function fetchMonthDays(monthDate){
+  const first=firstOfMonth(monthDate), last=endOfMonth(monthDate);
+  const arr=[]; const jobs=[];
+  for(let d=1; d<=last.getDate(); d++){
+    const cur = new Date(first.getFullYear(), first.getMonth(), d);
+    const key = ymd(cur);
+    if(cur < WINDOW_MIN || cur > WINDOW_MAX){ arr.push({date:key, slots:[]}); continue; }
+    jobs.push((async()=>{
+      try{
+        const r=await fetch(`${API}?action=getSlots&date=${key}&t=${Date.now()}`);
+        const data=await r.json();
+        const raw = Array.isArray(data) ? data : (Array.isArray(data?.slots) ? data.slots : []);
+        const slots=(raw||[]).map(x=>{
+          const limit=Number(x.limit)||0, used=Number(x.used)||0, remain=Math.max(0,limit-used);
+          const label=String(x.label||'');
+          const slot = label.includes('早')?'early':label.includes('午')?'noon':label.includes('晚')?'night':label.includes('約')?'appt':'other';
+          const time = x.time||x.timeRange||'';
+          const doctor = x.doctor||'陳萬龍醫師'; // 若後端不回 doctor 也不會壞
+          const status = limit<=0? 'closed' : (remain<=0? 'full':'open');
+          return {slot,cap:limit,used,remain,status,time,doctor,label};
+        });
+        return {date:key, slots};
+      }catch{ return {date:key, slots:[]} }
+    })());
+  }
+  const res = await Promise.all(jobs);
+  // 合併回位
+  const map={}; res.forEach(d=>map[d.date]=d);
+  for(let d=1; d<=last.getDate(); d++){
+    const cur = new Date(first.getFullYear(), first.getMonth(), d);
+    const key = ymd(cur);
+    if(!map[key]) map[key] = {date:key, slots:[]};
+  }
+  return map;
+}
+
+/* 用資料補水 */
+function hydrateMonth(monthDate, dayMap){
+  const first=firstOfMonth(monthDate), last=endOfMonth(monthDate);
+  let html=''; const pad=first.getDay();
+  for(let i=0;i<pad;i++) html += `<div></div>`;
+  for(let d=1; d<=last.getDate(); d++){
+    const cur=new Date(first.getFullYear(),first.getMonth(),d);
+    const key=ymd(cur); const meta=dayMap[key];
+    let cls='day', inner=`<div class="d">${d}</div>`;
     const hasOpen = !!(meta?.slots?.some(s=>s.status==='open'));
-    if(!meta || !hasOpen){
-      cls += ' disabled';
-      inner += `<div class="meta">—</div>`;
+    if(!(cur>=WINDOW_MIN && cur<=WINDOW_MAX) || !hasOpen){
+      cls+=' disabled'; inner+=`<div class="meta">—</div>`;
     }else{
-      cls += ' clickable';
-      const pills = meta.slots
-        .filter(s=>s.status==='open')
-        .map(s=>{
-          const tag = s.slot==='early'?'early':s.slot==='noon'?'noon':s.slot==='night'?'night':'appt';
-          const label = s.slot==='early'?'早':s.slot==='noon'?'午':s.slot==='night'?'晚':'約';
-          return `<span class="pill ${tag}">${label} ${Math.max(0,s.remain)}/${s.cap}</span>`;
-        }).join(' ');
-      inner += `<div class="meta">${pills}</div>`;
+      cls+=' clickable';
+      const pills = meta.slots.filter(s=>s.status==='open').map(s=>{
+        const tag = s.slot==='early'?'early':s.slot==='noon'?'noon':s.slot==='night'?'night':'appt';
+        const label = s.slot==='early'?'早':s.slot==='noon'?'午':s.slot==='night'?'晚':'約';
+        return `<span class="pill ${tag}">${label} 剩餘 ${Math.max(0,s.remain)}</span>`;
+      }).join(' ');
+      inner+=`<div class="meta">${pills}</div>`;
     }
     html += `<div class="${cls}" data-ymd="${key}">${inner}</div>`;
   }
-  $days.innerHTML = html;
-
+  $days.innerHTML=html;
   $days.querySelectorAll('.day.clickable').forEach(el=>{
-    el.addEventListener('click', ()=> openDay(el.dataset.ymd, dayMap[el.dataset.ymd]));
+    el.addEventListener('click',()=> openDay(el.dataset.ymd, dayMap[el.dataset.ymd]));
   });
-
-  const b = document.getElementById('badgeLoading');
-  if(b) b.remove();
+  $loader.style.display='none';
 }
 
-/* ========= 取資料（先批次，失敗逐日；都加超時） ========= */
-function withTimeout(promise, ms){
-  return Promise.race([
-    promise,
-    new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')), ms))
-  ]);
-}
-async function fetchRange(startYmd, endYmd){
-  try{
-    const r = await withTimeout(fetch(API,{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({path:'calendarSlots',payload:{start:startYmd,end:endYmd}})
-    }), 4000);
-    const data = await r.json();
-    if(data && data.ok && Array.isArray(data.days)) return data.days;
-    throw new Error('no_batch');
-  }catch{
-    const s=new Date(startYmd), e=new Date(endYmd);
-    const tasks=[];
-    for(let d=new Date(s); d<=e; d.setDate(d.getDate()+1)){
-      const key=ymd(d);
-      tasks.push((async()=>{
-        try{
-          const r= await withTimeout(fetch(`${API}?action=getSlots&date=${key}&t=${Date.now()}`), 2500);
-          const data= await r.json();
-          const raw = Array.isArray(data)? data : (Array.isArray(data?.slots)? data.slots : []);
-          const slots = (raw||[]).map(x=>{
-            const label = String(x.label||x.name||x.slotName||'');
-            const slot  = label.includes('早')?'early': label.includes('午')?'noon': label.includes('晚')?'night': label.includes('約')?'appt':'other';
-            const cap   = Number(x.cap||x.limit||x.capacity||0)||0;
-            const used  = Number(x.used||x.reserved||x.booked||0)||0;
-            const remain= Math.max(0, cap-used);
-            const status= cap<=0 ? 'closed' : (remain<=0 ? 'full' : 'open');
-            const time  = x.time||x.timeRange||x.range||'';
-            const doctor= x.doctor||x.physician||x.doc||'';
-            return {slot, cap, used, remain, status, time, doctor};
-          });
-          return {date:key, slots};
-        }catch{ return {date:key, slots:[]} }
-      })());
-    }
-    const arr = await Promise.all(tasks);
-    return arr;
-  }
-}
-
-/* ========= 展開當日診別（點一下即選取） ========= */
+/* 展開當日診別（方塊） */
 function openDay(dateYMD, meta){
   const mapSlot = {early:'早診', noon:'午診', night:'晚診', appt:'約診'};
   const open = (meta.slots||[]).filter(s=>s.status==='open');
   if(!open.length){ $panel.style.display='none'; return; }
-
-  let html = `<div class="head">${dateYMD}（星期${W[new Date(dateYMD).getDay()]}）</div>`;
+  let html = `<div class="head">${dateYMD}（星期${W[new Date(dateYMD).getDay()]}）</div><div class="slot-grid">`;
   html += open.map(s=>{
-    const doc = s.doctor ? `［${s.doctor}］` : '';
-    const time = s.time || s.timeRange || '';
-    return `<div class="slot-row" data-date="${dateYMD}" data-slot="${s.slot}">
-      <div style="font-weight:900">${mapSlot[s.slot]||s.slot} ${time} <span class="doc">${doc}</span></div>
-      <div class="remain">剩餘 ${Math.max(0,s.remain)} / ${s.cap}</div>
+    const label = mapSlot[s.slot] || s.label || '';
+    const time  = s.time || '';
+    const doc   = s.doctor ? `［${s.doctor}］` : '';
+    return `<div class="slot-tile" data-date="${dateYMD}" data-slot="${s.slot}">
+      <div><strong>${label}</strong> ${time} <span class="doc">${doc}</span></div>
+      <div class="remain">剩餘 ${Math.max(0,s.remain)}/${s.cap}</div>
     </div>`;
   }).join('');
-  $panel.innerHTML = html;
-  $panel.style.display = 'block';
+  html += `</div>`;
+  $panel.innerHTML=html; $panel.style.display='block';
 
-  $panel.querySelectorAll('.slot-row').forEach(row=>{
-    row.addEventListener('click', ()=>{
-      $panel.querySelectorAll('.slot-row').forEach(x=>x.classList.remove('selected'));
-      row.classList.add('selected');
-      // 帶到表單
-      document.getElementById('date').value = row.dataset.date;
-      const mapVal = {early:'morning', noon:'afternoon', night:'evening', appt:'appointment'};
-      document.getElementById('slot').value = mapVal[row.dataset.slot]||'';
-      // 顯示已選擇
-      $picked.innerHTML = `已選擇：<b>${row.dataset.date}｜${row.textContent.trim()}</b>`;
-      $picked.style.display = 'block';
+  $panel.querySelectorAll('.slot-tile').forEach(tile=>{
+    tile.addEventListener('click', ()=>{
+      $panel.querySelectorAll('.slot-tile').forEach(x=>x.classList.remove('selected'));
+      tile.classList.add('selected');
+      // 回填隱藏欄位與鎖定診別
+      document.getElementById('date').value = tile.dataset.date;
+      const mapVal={early:'morning',noon:'afternoon',night:'evening',appt:'appointment'};
+      const mapTxt={early:'早診',noon:'午診',night:'晚診',appt:'約診'};
+      const val=mapVal[tile.dataset.slot]||''; const txt=mapTxt[tile.dataset.slot]||'';
+      $slot.innerHTML=''; const opt=document.createElement('option');
+      opt.value=val; opt.textContent=txt; $slot.appendChild(opt);
+      $slot.value=val; $slot.disabled=true;
+      // 提示
+      $picked.innerHTML=`已選擇：<b>${tile.dataset.date}｜${tile.textContent.trim()}</b>`;
+      $picked.style.display='block';
       document.getElementById('submitBtn').scrollIntoView({behavior:'smooth', block:'center'});
     });
   });
 }
 
-/* ========= 月切換 ========= */
-document.getElementById('btnPrev').addEventListener('click',()=>{
-  if(curMonth.getTime()>MIN_MONTH.getTime()){ curMonth = addMonths(curMonth,-1); bootMonth(curMonth); }
+/* 月切換 */
+document.getElementById('btnPrev').addEventListener('click',async()=>{
+  curMonth = addMonths(curMonth,-1); await bootMonth(curMonth);
 });
-document.getElementById('btnNext').addEventListener('click',()=>{
-  if(curMonth.getTime()<MAX_MONTH.getTime()){ curMonth = addMonths(curMonth, 1); bootMonth(curMonth); }
+document.getElementById('btnNext').addEventListener('click',async()=>{
+  curMonth = addMonths(curMonth, 1); await bootMonth(curMonth);
 });
 
-/* ========= 啟動：先骨架、再補資料 ========= */
+/* 啟動：先取 window → 畫骨架 → 抓資料 → 補水 */
 async function bootMonth(m){
-  renderSkeleton(m);
-  const first = firstOfMonth(m), last = endOfMonth(m);
-  let slowTipTimer = setTimeout(()=>{
-    const b = document.getElementById('badgeLoading');
-    if(b) b.textContent = '（連線較慢，仍在載入…）';
-  }, 6000);
-  try{
-    const days = await fetchRange( ymd(first), ymd(last) );
-    const map = {}; (days||[]).forEach(d=>{ map[d.date]=d; });
-    hydrateMonth(m, map);
-  }finally{
-    clearTimeout(slowTipTimer);
-  }
+  renderSkeleton(m);                              // 先有畫面
+  const dayMap = await fetchMonthDays(m);        // 背景抓
+  hydrateMonth(m, dayMap);                       // 補數據
 }
-bootMonth(curMonth);
+(async function init(){
+  await getWindow();
+  await bootMonth(curMonth);
+})();
 </script>
 </body>
 </html>
