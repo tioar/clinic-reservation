@@ -1,0 +1,269 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>雙月曆預約原型</title>
+  <link rel="icon" type="image/png" href="favicon.png">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+  <style>
+    :root{
+      --purple:#6236a7; --purple-600:#5b3aa0; --line:#ebe6fb; --muted:#6b5f92; --card:#fff; --bg:#f6f7fb;
+      --early-bg:#e7f7ee; --early-bd:#b8ead4; --early-tx:#065f46;
+      --noon-bg:#fff3df;  --noon-bd:#ffd79a; --noon-tx:#7a4d00;
+      --night-bg:#e8f2ff; --night-bd:#cfe2ff; --night-tx:#1d4ed8;
+      --appt-bg:#fde7ef;  --appt-bd:#ff99e6; --appt-tx:#b51695;
+    }
+    body{ background:var(--bg); font-family:"Noto Sans TC","Microsoft JhengHei",system-ui,sans-serif; color:#2a183d; }
+    .wrap{ max-width:1100px; margin:20px auto; padding:16px; }
+
+    .title{ font-weight:900; color:var(--purple); margin:0 0 8px; }
+    .hint { color:#6b617f; font-size:.95rem; }
+
+    .calbox{ display:flex; gap:16px; flex-wrap:wrap; justify-content:center; }
+    .card-like{ background:var(--card); border:1px solid var(--line); border-radius:16px; box-shadow:0 8px 20px rgba(98,54,167,.10); padding:14px; }
+    .cal{ width:520px; }
+
+    .cal-head{ display:flex; align-items:center; justify-content:space-between; font-weight:900; margin:2px 4px 8px; }
+    .wgrid{ display:grid; grid-template-columns:repeat(7,1fr); gap:6px; }
+    .wday{ font-size:.9rem; color:var(--muted); text-align:center; font-weight:800; }
+
+    .day{ border:1px solid #e6e8f0; border-radius:12px; min-height:72px; padding:6px 8px; display:flex; flex-direction:column; gap:6px; background:#fff; }
+    .day .d{ font-weight:900; color:#2a183d; }
+    .day .meta{ margin-top:auto; font-size:.86rem; line-height:1.35; color:#5c6170; }
+    .day.full{ background:#f3f4f6; color:#6b7280; border-color:#e5e7eb }
+    .day.closed{ background:#f8ecec; color:#b02a37; border-color:#f3c4c4 }
+    .day.disabled{ opacity:.45; pointer-events:none }
+    .day.clickable{ cursor:pointer; transition:.15s ease all }
+    .day.clickable:hover{ box-shadow:0 0 0 2px #d7caf6 }
+
+    .pill{ display:inline-block; border:1px solid #e3e6ee; border-radius:999px; padding:.1rem .5rem; font-weight:800; margin-right:.25rem; white-space:nowrap }
+    .pill.early{ background:var(--early-bg); color:var(--early-tx); border-color:var(--early-bd) }
+    .pill.noon{  background:var(--noon-bg);  color:var(--noon-tx);  border-color:var(--noon-bd) }
+    .pill.night{ background:var(--night-bg); color:var(--night-tx); border-color:var(--night-bd) }
+    .pill.appt{  background:var(--appt-bg);  color:var(--appt-tx);  border-color:var(--appt-bd) }
+
+    #dayPanel{ display:none; }
+    #dayPanel .slot-row{ display:flex; align-items:center; justify-content:space-between; border:1px dashed #e0e4ef; border-radius:12px; padding:10px 12px; margin:8px 0 }
+    #dayPanel .slot-row.full{ opacity:.55 }
+    #dayPanel .slot-row .cap{ font-weight:900 }
+    #dayPanel .slot-row button{ border:none; border-radius:12px; padding:.5rem .85rem; font-weight:900; background:var(--purple); color:#fff }
+    #dayPanel .slot-row button:disabled{ background:#afb3bd }
+
+    .divider{ height:1px; background:#ecebf3; margin:14px 0 }
+    .form-card{ max-width:720px; margin:16px auto }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <h2 class="title">選擇日期（本月＋次月）</h2>
+  <div class="hint">點日格即可展開該日診別與剩餘名額，點「預約」會自動把日期/診別帶到下方表單。</div>
+
+  <div class="calbox">
+    <div class="cal card-like" id="calA"></div>
+    <div class="cal card-like" id="calB"></div>
+  </div>
+
+  <div id="dayPanel" class="card-like" style="margin-top:14px;"></div>
+
+  <div class="divider"></div>
+
+  <!-- ★ 與既有 index.html 的表單對齊：只要此頁與原頁同一資料夾，即可直接操作下列元素（若你從 index_month.html 單獨開頁，可把下面當作 Demo 表單） -->
+  <div class="form-card card-like">
+    <h5 class="mb-3">預約表單（示意，與原 index.html 欄位相同）</h5>
+    <div class="mb-3">
+      <label class="form-label">預約日期 *</label>
+      <div class="d-flex align-items-center flex-nowrap">
+        <input type="date" id="date" class="form-control" style="max-width:70%;" autocomplete="off" />
+        <span id="weekday" class="ms-2"></span>
+      </div>
+    </div>
+    <div class="mb-3">
+      <label class="form-label">診別 *</label>
+      <select id="slot" class="form-select" autocomplete="off">
+        <option value="">請先選擇日期</option>
+      </select>
+    </div>
+    <div class="mb-3">
+      <label class="form-label">姓名 *</label>
+      <input type="text" id="name" class="form-control" autocomplete="off" />
+    </div>
+    <div class="mb-3">
+      <label class="form-label">出生年月日 *</label>
+      <input type="date" id="birthday" class="form-control" autocomplete="off" />
+    </div>
+    <div class="mb-3">
+      <label class="form-label">身分證字號 *</label>
+      <input type="text" id="idnum" class="form-control" maxlength="10" placeholder="A123456789" autocomplete="off" />
+    </div>
+    <div class="mb-3">
+      <label class="form-label">連絡電話 *</label>
+      <input type="text" id="phone" class="form-control" maxlength="10" placeholder="0958xxxxxx" inputmode="numeric" autocomplete="off" />
+    </div>
+    <div class="form-check mb-4">
+      <input type="checkbox" id="agree" class="form-check-input" />
+      <label for="agree" class="form-check-label">我已閱讀並同意預約須知</label>
+    </div>
+    <div class="d-grid gap-3">
+      <button id="submitBtn" class="btn btn-primary">送出預約</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* === 後端 API ===
+   與 success.html / admin.html 保持一致（可直接覆寫成你的實際網址）。
+*/
+const API = "https://script.google.com/macros/s/AKfycbz1jtOWBJEETvotCU2y022ow4lOlm_TauYpRMG6riUIj88_Vde5d9LHGH5cLC4HYe7X/exec";
+
+/* === 日期工具 === */
+const pad2=n=>String(n).padStart(2,'0');
+const toYMD=d=>`${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;
+const firstOfMonth=d=>new Date(d.getFullYear(), d.getMonth(), 1);
+const addMonths=(d,n)=>new Date(d.getFullYear(), d.getMonth()+n, 1);
+const endOfMonth=d=>new Date(d.getFullYear(), d.getMonth()+1, 0);
+
+/* === 取得雙月資料 ===
+   優先呼叫批次 API：calendarSlots
+   若後端尚未新增該路徑，退而改逐日 getSlots 聚合（有並發上限）。
+*/
+async function fetchMonthRangeBatch(startYmd, endYmd){
+  const r = await axios.post(API, { path:'calendarSlots', payload:{ start:startYmd, end:endYmd } });
+  if(!r.data || !r.data.ok) throw new Error('calendarSlots_fail');
+  return r.data.days; // [{date, slots:[{slot,cap,used,remain,status}], allFull}]
+}
+
+async function fetchMonthRangeFallback(startYmd, endYmd){
+  // 逐日呼叫 getSlots 聚合成 dayMap
+  const start = new Date(startYmd), end = new Date(endYmd);
+  const dayMap = {};
+  const tasks = [];
+  for(let d=new Date(start); d<=end; d.setDate(d.getDate()+1)){
+    const ymd = toYMD(d);
+    tasks.push({ ymd });
+  }
+  const limit = 4; // 並發上限
+  let i=0; const out=[];
+  async function run(){
+    while(i<tasks.length){
+      const idx = i++; const y = tasks[idx].ymd;
+      try{
+        const r = await axios.get(API, { params:{ action:'getSlots', date:y, t:Date.now() }});
+        const data = r.data;
+        const slots = Array.isArray(data) ? data : (Array.isArray(data?.slots) ? data.slots : []);
+        const payload = (slots||[]).map(x=>{
+          const limit = Number(x.limit)||0; const used = Number(x.used)||0; const remain = Math.max(0, limit-used);
+          const label = String(x.label||'');
+          const slot = label.includes('早')?'early':label.includes('午')?'noon':label.includes('晚')?'night':label.includes('約')?'appt':'other';
+          const status = limit<=0 ? 'closed' : (remain<=0 ? 'full' : 'open');
+          return {slot, cap:limit, used, remain, status};
+        });
+        out[idx] = { date:y, slots:payload, allFull: payload.length && payload.every(s=>s.status!=='open') };
+      }catch(e){ out[idx] = { date:y, slots:[], allFull:true }; }
+    }
+  }
+  await Promise.all(Array.from({length:limit}).map(run));
+  return out.filter(Boolean);
+}
+
+async function fetchMonthRange(startYmd, endYmd){
+  try{ return await fetchMonthRangeBatch(startYmd, endYmd); }
+  catch(_){ return await fetchMonthRangeFallback(startYmd, endYmd); }
+}
+
+/* === UI === */
+const $calA = document.getElementById('calA');
+const $calB = document.getElementById('calB');
+const $dayPanel = document.getElementById('dayPanel');
+const weekdays=['日','一','二','三','四','五','六'];
+
+function renderMonth($root, monthDate, dayMap){
+  const yyyy = monthDate.getFullYear(), mm = monthDate.getMonth()+1;
+  const head = `<div class="cal-head"><div>${yyyy} / ${String(mm).padStart(2,'0')}</div></div>`;
+  const whead = weekdays.map(w=>`<div class="wday">${w}</div>`).join('');
+  let html = `${head}<div class="wgrid">${whead}`;
+
+  const first = firstOfMonth(monthDate);
+  const last = endOfMonth(monthDate);
+  const pad = first.getDay();
+  for(let i=0;i<pad;i++){ html += `<div></div>`; }
+
+  for(let d=1; d<=last.getDate(); d++){
+    const cur = new Date(yyyy, mm-1, d);
+    const key = toYMD(cur);
+    const meta = dayMap[key];
+
+    let cls = 'day';
+    let inner = `<div class="d">${d}</div>`;
+
+    if(!meta){ cls+=' disabled'; }
+    else{
+      const opened = meta.slots?.some(s=>s.status==='open');
+      const allFull = meta.slots?.every(s=>s.status!=='open');
+      if(allFull) cls+=' full';
+      if(!opened && allFull) cls+=' closed';
+      if(opened) cls+=' clickable';
+
+      const pills = (meta.slots||[]).map(s=>{
+        const tag = s.slot==='early'?'early':s.slot==='noon'?'noon':s.slot==='night'?'night':s.slot==='appt'?'appt':'';
+        const label = s.slot==='early'?'早':s.slot==='noon'?'午':s.slot==='night'?'晚':s.slot==='appt'?'約':'?';
+        return `<span class="pill ${tag}">${label} ${Math.max(0,s.remain)}/${s.cap}</span>`;
+      }).join(' ');
+      inner += `<div class="meta">${pills || '—'}</div>`;
+    }
+    html += `<div class="${cls}" data-ymd="${key}">${inner}</div>`;
+  }
+  html += `</div>`;
+  $root.innerHTML = html;
+
+  $root.querySelectorAll('.day.clickable').forEach(box=>{
+    box.addEventListener('click', ()=> openDay(box.dataset.ymd, dayMap[box.dataset.ymd]));
+  });
+}
+
+function openDay(ymd, meta){
+  if(!meta) return;
+  const slotLabel = { early:'早診', noon:'午診', night:'晚診', appt:'約診' };
+  let html = `<div style="font-weight:900;margin-bottom:6px;">${ymd}（星期${weekdays[new Date(ymd).getDay()]}）</div>`;
+  (meta.slots||[]).forEach(s=>{
+    const full = (s.status!=='open' || s.remain<=0);
+    html += `
+      <div class="slot-row ${full?'full':''}">
+        <div>${slotLabel[s.slot]||s.slot}</div>
+        <div class="cap">剩餘 ${Math.max(0, s.remain)} / ${s.cap}</div>
+        <div><button ${full?'disabled':''} data-slot="${s.slot}" data-date="${ymd}">預約</button></div>
+      </div>`;
+  });
+  $dayPanel.innerHTML = html;
+  $dayPanel.style.display = 'block';
+
+  $dayPanel.querySelectorAll('button[data-slot]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const d = btn.getAttribute('data-date');
+      const s = btn.getAttribute('data-slot');
+      document.getElementById('date').value = d;
+      const $slot = document.getElementById('slot');
+      const pick = s==='early'?'早': s==='noon'?'午': s==='night'?'晚': '約';
+      for(const opt of $slot.options){ if(opt.textContent.includes(pick)){ $slot.value = opt.value; break; } }
+      document.getElementById('submitBtn').scrollIntoView({behavior:'smooth', block:'center'});
+    });
+  });
+}
+
+(async function init(){
+  const base = new Date();
+  const aFirst = firstOfMonth(base);
+  const bFirst = firstOfMonth(addMonths(base, 1));
+  const bLast  = endOfMonth(bFirst);
+
+  const days = await fetchMonthRange( toYMD(aFirst), toYMD(bLast) );
+  const dayMap = {}; (days||[]).forEach(d => { dayMap[d.date] = d; });
+  renderMonth($calA, aFirst, dayMap);
+  renderMonth($calB, bFirst, dayMap);
+})();
+</script>
+</body>
+</html>
