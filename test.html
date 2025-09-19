@@ -7,6 +7,10 @@
 <link rel="icon" type="image/png" href="favicon.png">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;600;800;900&display=swap" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
+<!-- === 依照附檔：axios / crypto-js === -->
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/crypto-js@4.2.0/crypto-js.min.js"></script>
+
 <style>
 :root{--primary:#6236a7;--bg:#f7f6fb;--card:#fff;--line:#ebe6fb;--muted:#6b5f92}
 *{box-sizing:border-box}
@@ -77,7 +81,13 @@ body{margin:0;background:var(--bg);color:#1f1330;font-family:"Noto Sans TC","Mic
 .agree{display:flex;align-items:center;gap:.5rem;flex-wrap:nowrap}
 .agree a{color:#6236a7;text-decoration:underline}
 
-/* ===== 規則 Modal：每列一行（含手機） ===== */
+/* ===== 全頁遮罩（和附檔一致風格） ===== */
+#mask{ position:fixed; inset:0; display:none; align-items:center; justify-content:center;
+       z-index:9999; font-size:18px; color:#4b2c86;
+       background:rgba(255,255,255,.92); backdrop-filter:blur(2px); }
+#dots{ display:inline-block; width:2ch; text-align:left; }
+
+/* ===== Modal 規則：每列一行（含手機） ===== */
 .rule-line{display:flex;align-items:center;gap:10px;flex-wrap:nowrap;white-space:nowrap;font-weight:800;
   font-size:clamp(12px,3.2vw,16px);min-width:0;letter-spacing:.5px}
 .chip{display:inline-flex;align-items:center;gap:6px;padding:.25rem .6rem;border-radius:999px;border:1px solid #e6e8f0;background:#fff}
@@ -99,7 +109,7 @@ body{margin:0;background:var(--bg);color:#1f1330;font-family:"Noto Sans TC","Mic
   .tile{padding:10px;border-radius:12px}
   .form-grid{grid-template-columns:1fr 1fr}
 
-  /* 出生年月日再縮小，避免溢出 */
+  /* 出生年月日再縮小，避免溢出；維持 type=date 但 inputmode=numeric */
   #birthday.form-input[type="date"]{
     font-size:13px;padding:.40rem .50rem;line-height:1.05;height:auto;max-width:100%;border-radius:10px
   }
@@ -111,6 +121,9 @@ body{margin:0;background:var(--bg);color:#1f1330;font-family:"Noto Sans TC","Mic
 </style>
 </head>
 <body>
+<!-- 全頁遮罩（送出中） -->
+<div id="mask">預約中請稍等，請勿關閉或重新整理頁面<span id="dots">...</span></div>
+
 <div class="wrap">
   <!-- 頁首（置中） -->
   <div class="page-head"><div class="logo">＋</div><h1>陳萬龍診所門診線上預約</h1></div>
@@ -141,16 +154,16 @@ body{margin:0;background:var(--bg);color:#1f1330;font-family:"Noto Sans TC","Mic
   <!-- 表單 -->
   <div class="cardish section mt-3">
     <input type="hidden" id="date"/><input type="hidden" id="slot"/>
-    <!-- reCAPTCHA v3 取得用：隱藏欄位 -->
+    <!-- Invisible reCAPTCHA：token 放這裡 -->
     <input type="hidden" id="g-recaptcha-response" name="g-recaptcha-response"/>
 
     <div class="form-grid">
-      <div><div class="form-label-strong">姓名 *</div><input id="name" type="text" class="form-input"/></div>
+      <div><div class="form-label-strong">姓名 *</div><input id="name" type="text" class="form-input" autocomplete="off"/></div>
       <div><div class="form-label-strong">出生年月日 *</div>
-        <!-- 保持月曆式，並加 inputmode="numeric" 讓支援裝置叫出數字鍵盤 -->
-        <input id="birthday" type="date" class="form-input" inputmode="numeric"/></div>
-      <div><div class="form-label-strong">身分證字號 *</div><input id="idnum" type="text" maxlength="10" class="form-input" placeholder="A123456789"/></div>
-      <div><div class="form-label-strong">連絡電話 *</div><input id="phone" type="text" maxlength="10" inputmode="numeric" class="form-input" placeholder="0958xxxxxx"/></div>
+        <!-- 維持 date，但加 inputmode=numeric（支援裝置會叫出數字鍵盤） -->
+        <input id="birthday" type="date" class="form-input" inputmode="numeric" autocomplete="off"/></div>
+      <div><div class="form-label-strong">身分證字號 *</div><input id="idnum" type="text" maxlength="10" class="form-input" placeholder="A123456789" autocomplete="off"/></div>
+      <div><div class="form-label-strong">連絡電話 *</div><input id="phone" type="text" maxlength="10" inputmode="numeric" class="form-input" placeholder="0958xxxxxx" autocomplete="off"/></div>
     </div>
 
     <div class="mt-2">
@@ -209,14 +222,85 @@ body{margin:0;background:var(--bg);color:#1f1330;font-family:"Noto Sans TC","Mic
   </div>
 </div>
 
+<!-- Bootstrap -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-
-<!-- reCAPTCHA v3 (Invisible) -->
-<script src="https://www.google.com/recaptcha/api.js?render=YOUR_RECAPTCHA_SITE_KEY"></script>
+<!-- Invisible reCAPTCHA（和附檔一致做法） -->
+<script src="https://www.google.com/recaptcha/api.js?render=6LdqprArAAAAACpuAXemZUH3KNER1t1iw07YjGHu"></script>
 
 <script>
-/* ===== API & Utils ===== */
-const API="https://script.google.com/macros/s/AKfycbz1jtOWBJEETvotCU2y022ow4lOlm_TauYpRMG6riUIj88_Vde5d9LHGH5cLC4HYe7X/exec";
+/* ===== 常數（與附檔一致） ===== */
+const API = "https://script.google.com/macros/s/AKfycbz1jtOWBJEETvotCU2y022ow4lOlm_TauYpRMG6riUIj88_Vde5d9LHGH5cLC4HYe7X/exec";
+const RECAPTCHA_SITE_KEY = "6LdqprArAAAAACpuAXemZUH3KNER1t1iw07YjGHu"; // 可換成正式 key
+const AES_KEY = "A2x5fT9qR7nC1vB8mK3pZ6sD4uH0yW2j";               // 如需更換亦可
+
+/* ===== reCAPTCHA 載入 & 取 token（與附檔一致風格） ===== */
+let recaptchaLoaded=false, recaptchaLoading=null;
+function loadRecaptcha(){
+  if(!RECAPTCHA_SITE_KEY) return Promise.resolve();
+  if(recaptchaLoaded) return Promise.resolve();
+  if(recaptchaLoading) return recaptchaLoading;
+  recaptchaLoading = new Promise((resolve,reject)=>{
+    const s=document.createElement("script");
+    s.src="https://www.google.com/recaptcha/api.js?render="+encodeURIComponent(RECAPTCHA_SITE_KEY);
+    s.async=true; s.defer=true;
+    s.onload=()=>{recaptchaLoaded=true;resolve();};
+    s.onerror=()=>reject(new Error("recaptcha_load_fail"));
+    document.head.appendChild(s);
+  });
+  return recaptchaLoading;
+}
+async function getRecaptchaToken(){
+  try{
+    if(!RECAPTCHA_SITE_KEY) return "";
+    await loadRecaptcha();
+    return await new Promise(res=>{
+      grecaptcha.ready(()=> grecaptcha.execute(RECAPTCHA_SITE_KEY,{action:"submit"}).then(t=>res(t)).catch(()=>res("")));
+    });
+  }catch(_){ return ""; }
+}
+
+/* ===== AES 加密（與附檔一致） ===== */
+function aesEnc(payload, ttlMs = 10 * 60 * 1000){
+  const obj = { ...payload };
+  if (ttlMs && Number.isFinite(ttlMs)) obj.exp = Date.now() + ttlMs;
+  const cipher = CryptoJS.AES.encrypt(JSON.stringify(obj), AES_KEY).toString();
+  return encodeURIComponent(cipher);
+}
+
+/* ===== DOM ===== */
+const $ = id => document.getElementById(id);
+const $title  = $('calTitle');
+const $loader = $('calLoader');
+const $whead  = $('whead');
+const $days   = $('days');
+const $prev   = $('btnPrev');
+const $next   = $('btnNext');
+const $panel  = $('dayPanel');
+const $picked = $('picked');
+const $date   = $('date');   // hidden
+const $slot   = $('slot');   // hidden
+const $name   = $('name');
+const $birthday = $('birthday');
+const $idnum  = $('idnum');
+const $phone  = $('phone');
+const $agree  = $('agree');
+const $submit = $('submitBtn');
+
+/* ===== 遮罩（與附檔一致體驗） ===== */
+const $mask = $('mask'); const $dots = $('dots');
+let dotTimer=null;
+function showMask(txt){
+  $mask.firstChild.nodeValue = (txt||'預約中請稍等，請勿關閉或重新整理頁面');
+  $mask.style.display='flex';
+  if(dotTimer) clearInterval(dotTimer);
+  dotTimer = setInterval(()=>{
+    $dots.textContent = ($dots.textContent==='...') ? '.' : $dots.textContent+'.';
+    if($dots.textContent.length>3) $dots.textContent='.';
+  }, 340);
+}
+function hideMask(){ if(dotTimer) clearInterval(dotTimer); $mask.style.display='none'; }
+
+/* ===== Utils & 月曆 ===== */
 const pad2=n=>String(n).padStart(2,'0');
 const ymd=d=>`${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;
 const firstOfMonth=d=>new Date(d.getFullYear(), d.getMonth(), 1);
@@ -224,36 +308,27 @@ const endOfMonth=d=>new Date(d.getFullYear(), d.getMonth()+1, 0);
 const addMonths=(d,n)=>new Date(d.getFullYear(), d.getMonth()+n, 1);
 const W=['日','一','二','三','四','五','六'];
 const fmtTitle=d=>`${d.getFullYear()}年${d.getMonth()+1}月份`;
-
 const NOW=new Date(); let WINDOW_MIN=null, WINDOW_MAX=null; let curMonth=firstOfMonth(NOW);
 
-const $title=document.getElementById('calTitle');
-const $loader=document.getElementById('calLoader');
-const $whead=document.getElementById('whead');
-const $days=document.getElementById('days');
-const $prev=document.getElementById('btnPrev');
-const $next=document.getElementById('btnNext');
-const $panel=document.getElementById('dayPanel');
-const $picked=document.getElementById('picked');
-const $date=document.getElementById('date');
-const $slot=document.getElementById('slot');
+/* 開啟規則 / 須知 */
+$('openRules').addEventListener('click',()=>new bootstrap.Modal(document.getElementById('rulesModal')).show());
+$('showNotice').addEventListener('click',e=>{e.preventDefault(); new bootstrap.Modal(document.getElementById('noticeModal')).show();});
 
-/* 規則/須知開啟 */
-document.getElementById('openRules').addEventListener('click',()=>new bootstrap.Modal(document.getElementById('rulesModal')).show());
-document.getElementById('showNotice').addEventListener('click',e=>{e.preventDefault(); new bootstrap.Modal(document.getElementById('noticeModal')).show();});
-
-/* 載入動畫 */
+/* 載入中點點 */
 let dotsTimer=null;
 function showLoadingDots(on){
   if(on){ $loader.style.display='inline'; let n=0; $loader.textContent='載入中.'; dotsTimer=setInterval(()=>{n=(n+1)%6;$loader.textContent='載入中'+'.'.repeat(n+1)},350); }
   else{ if(dotsTimer){clearInterval(dotsTimer);dotsTimer=null;} $loader.style.display='none'; }
 }
 
-/* 視窗（失敗 fallback：+2 ~ +14 天） */
+/* 週標題 */
+$whead.innerHTML=W.map(w=>`<div class="wday">${w}</div>`).join('');
+
+/* 窗口（沿用你附檔邏輯） */
 async function getWindow(){
   try{
-    const r=await fetch(`${API}?action=getWindow&t=${Date.now()}`);
-    const data=await r.json();
+    const r=await axios.get(API,{ params:{ action:'getWindow', t: Date.now() }});
+    const data=r.data||{};
     const min=data?.startDate?new Date(data.startDate):new Date(NOW.getFullYear(),NOW.getMonth(),NOW.getDate()+Number(data?.start??2));
     const max=data?.endDate?new Date(data.endDate):new Date(NOW.getFullYear(),NOW.getMonth(),NOW.getDate()+Number(data?.end??14));
     WINDOW_MIN=new Date(min.getFullYear(),min.getMonth(),min.getDate());
@@ -263,9 +338,6 @@ async function getWindow(){
     WINDOW_MAX=new Date(NOW.getFullYear(),NOW.getMonth(),NOW.getDate()+14);
   }
 }
-
-/* 週標題 */
-$whead.innerHTML=W.map(w=>`<div class="wday">${w}</div>`).join('');
 
 /* 骨架 */
 function renderSkeleton(monthDate){
@@ -287,7 +359,8 @@ function renderSkeleton(monthDate){
   $days.innerHTML=html; $panel.style.display='none'; $picked.style.display='none';
 }
 
-/* 逐日抓 slot */
+/* 逐日抓 slot（沿用你附檔資料結構） */
+let nonceMetaByDate={}; // 依日期保存 nonce/sig/exp
 async function fetchMonthDays(monthDate){
   const first=firstOfMonth(monthDate), last=endOfMonth(monthDate);
   const jobs=[];
@@ -297,15 +370,18 @@ async function fetchMonthDays(monthDate){
     if(cur<WINDOW_MIN || cur>WINDOW_MAX){ jobs.push(Promise.resolve({date:key,slots:[]})); continue; }
     jobs.push((async()=>{
       try{
-        const r=await fetch(`${API}?action=getSlots&date=${key}&t=${Date.now()}`);
-        const data=await r.json();
+        const r=await axios.get(API,{ params:{ action:'getSlots', date:key, t: Date.now() }});
+        const data=r.data;
         const raw=Array.isArray(data)?data:(Array.isArray(data?.slots)?data.slots:[]);
+        if (!Array.isArray(data) && data && data.nonce && data.sig && data.exp){
+          nonceMetaByDate[key] = { nonce:String(data.nonce), sig:String(data.sig), exp:Number(data.exp) };
+        }
         const slots=(raw||[]).map(x=>{
           const limit=Number(x.limit)||0, used=Number(x.used)||0, remain=Math.max(0,limit-used);
           const label=String(x.label||'');
           const slot=label.includes('早')?'early':label.includes('午')?'noon':label.includes('晚')?'night':label.includes('約')?'appt':'other';
           const time=x.time||x.timeRange||'';
-          const doctor=String(x.doctor||'').replace(/[［\[]|[］\]]/g,''); /* 去除括號避免重複 */
+          const doctor=String(x.doctor||'').replace(/[［\[]|[］\]]/g,'');
           const status=limit<=0?'closed':(remain<=0?'full':'open');
           return {slot,cap:limit,used,remain,status,time,doctor,label};
         });
@@ -344,7 +420,7 @@ function hydrateMonth(monthDate, dayMap){
   showLoadingDots(false);
 }
 
-/* 展開當日 */
+/* 展開當日（只有一個診別 → 自動預選） */
 function openDay(dateYMD, meta){
   const mapSlot={early:'早診',noon:'午診',night:'晚診',appt:'約診'};
   const open=(meta.slots||[]).filter(s=>s.status==='open');
@@ -360,44 +436,120 @@ function openDay(dateYMD, meta){
   html+=`</div>`;
   $panel.innerHTML=html; $panel.style.display='block';
 
-  $panel.querySelectorAll('.tile').forEach(row=>{
-    row.addEventListener('click',()=>{
-      $panel.querySelectorAll('.tile').forEach(x=>x.classList.remove('selected'));
-      row.classList.add('selected');
-      const mapVal={early:'morning',noon:'afternoon',night:'evening',appt:'appointment'};
-      document.getElementById('date').value=row.dataset.date;
-      document.getElementById('slot').value=mapVal[row.dataset.slot]||'';
-      const chosen=`${row.dataset.date}｜<span class="hl">${row.dataset.label} ${row.dataset.time} ${row.dataset.doc?`［${row.dataset.doc}］`:''}</span>  剩餘 ${row.dataset.rem}/${row.dataset.cap} 人`;
-      $picked.innerHTML=`已選擇：<b>${chosen}</b>`; $picked.style.display='block';
-      document.getElementById('submitBtn').scrollIntoView({behavior:'smooth',block:'center'});
-    });
+  const rows = $panel.querySelectorAll('.tile');
+  rows.forEach(row=>{
+    row.addEventListener('click',()=>selectRow(row));
   });
+
+  // ★ 當天只有一個診別 → 自動選取
+  if (rows.length === 1){
+    selectRow(rows[0]);
+  }
+}
+
+/* 選取一列 → 帶入隱藏欄位 與 已選提示 */
+function selectRow(row){
+  $panel.querySelectorAll('.tile').forEach(x=>x.classList.remove('selected'));
+  row.classList.add('selected');
+  const mapVal={early:'morning',noon:'afternoon',night:'evening',appt:'appointment'};
+  $('date').value = row.dataset.date;
+  $('slot').value = mapVal[row.dataset.slot]||'';
+
+  const chosen=`${row.dataset.date}｜<span class="hl">${row.dataset.label} ${row.dataset.time} ${row.dataset.doc?`［${row.dataset.doc}］`:''}</span>  剩餘 ${row.dataset.rem}/${row.dataset.cap} 人`;
+  $picked.innerHTML=`已選擇：<b>${chosen}</b>`;
+  $picked.style.display='block';
+  $('submitBtn').scrollIntoView({behavior:'smooth',block:'center'});
 }
 
 /* 切月 */
-document.getElementById('btnPrev').addEventListener('click',async()=>{curMonth=addMonths(curMonth,-1);await bootMonth(curMonth)});
-document.getElementById('btnNext').addEventListener('click',async()=>{curMonth=addMonths(curMonth, 1);await bootMonth(curMonth)});
+$('btnPrev').addEventListener('click',async()=>{curMonth=addMonths(curMonth,-1);await bootMonth(curMonth)});
+$('btnNext').addEventListener('click',async()=>{curMonth=addMonths(curMonth, 1);await bootMonth(curMonth)});
 
-/* 啟動 */
-async function bootMonth(m){ renderSkeleton(m); const map=await fetchMonthDays(m); hydrateMonth(m,map); }
-(async function init(){ await getWindow(); await bootMonth(curMonth); })();
-
-/* ===== reCAPTCHA v3：按下送出，取得 token 填入隱藏欄位 ===== */
-const SITE_KEY = 'YOUR_RECAPTCHA_SITE_KEY';
-document.getElementById('submitBtn').addEventListener('click', async (e)=>{
+/* ===== 送出（完全比照你附檔流程：reCAPTCHA → API → AES 加密後跳轉） ===== */
+let submitting=false;
+$submit.addEventListener('click', async (e)=>{
   e.preventDefault();
-  const agree = document.getElementById('agree').checked;
-  if(!agree){ alert('請先勾選「我已閱讀並同意預約須知」。'); return; }
+  if(submitting) return;
 
-  grecaptcha.ready(function(){
-    grecaptcha.execute(SITE_KEY, {action: 'submit'}).then(function(token){
-      document.getElementById('g-recaptcha-response').value = token;
-      // ★ 接下來把 token 連同表單資料送到你的 GAS（此處僅示範帶入 token）
-      // 例：fetch(API, { method:'POST', body: JSON.stringify({..., recaptcha: token}) })
-      alert('reCAPTCHA 驗證完成（前端）。已取得 token。'); // 你可改為真正送出
-    });
-  });
+  // 驗證基本欄位
+  const d = ($('date').value||'').trim();
+  const s = ($('slot').value||'').trim();
+  const n = ($name.value||'').trim();
+  const b = ($birthday.value||'').trim();
+  const id= ($idnum.value||'').trim().toUpperCase();
+  const ph= ($phone.value||'').trim();
+  const ag= $agree.checked;
+
+  if(!d||!s||!n||!b||!id||!ph||!ag){ alert('資料未填完整'); return; }
+  if(!/^[A-Z][12]\d{8}$/.test(id)){ alert('身分證格式錯誤'); return; }
+  if(ph.length<8 || ph.length>10){ alert('電話長度不符'); return; }
+  const age = Math.floor((Date.now()-new Date(b))/31536000000);
+  if(age<0 || age>150){ alert('生日超出限制'); return; }
+
+  try{
+    submitting=true;
+    $submit.disabled=true;
+    showMask();
+
+    const recaptchaToken = await getRecaptchaToken();
+    $('g-recaptcha-response').value = recaptchaToken;
+
+    // 取得對應日期的 nonce/sig/exp（若有）
+    const nonceMeta = nonceMetaByDate[d] || null;
+
+    // 送出（GET，與附檔一致）
+    const params = { action:'submit', date:d, slot:s, name:n, birthday:b, id:id, phone:ph, recaptchaToken, t: Date.now() };
+    if (nonceMeta){
+      params.nonce = nonceMeta.nonce;
+      params.sig   = nonceMeta.sig;
+      params.exp   = nonceMeta.exp;
+    }
+    const r = await axios.get(API,{ params });
+
+    if(!r.data?.ok){
+      const code=r.data?.error||'';
+      if(code==='duplicate')          alert('同一天同一診別不可重複掛號（身分證判定）');
+      else if(code==='full')          alert('名額已滿，請改選其他時段或日期');
+      else if(code==='out_of_window') alert(r.data?.message || '超出可預約期間');
+      else if(code==='robot')         alert('驗證未通過（reCAPTCHA），請再試一次');
+      else if(code==='bad_nonce')     alert('頁面逾時，請重新選擇日期與診別再送出');
+      else if(code==='slow_down')     alert('操作過於頻繁，請稍後再試');
+      else                            alert(r.data?.message || '送出失敗，請稍後再試');
+      return;
+    }
+
+    const idFromApi = r?.data?.id || r?.data?.Id || r?.data?.bookingId || r?.data?.data?.id;
+    const receipt   = r?.data?.receipt || r?.data?.rcpt || '';
+
+    try{
+      if (receipt && idFromApi) sessionStorage.setItem('rcpt:'+String(idFromApi), String(receipt));
+      sessionStorage.setItem('lastBookingId', String(idFromApi));
+    }catch(_){}
+
+    // 加密後跳 success.html
+    const baseDir   = new URL('.', location.href);
+    const successUrl= new URL('success.html', baseDir);
+    const cipher    = aesEnc({ id: idFromApi, receipt });
+    successUrl.searchParams.set('cipher', cipher);
+    location.assign(successUrl.href);
+
+  }catch(err){
+    console.error(err);
+    alert('送出失敗，請稍後再試');
+  }finally{
+    submitting=false;
+    $submit.disabled=false;
+    hideMask();
+  }
 });
+
+/* ===== 啟動 ===== */
+async function bootMonth(m){ renderSkeleton(m); const map=await fetchMonthDays(m); hydrateMonth(m,map); }
+(async function init(){
+  try{ await loadRecaptcha(); }catch(_){}
+  await getWindow();
+  await bootMonth(curMonth);
+})();
 </script>
 </body>
 </html>
