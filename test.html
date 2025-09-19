@@ -32,7 +32,7 @@ body{margin:0;background:var(--bg);color:#1f1330;font-family:"Noto Sans TC","Mic
 .cal-title .title-text{font-size:clamp(1.2rem,2.4vw,1.6rem);font-weight:900}
 .loader{color:#6b5f92;font-size:.95rem;white-space:nowrap;min-width:6.5em}
 
-/* nav arrows */
+/* nav arrows -> 純三角形（無圓形背景） */
 .nav{display:flex;gap:10px}
 .nav-btn{border:none;background:none;cursor:pointer;width:0;height:0;border-style:solid}
 .nav-btn.prev{border-width:12px 16px 12px 0;border-color:transparent var(--primary) transparent transparent}
@@ -53,7 +53,7 @@ body{margin:0;background:var(--bg);color:#1f1330;font-family:"Noto Sans TC","Mic
 .day.clickable:hover{box-shadow:0 0 0 2px #d7caf6}
 .day.disabled{background:#f1f2f6;color:#8b90a3;border-color:#e5e7eb;opacity:.85;pointer-events:none}
 
-/* pills */
+/* pills in calendar cells */
 .pill{display:inline-flex;align-items:center;justify-content:center;gap:.3rem;border:1px solid #e3e6ee;border-radius:999px;padding:.18rem .6rem;font-weight:900;font-size:clamp(.76rem,.9vw,.92rem);line-height:1.1;white-space:nowrap;min-width:4.2em}
 .pill .remain{white-space:nowrap}
 .pill.early{background:#e7f7ee;color:#065f46;border-color:#b8ead4}
@@ -61,7 +61,7 @@ body{margin:0;background:var(--bg);color:#1f1330;font-family:"Noto Sans TC","Mic
 .pill.night{background:#e8f2ff;color:#1d4ed8;border-color:#cfe2ff}
 .pill.appt {background:#fde7ef;color:#b51695;border-color:#ff99e6}
 
-/* day panel */
+/* = Day panel = */
 #dayPanel{display:none}
 #dayPanel .head{font-weight:900;margin:6px 0 10px}
 .slot-grid{display:grid;grid-template-columns:1fr;gap:10px}
@@ -75,53 +75,65 @@ body{margin:0;background:var(--bg);color:#1f1330;font-family:"Noto Sans TC","Mic
 .picked b{color:#000}
 .picked .hl{color:#6236a7;font-weight:900}
 
-/* form */
+/* = Form 一欄一行 + 防外凸 = */
 .form-grid{display:grid;gap:14px;grid-template-columns:1fr}
 .form-grid > div{min-width:0}
-.form-label-strong{font-weight:900;margin-bottom:6px;color:#1f1330}
-.form-input{width:100%;min-width:0;max-width:100%;border:1px solid #ced2db;border-radius:12px;font-size:1rem;height:46px;padding:0 .9rem;background:#fff}
+.form-label-strong{font-weight:900;margin-bottom:6px;color:#1f1330} /* 標題+星號 粗體黑 */
+.form-input{
+  width:100%;min-width:0;max-width:100%;
+  border:1px solid #ced2db;border-radius:12px;
+  font-size:1rem;height:46px; /* 統一輸入高度 */
+  padding:0 .9rem;background:#fff
+}
 
-/* date input */
+/* 日期輸入：固定高度 + 對齊 WebKit 內部，並用假 placeholder */
 .date-wrap{position:relative;height:46px}
-input[type="date"].form-input{appearance:none;-webkit-appearance:none;height:100%;padding:0 .9rem;font-size:16px}
+input[type="date"].form-input{
+  appearance:none;-webkit-appearance:none;
+  height:100%;padding:0 .9rem;font-size:16px; /* 16px 避免 iOS 放大 */
+}
 input[type="date"]::-webkit-date-and-time-value{height:100%;line-height:46px}
 input[type="date"]::-webkit-datetime-edit{padding:0}
 input[type="date"]::-webkit-datetime-edit-fields-wrapper{padding:0;margin:0}
 input[type="date"]::-webkit-calendar-picker-indicator{padding:0 8px 0 0}
-.date-hint{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:#9aa0aa;pointer-events:none;font-size:16px;line-height:1}
-.date-wrap.has-value .date-hint,.date-wrap.focus .date-hint{display:none}
 
-/* buttons */
+.date-hint{
+  position:absolute;left:14px;top:50%;transform:translateY(-50%);
+  color:#9aa0aa;pointer-events:none;font-size:16px;line-height:1
+}
+.date-wrap.has-value .date-hint, .date-wrap.focus .date-hint{display:none}
+
+/* 扁平化按鈕 */
 .btn-main,.btn-ghost{border-radius:999px;font-weight:900;padding:.9rem 1.15rem;font-size:1.05rem}
 .btn-main{background:var(--primary);color:#fff;border:none}
 .btn-ghost{background:#fff;border:1px solid #d7dbe5;color:#3a3f47}
 
-/* agree star */
+/* 同意條款自動補黑色粗體 * */
 label.agree span::after{content:" *";color:#000;font-weight:900}
 
-/* modal rounded */
-.modal-rounded .modal-content{border-radius:20px !important;overflow:hidden;border:1px solid #e9e0ff}
+/* ==== Modal 統一大圓角 ==== */
+.modal-rounded .modal-content{
+  border-radius:20px !important;
+  overflow:hidden;           /* 讓底部也吃到圓角 */
+  border:1px solid #e9e0ff;
+}
 #rulesModal .modal-header{background:#f3edff}
 #rulesModal .modal-body{background:#f6f3ff}
 
-/* rule lines */
-.rule-line{display:flex;align-items:center;gap:10px;white-space:nowrap;font-weight:800;font-size:clamp(12px,3.2vw,16px);min-width:0;letter-spacing:.5px}
+/* 規則：每列一行 */
+.rule-line{display:flex;align-items:center;gap:10px;white-space:nowrap;font-weight:800;
+  font-size:clamp(12px,3.2vw,16px);min-width:0;letter-spacing:.5px}
 .chip{display:inline-flex;align-items:center;gap:6px;padding:.25rem .6rem;border-radius:999px;border:1px solid #e6e8f0;background:#fff}
 .chip-strong{background:#f3f0ff;color:#4a2f82;border-color:#e4ddff}
 .chip-range{background:#f8fafc;color:#334155}
 
-/* numbered list */
+/* 預約須知：數字縮排列表 */
 .numlist{list-style:none;padding:0;margin:0}
 .numlist li{display:flex;gap:12px;align-items:flex-start;margin:12px 0}
 .numlist .num{flex:0 0 1.8em;font-weight:900;color:#2a183d;text-align:right}
 .numlist .txt{flex:1}
 
-/* fullscreen mask */
-#mask{position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;font-size:18px;color:#4b2c86;background:rgba(255,255,255,.92);backdrop-filter:blur(2px)}
-#mask[hidden]{display:none !important;}
-#dots{display:inline-block;width:2ch;text-align:left}
-
-/* mobile */
+/* Mobile */
 @media (max-width:600px){
   .wrap{padding:8px}
   .page-head{margin:4px 4px 12px}
@@ -133,17 +145,14 @@ label.agree span::after{content:" *";color:#000;font-weight:900}
   .pill{display:block;width:100%;text-align:center;padding:.12rem .4rem;font-size:.78rem;line-height:1.15;min-width:auto;margin-bottom:4px}
   .pill .remain{display:none}
   .tile{padding:10px;border-radius:14px}
+  /* 手機也維持 46px 高度，不會再變細一條 */
   .date-wrap,.form-input,input[type="date"].form-input{height:46px}
 }
 </style>
 </head>
 <body>
-
-<!-- 遮罩（預設 hidden，不會在左上角閃出） -->
-<div id="mask" hidden aria-live="polite" aria-busy="true">
-  <div class="msg" id="maskMsg">預約中請稍等，請勿關閉或重新整理頁面</div>
-  <span id="dots">...</span>
-</div>
+<!-- 全頁遮罩：預設隱藏 -->
+<div id="mask" style="display:none">預約中請稍等，請勿關閉或重新整理頁面<span id="dots">...</span></div>
 
 <div class="wrap">
   <div class="page-head"><div class="logo">＋</div><h1>陳萬龍診所門診線上預約</h1></div>
@@ -170,7 +179,7 @@ label.agree span::after{content:" *";color:#000;font-weight:900}
     <div class="section picked" id="picked"></div>
   </div>
 
-  <!-- 表單 -->
+  <!-- 表單：一欄一行 -->
   <div class="cardish section mt-3">
     <input type="hidden" id="date"/><input type="hidden" id="slot"/>
     <input type="hidden" id="g-recaptcha-response" name="g-recaptcha-response"/>
@@ -185,7 +194,7 @@ label.agree span::after{content:" *";color:#000;font-weight:900}
         <div class="form-label-strong">出生年月日 *</div>
         <div class="date-wrap" id="dateWrap">
           <input id="birthday" type="date" class="form-input" inputmode="numeric" autocomplete="off"/>
-          <span class="date-hint" id="dateHint">年/月/日</span>
+          <span class="date-hint" id="dateHint"> 年/月/日</span>
         </div>
       </div>
 
@@ -265,6 +274,9 @@ const API="https://script.google.com/macros/s/AKfycbz1jtOWBJEETvotCU2y022ow4lOlm
 const RECAPTCHA_SITE_KEY="6LdqprArAAAAACpuAXemZUH3KNER1t1iw07YjGHu";
 const AES_KEY="A2x5fT9qR7nC1vB8mK3pZ6sD4uH0yW2j";
 
+/* 一次性簽章暫存（關鍵）：以日期為 key */
+const nonceStore = {}; // { 'YYYY-MM-DD': {nonce, sig, exp} }
+
 /* reCAPTCHA */
 let recaptchaLoaded=false, recaptchaLoading=null;
 function loadRecaptcha(){
@@ -310,19 +322,14 @@ const fmtTitle=d=>`${d.getFullYear()}年${d.getMonth()+1}月份`;
 const NOW=new Date(); let WINDOW_MIN=null,WINDOW_MAX=null; let curMonth=firstOfMonth(NOW);
 
 /* 遮罩 */
-const $mask=$('mask'), $maskMsg=$('maskMsg'), $dots=$('dots'); let dotTimer=null;
-function showMask(txt){
-  $maskMsg.textContent = txt || '預約中請稍等，請勿關閉或重新整理頁面';
-  $mask.removeAttribute('hidden');
+const $mask=$('mask'),$dots=$('dots'); let dotTimer=null;
+function showMask(txt){ $mask.textContent=(txt||'預約中請稍等，請勿關閉或重新整理頁面'); $mask.style.display='flex';
   if(dotTimer) clearInterval(dotTimer);
-  dotTimer=setInterval(()=>{
-    $dots.textContent=($dots.textContent==='...')?'.':$dots.textContent+'.';
-    if($dots.textContent.length>3)$dots.textContent='.';
-  },340);
-}
-function hideMask(){ if(dotTimer) clearInterval(dotTimer); $mask.setAttribute('hidden',''); }
+  const span=document.createElement('span'); span.id='dots'; span.textContent='...'; $mask.appendChild(span);
+  dotTimer=setInterval(()=>{ const d=$('dots'); if(!d) return; d.textContent=(d.textContent==='...')?'.':d.textContent+'.'; if(d.textContent.length>3)d.textContent='.';},340);}
+function hideMask(){ if(dotTimer) clearInterval(dotTimer); $mask.style.display='none'; }
 
-/* 規則 / 須知 */
+/* 規則 / 須知（打開&同意） */
 let noticeModalInst=null;
 $('openRules').addEventListener('click',()=>new bootstrap.Modal(document.getElementById('rulesModal')).show());
 $('showNotice').addEventListener('click',e=>{
@@ -330,7 +337,10 @@ $('showNotice').addEventListener('click',e=>{
   noticeModalInst=new bootstrap.Modal(document.getElementById('noticeModal'));
   noticeModalInst.show();
 });
-$('agreeConfirm').addEventListener('click',()=>{ $('agree').checked=true; if(noticeModalInst) noticeModalInst.hide(); });
+$('agreeConfirm').addEventListener('click',()=>{
+  $('agree').checked=true;           // 勾選核取
+  if(noticeModalInst) noticeModalInst.hide(); // 關閉視窗
+});
 
 /* iOS/Safari date 假 placeholder 控制 */
 (function(){
@@ -383,14 +393,12 @@ function renderSkeleton(monthDate){
     const cur=new Date(first.getFullYear(),first.getMonth(),d);
     const inWindow=cur>=WINDOW_MIN && cur<=WINDOW_MAX;
     const cls=inWindow?'day':'day disabled';
-    /* 想顯示「未開放」→ 把下一行的 '—' 改成 '未開放' */
     html+=`<div class="${cls}" data-ymd="${ymd(cur)}"><div class="d">${d}</div><div class="meta">—</div></div>`;
   }
   $days.innerHTML=html; $panel.style.display='none'; $picked.style.display='none';
 }
 
-/* 逐日 slots（同時抓 nonce/sig/exp 以便送出驗證） */
-let nonceMeta=null;
+/* 逐日 slots（同時存下 nonce/sig/exp） */
 async function fetchMonthDays(monthDate){
   const first=firstOfMonth(monthDate), last=endOfMonth(monthDate);
   const jobs=[];
@@ -402,7 +410,16 @@ async function fetchMonthDays(monthDate){
       try{
         const r=await axios.get(API,{params:{action:'getSlots',date:key,t:Date.now()}});
         const data=r.data;
-        if (data && data.nonce && data.sig && data.exp) nonceMeta={nonce:data.nonce,sig:data.sig,exp:data.exp,date:key};
+
+        /* ← 重要：儲存一次性簽章（若後端有回） */
+        if (!Array.isArray(data) && data && data.nonce && data.sig && data.exp) {
+          nonceStore[key] = {
+            nonce: String(data.nonce),
+            sig:   String(data.sig),
+            exp:   Number(data.exp)
+          };
+        }
+
         const raw=Array.isArray(data)?data:(Array.isArray(data?.slots)?data.slots:[]);
         const slots=(raw||[]).map(x=>{
           const limit=Number(x.limit)||0, used=Number(x.used)||0, remain=Math.max(0,limit-used);
@@ -431,11 +448,8 @@ function hydrateMonth(monthDate, dayMap){
     let cls='day', inner=`<div class="d">${d}</div>`;
     const inWindow=cur>=WINDOW_MIN && cur<=WINDOW_MAX;
     const hasOpen=!!(meta?.slots?.some(s=>s.status==='open'));
-    if(!inWindow || !hasOpen){
-      cls+=' disabled';
-      /* 想顯示「未開放」→ 把下一行的 '—' 改成 '未開放' */
-      inner+=`<div class="meta">—</div>`;
-    }else{
+    if(!inWindow || !hasOpen){ cls+=' disabled'; inner+=`<div class="meta">—</div>`; }
+    else{
       cls+=' clickable';
       const pills=meta.slots.filter(s=>s.status==='open').map(s=>{
         const tag=s.slot==='early'?'early':s.slot==='noon'?'noon':s.slot==='night'?'night':'appt';
@@ -473,9 +487,9 @@ function openDay(dateYMD, meta){
 function selectRow(row){
   $panel.querySelectorAll('.tile').forEach(x=>x.classList.remove('selected'));
   row.classList.add('selected');
+  const mapVal={early:'早診',noon:'午診',night:'晚診',appt:'約診'};
   $('date').value=row.dataset.date;
-  // 將 slot 存「完整 label」（與後端一致，避免只傳“早診”被擋）
-  $('slot').value=row.dataset.label;
+  $('slot').value=mapVal[row.dataset.slot]||'';
   const chosen=`${row.dataset.date}｜<span class="hl">${row.dataset.label} ${row.dataset.time} ${row.dataset.doc?`［${row.dataset.doc}］`:''}</span>  剩餘 ${row.dataset.rem}/${row.dataset.cap} 人`;
   $('picked').innerHTML=`已選擇：<b>${chosen}</b>`;
   $('picked').style.display='block';
@@ -506,15 +520,18 @@ $('submitBtn').addEventListener('click',async(e)=>{
   if(ph.length<8||ph.length>10){alert('電話長度不符');return;}
   const age=Math.floor((Date.now()-new Date(b))/31536000000); if(age<0||age>150){alert('生日超出限制');return;}
   try{
-    submitting=true; $('submitBtn').disabled=true; showMask('預約提交中，請勿關閉或重新整理頁面');
+    submitting=true; $('submitBtn').disabled=true; showMask();
     const recaptchaToken=await getRecaptchaToken(); $('g-recaptcha-response').value=recaptchaToken;
+
     const params={action:'submit',date:d,slot:s,name:n,birthday:b,id:id,phone:ph,recaptchaToken,t:Date.now()};
-    // 附上 nonce/sig/exp（與選擇日期一致才帶）
-    if(nonceMeta && nonceMeta.date===d){
-      params.nonce=nonceMeta.nonce;
-      params.sig=nonceMeta.sig;
-      params.exp=nonceMeta.exp;
+
+    /* ← 關鍵：把對應日期的 nonce/sig/exp 一起送出（若存在） */
+    if (nonceStore[d]) {
+      params.nonce = nonceStore[d].nonce;
+      params.sig   = nonceStore[d].sig;
+      params.exp   = nonceStore[d].exp;
     }
+
     const r=await axios.get(API,{params});
     if(!r.data?.ok){ alert(r.data?.message||'送出失敗，請稍後再試'); return; }
     const idFromApi=r?.data?.id||r?.data?.Id||r?.data?.bookingId||r?.data?.data?.id;
