@@ -78,11 +78,11 @@ body{margin:0;background:var(--bg);color:#1f1330;font-family:"Noto Sans TC","Mic
 /* = Form 一欄一行 + 防外凸 = */
 .form-grid{display:grid;gap:14px;grid-template-columns:1fr}
 .form-grid > div{min-width:0}
-.form-label-strong{font-weight:900;margin-bottom:6px;color:#1f1330} /* 標題+星號 粗體黑 */
+.form-label-strong{font-weight:900;margin-bottom:6px;color:#1f1330}
 .form-input{
   width:100%;min-width:0;max-width:100%;
   border:1px solid #ced2db;border-radius:12px;
-  font-size:1rem;height:46px; /* 統一輸入高度 */
+  font-size:1rem;height:46px;
   padding:0 .9rem;background:#fff
 }
 
@@ -111,10 +111,18 @@ input[type="date"]::-webkit-calendar-picker-indicator{padding:0 8px 0 0}
 /* 同意條款自動補黑色粗體 * */
 label.agree span::after{content:" *";color:#000;font-weight:900}
 
+/* ==== 遮罩（預設隱藏） ==== */
+#mask{
+  position:fixed;inset:0;display:none;align-items:center;justify-content:center;
+  z-index:9999;font-size:18px;color:#4b2c86;
+  background:rgba(255,255,255,.92);backdrop-filter:blur(2px)
+}
+#dots{display:inline-block;width:2ch;text-align:left}
+
 /* ==== Modal 統一大圓角 ==== */
 .modal-rounded .modal-content{
   border-radius:20px !important;
-  overflow:hidden;           /* 讓底部也吃到圓角 */
+  overflow:hidden;
   border:1px solid #e9e0ff;
 }
 #rulesModal .modal-header{background:#f3edff}
@@ -145,14 +153,16 @@ label.agree span::after{content:" *";color:#000;font-weight:900}
   .pill{display:block;width:100%;text-align:center;padding:.12rem .4rem;font-size:.78rem;line-height:1.15;min-width:auto;margin-bottom:4px}
   .pill .remain{display:none}
   .tile{padding:10px;border-radius:14px}
-  /* 手機也維持 46px 高度，不會再變細一條 */
   .date-wrap,.form-input,input[type="date"].form-input{height:46px}
 }
 </style>
 </head>
 <body>
-<!-- 全頁遮罩 -->
-<div id="mask">預約中請稍等，請勿關閉或重新整理頁面<span id="dots">...</span></div>
+<!-- 全頁遮罩（預設隱藏） -->
+<div id="mask" style="display:none">
+  <span id="maskText">預約中請稍等，請勿關閉或重新整理頁面</span>
+  <span id="dots">...</span>
+</div>
 
 <div class="wrap">
   <div class="page-head"><div class="logo">＋</div><h1>陳萬龍診所門診線上預約</h1></div>
@@ -319,11 +329,16 @@ const fmtTitle=d=>`${d.getFullYear()}年${d.getMonth()+1}月份`;
 const NOW=new Date(); let WINDOW_MIN=null,WINDOW_MAX=null; let curMonth=firstOfMonth(NOW);
 
 /* 遮罩 */
-const $mask=$('mask'),$dots=$('dots'); let dotTimer=null;
-function showMask(txt){ $mask.firstChild.nodeValue=(txt||'預約中請稍等，請勿關閉或重新整理頁面'); $mask.style.display='flex';
+const $mask=$('mask'),$dots=$('dots'),$maskText=document.getElementById('maskText'); let dotTimer=null;
+function showMask(txt){
+  $maskText.textContent=txt||'預約中請稍等，請勿關閉或重新整理頁面';
+  $mask.style.display='flex';
   if(dotTimer) clearInterval(dotTimer);
-  dotTimer=setInterval(()=>{ $dots.textContent=($dots.textContent==='...')?'.':$dots.textContent+'.';
-    if($dots.textContent.length>3)$dots.textContent='.';},340);}
+  dotTimer=setInterval(()=>{
+    $dots.textContent=($dots.textContent==='...')?'.':$dots.textContent+'.';
+    if($dots.textContent.length>3)$dots.textContent='.';
+  },340);
+}
 function hideMask(){ if(dotTimer) clearInterval(dotTimer); $mask.style.display='none'; }
 
 /* 規則 / 須知（打開&同意） */
@@ -335,8 +350,8 @@ $('showNotice').addEventListener('click',e=>{
   noticeModalInst.show();
 });
 $('agreeConfirm').addEventListener('click',()=>{
-  $('agree').checked=true;           // 勾選核取
-  if(noticeModalInst) noticeModalInst.hide(); // 關閉視窗
+  $('agree').checked=true;
+  if(noticeModalInst) noticeModalInst.hide();
 });
 
 /* iOS/Safari date 假 placeholder 控制 */
@@ -491,7 +506,6 @@ $('btnNext').addEventListener('click',async()=>{curMonth=addMonths(curMonth, 1);
 $('idnum').addEventListener('input',e=>{
   const p=e.target.selectionStart;
   e.target.value=e.target.value.toUpperCase();
-  // 維持游標位置
   try{ e.target.setSelectionRange(p,p);}catch(_){}
 });
 
