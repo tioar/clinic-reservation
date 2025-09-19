@@ -217,7 +217,7 @@ label.agree span::after{content:" *";color:#000;font-weight:900}
       </div>
 
       <div>
-        <div class="form-label-strong">連絡電話 *</div>
+        <div class="form-label-strong">聯絡電話 *</div>
         <input id="phone" type="text" maxlength="10" inputmode="numeric" class="form-input" placeholder="0958xxxxxx" autocomplete="off"/>
       </div>
     </div>
@@ -525,7 +525,7 @@ $('submitBtn').addEventListener('click',async(e)=>{
         ag=$('agree').checked;
   if(!d||!s||!n||!b||!id||!ph||!ag){alert('資料未填完整');return;}
   if(!/^[A-Z][12]\d{8}$/.test(id)){alert('身分證格式錯誤');return;}
-  if(ph.length<8||ph.length>10){alert('電話長度不符');return;}
+  if(ph.length<7||ph.length>10){alert('電話長度不符');return;}
   const age=Math.floor((Date.now()-new Date(b))/31536000000); if(age<0||age>150){alert('生日超出限制');return;}
   try{
     submitting=true; $('submitBtn').disabled=true; showMask('預約中，請勿關閉或重新整理頁面');
