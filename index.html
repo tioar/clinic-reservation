@@ -548,8 +548,9 @@ function selectRow(row){
   $('slot').value=mapVal[row.dataset.slot]||'';
 
   // 已選擇：不顯示剩餘人數
-  const chosen=`${row.dataset.date}｜<span class="hl ${row.dataset.slot}">${row.dataset.label} ${row.dataset.time} ${row.dataset.doc?`［${row.dataset.doc}］`:''}</span>`;
-  $('picked').innerHTML=`已選擇：<b>${chosen}</b>`;
+  const weekday = ['日','一','二','三','四','五','六'][new Date(row.dataset.date).getDay()];
+  const chosen = `${row.dataset.date} (${weekday})｜${row.dataset.label} ${row.dataset.time}${row.dataset.doc?`〔${row.dataset.doc}〕`:''}`;
+  $('picked').innerHTML = `已選擇：${chosen}`;
   $('picked').style.display='block';
   $('submitBtn').scrollIntoView({behavior:'smooth',block:'center'});
 }
@@ -610,5 +611,6 @@ async function bootMonth(m){ renderSkeleton(m); const map=await fetchMonthDays(m
 </script>
 </body>
 </html>
+
 
 
