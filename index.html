@@ -73,8 +73,11 @@ body{margin:0;background:var(--bg);color:#1f1330;font-family:"Noto Sans TC","Mic
 .slot-grid{display:grid;grid-template-columns:1fr;gap:10px}
 .tile{display:flex;align-items:center;gap:10px;border:1px solid #e0e4ef;border-radius:16px;padding:12px;background:#fff;cursor:pointer;transition:.12s}
 .tile:hover{box-shadow:0 0 0 2px #e6dbff}
-.tile .remain{margin-left:auto;font-weight:900;white-space:nowrap}
+.tile .remain{margin-left:auto;font-weight:400;white-space:nowrap}
 .tile .doc{color:#6b5f92;font-weight:800}
+/* 左側主文字整行粗體 */
+.tile .main{font-weight:900}
+
 
 /* 👉 時段卡片：選到依診別「底色＋字色」 */
 .tile.selected{background:#fff;box-shadow:none}
@@ -169,7 +172,7 @@ label.agree span::after{content:" *";color:#000;font-weight:900}
   z-index:9999;
   background:rgba(255,255,255,.92);
   backdrop-filter:blur(2px);
-  color:#4b2c86; font-size:18px; font-weight:700;
+  color:#4b2c86; font-size:18px; font-weight:400;
 }
 #dots{display:inline-block;width:2ch;text-align:left}
 
@@ -526,7 +529,7 @@ function openDay(dateYMD, meta){
   html+=open.map(s=>{
     const label=mapSlot[s.slot]||s.label||''; const time=s.time||''; const doc=s.doctor?`［${s.doctor}］`:''; const rem=Math.max(0,s.remain);
     return `<div class="tile ${s.slot}" data-date="${dateYMD}" data-slot="${s.slot}" data-label="${label}" data-time="${time}" data-doc="${s.doctor||''}" data-rem="${rem}" data-cap="${s.cap}">
-      <div><strong>${label}</strong> ${time} ${doc}</div>
+      <div class="main"><strong>${label}</strong> ${time} ${doc}</div>
       <div class="remain">剩餘 ${rem}/${s.cap} 人</div>
     </div>`;}).join('');
   html+=`</div>`;
@@ -605,3 +608,4 @@ async function bootMonth(m){ renderSkeleton(m); const map=await fetchMonthDays(m
 </script>
 </body>
 </html>
+
