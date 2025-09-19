@@ -9,22 +9,17 @@
   <style>
     :root{
       --primary:#6236a7; --primary-600:#522e93; --bg:#f7f6fb; --card:#ffffff; --line:#ebe6fb; --muted:#6b5f92;
-      --ok:#0ea5e9; --warn:#f59e0b; --good:#10b981; --bad:#ef4444;
     }
-    *{box-sizing:border-box}
     body{margin:0;background:var(--bg);color:#1f1330;font-family:"Noto Sans TC","Microsoft JhengHei",system-ui,sans-serif}
     .wrap{max-width:960px;margin:20px auto;padding:16px}
 
-    /* ===== Card & Rounded style ===== */
     .card{background:var(--card);border:1px solid var(--line);border-radius:20px;box-shadow:0 10px 24px rgba(98,54,167,.10)}
     .section{padding:16px}
     .title{font-weight:900;color:var(--primary);margin:0 0 8px}
     .hint{color:#6c6286;font-size:.95rem;margin-bottom:12px}
 
-    /* ===== Calendar ===== */
     .cal-head{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-bottom:1px solid var(--line)}
     .cal-title{font-weight:900}
-    .nav{display:flex;gap:8px}
     .nav button{border:none;background:var(--primary);color:#fff;border-radius:12px;padding:.35rem .7rem;font-weight:900;cursor:pointer}
     .nav button[disabled]{opacity:.45;cursor:not-allowed}
 
@@ -37,33 +32,15 @@
     .day.clickable{cursor:pointer}
     .day.clickable:hover{box-shadow:0 0 0 2px #d7caf6}
     .day.disabled{background:#f1f2f6;color:#8b90a3;border-color:#e5e7eb;opacity:.8;pointer-events:none}
-    .day.full{background:#f8f8fa}
 
-    .pill{display:inline-block;border:1px solid #e3e6ee;border-radius:999px;padding:.1rem .55rem;font-weight:800;margin-right:.3rem;white-space:nowrap}
-    .pill.early{background:#e7f7ee;color:#065f46;border-color:#b8ead4}
-    .pill.noon {background:#fff3df;color:#7a4d00;border-color:#ffd79a}
-    .pill.night{background:#e8f2ff;color:#1d4ed8;border-color:#cfe2ff}
-    .pill.appt {background:#fde7ef;color:#b51695;border-color:#ff99e6}
-
-    /* ===== Day panel (slot selector) ===== */
-    #dayPanel{display:none}
-    #dayPanel .head{font-weight:900;margin-bottom:8px}
     .slot-row{display:flex;align-items:center;gap:12px;border:1px dashed #e0e4ef;border-radius:16px;padding:12px;margin:10px 0;cursor:pointer;transition:.15s}
     .slot-row:hover{box-shadow:0 0 0 2px #e6dbff}
-    .slot-row.full{opacity:.45;cursor:not-allowed}
+    .slot-row.selected{background:#f3edff;box-shadow:0 0 0 2px #cdbbff}
     .slot-row .remain{margin-left:auto;font-weight:900}
     .slot-row .doc{color:#6b5f92;font-weight:800}
-    .slot-row.selected{background:#f3edff;box-shadow:0 0 0 2px #cdbbff}
 
-    /* ===== Form mini banner ===== */
-    .picked{display:none;margin-top:8px;color:#3b2c5f}
+    .picked{display:none;margin-top:8px;color:#3b2c5f;font-weight:900}
     .picked b{color:var(--primary)}
-
-    @media (max-width:600px){
-      .grid{gap:6px;padding:10px}
-      .day{min-height:76px;border-radius:14px}
-      .nav button{border-radius:10px}
-    }
   </style>
 </head>
 <body>
@@ -78,14 +55,13 @@
     </div>
     <div class="grid" id="whead"></div>
     <div class="grid" id="days"></div>
-    <div class="section" id="dayPanel" class="section card"></div>
+    <div class="section" id="dayPanel"></div>
     <div class="section picked" id="picked"></div>
   </div>
 
-  <!-- 示意：和你的 index.html 欄位 id 對齊（只留下送出一次） -->
   <div class="card section" style="margin-top:16px">
     <div style="font-weight:900;margin-bottom:8px;color:var(--primary)">預約表單</div>
-    <div class="hint">點上方「診別」即可選取（會變色），此處只需填寫個人資料後一次送出。</div>
+    <div class="hint">選取診別後會自動帶入此表單，只需填寫個人資料再送出一次即可。</div>
     <div style="display:grid;gap:10px;grid-template-columns:1fr 1fr">
       <div>
         <label>預約日期 *</label>
@@ -128,168 +104,146 @@
 </div>
 
 <script>
-// === CONFIG ===
-const API = "https://script.google.com/macros/s/AKfycbz1jtOWBJEETvotCU2y022ow4lOlm_TauYpRMG6riUIj88_Vde5d9LHGH5cLC4HYe7X/exec"; // 先沿用；你可改成正式網址
+const API = "https://script.google.com/macros/s/AKfycbz1jtOWBJEETvotCU2y022ow4lOlm_TauYpRMG6riUIj88_Vde5d9LHGH5cLC4HYe7X/exec";
+const pad2=n=>String(n).padStart(2,'0');
+const ymd=d=>`${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;
+const firstOfMonth=d=>new Date(d.getFullYear(),d.getMonth(),1);
+const endOfMonth=d=>new Date(d.getFullYear(),d.getMonth()+1,0);
+const addMonths=(d,n)=>new Date(d.getFullYear(),d.getMonth()+n,1);
+const W=['日','一','二','三','四','五','六'];
 
-// === Utilities ===
-const pad2 = n=>String(n).padStart(2,'0');
-const ymd = d=>`${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;
-const firstOfMonth = d=>new Date(d.getFullYear(), d.getMonth(), 1);
-const endOfMonth = d=>new Date(d.getFullYear(), d.getMonth()+1, 0);
-const addMonths = (d,n)=>new Date(d.getFullYear(), d.getMonth()+n, 1);
-const W = ['日','一','二','三','四','五','六'];
+const NOW=new Date();
+const MIN_MONTH=firstOfMonth(NOW);
+const MAX_MONTH=firstOfMonth(addMonths(NOW,1));
+let curMonth=firstOfMonth(NOW);
 
-// 月份邏輯：只允許在「本月」與「次月」之間切換
-const NOW = new Date();
-const MIN_MONTH = firstOfMonth(NOW);
-const MAX_MONTH = firstOfMonth(addMonths(NOW,1));
-let curMonth = firstOfMonth(NOW);
+const $title=document.getElementById('calTitle');
+const $whead=document.getElementById('whead');
+const $days=document.getElementById('days');
+const $prev=document.getElementById('btnPrev');
+const $next=document.getElementById('btnNext');
+const $panel=document.getElementById('dayPanel');
+const $picked=document.getElementById('picked');
 
-const $title = document.getElementById('calTitle');
-const $whead = document.getElementById('whead');
-const $days  = document.getElementById('days');
-const $prev  = document.getElementById('btnPrev');
-const $next  = document.getElementById('btnNext');
-const $panel = document.getElementById('dayPanel');
-const $picked= document.getElementById('picked');
+$whead.innerHTML=W.map(w=>`<div class="wday">${w}</div>`).join('');
 
-// 週標題
-$whead.innerHTML = W.map(w=>`<div class="wday">${w}</div>`).join('');
-
-// 取區間資料：優先批次 API，失敗退回逐日 getSlots
-async function fetchRange(startYmd, endYmd){
+async function fetchRange(startYmd,endYmd){
+  // ① 優先批次 API calendarSlots(start,end)
   try{
-    const r = await fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({path:'calendarSlots',payload:{start:startYmd,end:endYmd}})});
-    const data = await r.json();
-    if(data?.ok) return data.days; else throw new Error('no_batch');
+    const r=await fetch(API,{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({path:'calendarSlots',payload:{start:startYmd,end:endYmd}})
+    });
+    const data=await r.json();
+    if(data && data.ok && Array.isArray(data.days)) return data.days;
+    throw new Error('no_batch');
   }catch{
-    // fallback：逐日
-    const out=[]; const s=new Date(startYmd), e=new Date(endYmd);
+    // ② Fallback：逐日 getSlots?date=YYYY-MM-DD
+    const out=[];
+    const s=new Date(startYmd), e=new Date(endYmd);
     for(let d=new Date(s); d<=e; d.setDate(d.getDate()+1)){
-      const k = ymd(d);
+      const key = ymd(d);
       try{
-        const r = await fetch(`${API}?action=getSlots&date=${k}&t=${Date.now()}`);
+        const r = await fetch(`${API}?action=getSlots&date=${key}&t=${Date.now()}`);
         const data = await r.json();
-        const slots = Array.isArray(data) ? data : (Array.isArray(data?.slots) ? data.slots : []);
-        const payload = (slots||[]).map(x=>{
-          const limit=Number(x.limit)||0, used=Number(x.used)||0, remain=Math.max(0,limit-used);
-          const label = String(x.label||'');
-          const slot = label.includes('早')?'early':label.includes('午')?'noon':label.includes('晚')?'night':label.includes('約')?'appt':'other';
-          const doc  = x.doctor||''; // 若你 JSON 有 doctor 欄位
-          const time = x.timeRange||''; // 若你 JSON 有 timeRange 欄位
-          const status = limit<=0? 'closed' : (remain<=0? 'full':'open');
-          return {slot, cap:limit, used, remain, status, doctor:doc, time};
+        // 嘗試對齊不同欄位命名
+        const raw = Array.isArray(data) ? data : (Array.isArray(data?.slots) ? data.slots : []);
+        const slots = (raw||[]).map(x=>{
+          const label = String(x.label||x.name||x.slotName||'');
+          const slot  = label.includes('早')?'early': label.includes('午')?'noon': label.includes('晚')?'night': label.includes('約')?'appt':'other';
+          const cap   = Number(x.cap||x.limit||x.capacity||0) || 0;
+          const used  = Number(x.used||x.reserved||x.booked||0) || 0;
+          const remain= Math.max(0, cap - used);
+          const status= cap<=0 ? 'closed' : (remain<=0 ? 'full' : 'open');
+          const time  = x.time||x.timeRange||x.range||'';
+          const doctor= x.doctor||x.physician||x.doc||'';
+          return {slot, cap, used, remain, status, time, doctor};
         });
-        out.push({date:k, slots:payload});
-      }catch{ out.push({date:k, slots:[]}); }
+        out.push({date:key, slots});
+      }catch(err){ out.push({date:key, slots:[]}); }
     }
     return out;
   }
+},body:JSON.stringify({path:'calendarSlots',payload:{start:startYmd,end:endYmd}})});
+    const data=await r.json();
+    if(data?.ok) return data.days; else throw new Error('no_batch');
+  }catch{
+    return [];
+  }
 }
 
-// 渲染單月（一次只有一個月，手機不會擠爆）
 async function renderMonth(monthDate){
-  const first = firstOfMonth(monthDate); const last = endOfMonth(monthDate);
-  $title.textContent = `${first.getFullYear()} / ${pad2(first.getMonth()+1)}`;
-  $prev.disabled = first.getTime() <= MIN_MONTH.getTime();
-  $next.disabled = first.getTime() >= MAX_MONTH.getTime();
+  const first=firstOfMonth(monthDate), last=endOfMonth(monthDate);
+  $title.textContent=`${first.getFullYear()} / ${pad2(first.getMonth()+1)}`;
+  $prev.disabled=first.getTime()<=MIN_MONTH.getTime();
+  $next.disabled=first.getTime()>=MAX_MONTH.getTime();
 
-  const data = await fetchRange( ymd(first), ymd(last) );
-  const map = {}; (data||[]).forEach(d=>{ map[d.date]=d; });
+  const data=await fetchRange(ymd(first),ymd(last));
+  const map={};(data||[]).forEach(d=>map[d.date]=d);
 
   let html='';
-  // 週標題佔位之後填天數
-  const pad = first.getDay();
-  for(let i=0;i<pad;i++) html += `<div></div>`;
+  const pad=first.getDay();
+  for(let i=0;i<pad;i++) html+='<div></div>';
 
   for(let d=1; d<=last.getDate(); d++){
-    const cur = new Date(first.getFullYear(), first.getMonth(), d);
-    const key = ymd(cur);
-    const meta = map[key];
+    const cur=new Date(first.getFullYear(),first.getMonth(),d);
+    const key=ymd(cur);
+    const meta=map[key];
+    const hasOpen=!!(meta?.slots?.some(s=>s.status==='open'));
+    let cls=['day'];
+    if(!meta||!hasOpen) cls.push('disabled'); else cls.push('clickable');
 
-    // 不可預約：沒有資料 或 全部 status 都不是 open
-    const hasOpen = !!(meta?.slots?.some(s=>s.status==='open'));
-    const cls = ['day'];
-    if(!meta || !hasOpen) cls.push('disabled');
-    else cls.push('clickable');
-
-    let inner = `<div class="d">${d}</div>`;
+    let inner=`<div class="d">${d}</div>`;
     if(hasOpen){
-      // 只顯示「有開診、且 status=open」的診別；顯示剩餘/總額
-      const pills = meta.slots.filter(s=>s.status==='open').map(s=>{
-        const tag = s.slot==='early'?'early':s.slot==='noon'?'noon':s.slot==='night'?'night':'appt';
-        const label = s.slot==='early'?'早':s.slot==='noon'?'午':s.slot==='night'?'晚':'約';
-        return `<span class="pill ${tag}">${label} ${Math.max(0,s.remain)}/${s.cap}</span>`;
-      }).join(' ');
-      inner += `<div class="meta">${pills}</div>`;
-    } else {
-      inner += `<div class="meta">—</div>`;
+      const pills=meta.slots.filter(s=>s.status==='open').map(s=>{
+        const label=s.slot==='early'?'早':s.slot==='noon'?'午':s.slot==='night'?'晚':'約';
+        return `<div>${label} ${s.time||''} 剩餘${s.remain}/${s.cap}</div>`;
+      }).join('');
+      inner+=`<div class="meta">${pills}</div>`;
     }
-
-    html += `<div class="${cls.join(' ')}" data-ymd="${key}">${inner}</div>`;
+    html+=`<div class="${cls.join(' ')}" data-ymd="${key}">${inner}</div>`;
   }
-  $days.innerHTML = html;
+  $days.innerHTML=html;
 
-  // 綁定點擊：展開下方診別列
   $days.querySelectorAll('.day.clickable').forEach(el=>{
-    el.addEventListener('click', ()=> openDay(el.dataset.ymd, map[el.dataset.ymd]));
+    el.addEventListener('click',()=>openDay(el.dataset.ymd,map[el.dataset.ymd]));
   });
-
-  // 清空下方面板與選擇提示
   $panel.style.display='none';
   $picked.style.display='none';
 }
 
-function openDay(dateYMD, meta){
-  const mapSlot = {early:'早診', noon:'午診', night:'晚診', appt:'約診'};
-  let html = `<div class="head">${dateYMD}（星期${W[new Date(dateYMD).getDay()]}）</div>`;
-  const openSlots = (meta.slots||[]).filter(s=>s.status==='open');
-  if(!openSlots.length){ $panel.style.display='none'; return; }
+function openDay(dateYMD,meta){
+  let html=`<div class="head">${dateYMD}（星期${W[new Date(dateYMD).getDay()]}）</div>`;
+  const openSlots=(meta.slots||[]).filter(s=>s.status==='open');
+  if(!openSlots.length){$panel.style.display='none';return;}
 
-  html += openSlots.map(s=>{
-    const doc = s.doctor ? `［${s.doctor}］` : '';
-    const time = s.time || s.timeRange || '';
-    return `<div class="slot-row" data-date="${dateYMD}" data-slot="${s.slot}" data-doc="${s.doctor||''}" data-time="${time}">
-      <div style="font-weight:900">${mapSlot[s.slot]||s.slot} ${time} <span class="doc">${doc}</span></div>
-      <div class="remain">剩餘 ${Math.max(0,s.remain)} / ${s.cap}</div>
+  html+=openSlots.map(s=>{
+    const label=s.slot==='early'?'早診':s.slot==='noon'?'午診':s.slot==='night'?'晚診':'約診';
+    return `<div class="slot-row" data-date="${dateYMD}" data-slot="${s.slot}" data-time="${s.time||''}" data-doc="${s.doctor||''}">
+      <div>${label} ${s.time||''} ［${s.doctor||''}］</div>
+      <div class="remain">剩餘 ${s.remain}/${s.cap}</div>
     </div>`;
   }).join('');
+  $panel.innerHTML=html;
+  $panel.style.display='block';
 
-  $panel.innerHTML = html;
-  $panel.style.display = 'block';
-
-  // 點一列＝選取（變色），並直接把日期/診別帶到表單，只保留最終一次送出
   $panel.querySelectorAll('.slot-row').forEach(row=>{
-    row.addEventListener('click', ()=>{
+    row.addEventListener('click',()=>{
       $panel.querySelectorAll('.slot-row').forEach(x=>x.classList.remove('selected'));
       row.classList.add('selected');
-      // 帶到表單
-      document.getElementById('date').value = row.dataset.date;
-      const slotVal = row.dataset.slot==='early'?'morning': row.dataset.slot==='noon'?'afternoon': row.dataset.slot==='night'?'evening':'appointment';
-      document.getElementById('slot').value = slotVal;
-      // 上方顯示已選擇
-      const txt = `${row.dataset.date}｜${row.textContent.trim()}`;
-      $picked.innerHTML = `已選擇：<b>${txt}</b>`;
-      $picked.style.display = 'block';
-      document.getElementById('submitBtn').scrollIntoView({behavior:'smooth', block:'center'});
+      document.getElementById('date').value=row.dataset.date;
+      const slotVal=row.dataset.slot==='early'?'morning':row.dataset.slot==='noon'?'afternoon':row.dataset.slot==='night'?'evening':'appointment';
+      document.getElementById('slot').value=slotVal;
+      $picked.innerHTML=`已選擇：<b>${row.dataset.date}｜${row.textContent.trim()}</b>`;
+      $picked.style.display='block';
+      document.getElementById('submitBtn').scrollIntoView({behavior:'smooth',block:'center'});
     });
   });
 }
 
-// 月切換按鈕
-document.getElementById('btnPrev').addEventListener('click',()=>{
-  if(curMonth.getTime()>MIN_MONTH.getTime()){
-    curMonth = addMonths(curMonth,-1); renderMonth(curMonth);
-  }
-});
+document.getElementById('btnPrev').addEventListener('click',()=>{if(curMonth>MIN_MONTH){curMonth=addMonths(curMonth,-1);renderMonth(curMonth)}});
+document.getElementById('btnNext').addEventListener('click',()=>{if(curMonth<MAX_MONTH){curMonth=addMonths(curMonth,1);renderMonth(curMonth)}});
 
-document.getElementById('btnNext').addEventListener('click',()=>{
-  if(curMonth.getTime()<MAX_MONTH.getTime()){
-    curMonth = addMonths(curMonth,1); renderMonth(curMonth);
-  }
-});
-
-// 初始化
 renderMonth(curMonth);
 </script>
 </body>
