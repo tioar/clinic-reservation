@@ -384,7 +384,7 @@ function renderSkeleton(monthDate){
     const inWindow=cur>=WINDOW_MIN && cur<=WINDOW_MAX;
     const cls=inWindow?'day':'day disabled';
     /* 想顯示「未開放」→ 把下一行的 '—' 改成 '未開放' */
-    html+=`<div class="${cls}" data-ymd="${ymd(cur)}"><div class="d">${d}</div><div class="meta">—</div></div>`;
+    html+=`<div class="${cls}" data-ymd="${ymd(cur)}"><div class="d">${d}</div><div class="meta">✖︎未開放</div></div>`;
   }
   $days.innerHTML=html; $panel.style.display='none'; $picked.style.display='none';
 }
@@ -434,7 +434,7 @@ function hydrateMonth(monthDate, dayMap){
     if(!inWindow || !hasOpen){
       cls+=' disabled';
       /* 想顯示「未開放」→ 把下一行的 '—' 改成 '未開放' */
-      inner+=`<div class="meta">—</div>`;
+      inner+=`<div class="meta">✖︎未開放</div>`;
     }else{
       cls+=' clickable';
       const pills=meta.slots.filter(s=>s.status==='open').map(s=>{
