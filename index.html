@@ -69,7 +69,13 @@ body{margin:0;background:var(--bg);color:#1f1330;font-family:"Noto Sans TC","Mic
 .tile:hover{box-shadow:0 0 0 2px #e6dbff}
 .tile .remain{margin-left:auto;font-weight:900;white-space:nowrap}
 .tile .doc{color:#6b5f92;font-weight:800}
-.tile.selected{background:#f3edff;box-shadow:0 0 0 2px #cdbbff}
+/* 選取後依診別上色：早=綠、午=橘、晚=藍、約=粉；未選=白 */
+.tile.selected{background:#fff;box-shadow:none} /* 預設不設色 */
+.tile.selected.early{background:#e7f7ee;box-shadow:0 0 0 2px #b8ead4}
+.tile.selected.noon {background:#fff3df;box-shadow:0 0 0 2px #ffd79a}
+.tile.selected.night{background:#e8f2ff;box-shadow:0 0 0 2px #cfe2ff}
+.tile.selected.appt {background:#fde7ef;box-shadow:0 0 0 2px #ff99e6}
+
 
 .picked{display:none;margin-top:8px;color:#3b2c5f}
 .picked b{color:#000}
@@ -494,7 +500,7 @@ function openDay(dateYMD, meta){
   let html=`<div class="head">${dateYMD}（星期${['日','一','二','三','四','五','六'][new Date(dateYMD).getDay()]}）</div><div class="slot-grid">`;
   html+=open.map(s=>{
     const label=mapSlot[s.slot]||s.label||''; const time=s.time||''; const doc=s.doctor?`［${s.doctor}］`:''; const rem=Math.max(0,s.remain);
-    return `<div class="tile" data-date="${dateYMD}" data-slot="${s.slot}" data-label="${label}" data-time="${time}" data-doc="${s.doctor||''}" data-rem="${rem}" data-cap="${s.cap}">
+    return `<div class="tile ${s.slot}" data-date="${dateYMD}" data-slot="${s.slot}"${s.slot}" data-label="${label}" data-time="${time}" data-doc="${s.doctor||''}" data-rem="${rem}" data-cap="${s.cap}">
       <div><strong>${label}</strong> ${time} ${doc}</div>
       <div class="remain">剩餘 ${rem}/${s.cap} 人</div>
     </div>`;}).join('');
@@ -572,3 +578,4 @@ async function bootMonth(m){ renderSkeleton(m); const map=await fetchMonthDays(m
 </script>
 </body>
 </html>
+
