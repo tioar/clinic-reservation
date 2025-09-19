@@ -31,6 +31,15 @@ function aesDec(v){
 const qs = (k)=>new URL(location.href).searchParams.get(k);
 const pad2=(n)=>String(n).padStart(2,'0');
 function weekdayZh(ymd){ const d=new Date(ymd+'T09:00:00+08:00'); return ['日','一','二','三','四','五','六'][d.getDay()]||''; }
+function fmtTsTW(input){ if(!input) return ''; const d=new Date(input); if(isNaN(d)) return ''; return `${d.getFullYear()}/${pad2(d.getMonth()+1)}/${pad2(d.getDate())} ${pad2(d.getHours())}:${pad2(d.getMinutes())}:${pad2(d.getSeconds())}`; }
+function toYMD(d){ const z=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate(),1,0,0)); return `${z.getUTCFullYear()}-${pad2(z.getUTCMonth()+1)}-${pad2(z.getUTCDate())}`; }
+function normalizeYMD(input){
+  if(!input) return '';
+  if(typeof input==='string'){ if(/^\d{4}-\d{2}-\d{2}$/.test(input)) return input; const d=new Date(input); return isNaN(d)?'':toYMD(d); }
+  const d=new Date(input); return isNaN(d)?'':toYMD(d);
+}
+
+/* 診別 → 卡片 class */
 function slotClass(slot){
   if(!slot) return 'slot-plain';
   if(slot.includes('早')) return 'slot-early';
@@ -39,9 +48,14 @@ function slotClass(slot){
   if(slot.includes('約')) return 'slot-appt';
   return 'slot-plain';
 }
+
+/* 依診別顯示報到時間 */
 function slotCheckinText(slot, meta) {
   if (!slot) return "";
-  if (slot.includes("約")) return (meta && meta.checkinBy) ? `約診請在 ${meta.checkinBy} 前報到` : "約診報到時間將由診所另行通知";
+  if (slot.includes("約")) {
+    if (meta && meta.checkinBy) return `約診請在 ${meta.checkinBy} 前報到`;
+    return "最晚報到時間為門診結束前一小時";
+  }
   if (slot.includes("早")) return "早診請在 10:30 前報到";
   if (slot.includes("午")) return "午診請在 16:00 前報到";
   if (slot.includes("晚")) return "晚診請在 20:00 前報到";
@@ -120,7 +134,6 @@ function slotCheckinText(slot, meta) {
   .slot-main{ font-size:1.1rem; }
   .slot-sub { font-size:1.05rem; }
   .slot-note{ font-size:.95rem; margin-top:2px; }
-
   .notice-text{ font-size:.95rem; line-height:1.6; color:#5e5485; }
   @media (max-width:400px){ .notice-text{ font-size:.88rem; } }
 
@@ -169,15 +182,14 @@ function slotCheckinText(slot, meta) {
 </div>
 
 <script>
-/* ====== 只補必要 JS：寫入內容 + 關閉 loading（顏色排版不動） ====== */
-const $loading = document.getElementById('loading');
-const $dots = document.getElementById('dots');
-const $card = document.getElementById('slotCard');
-const $main = document.getElementById('slotMain');
-const $sub  = document.getElementById('slotSub');
-const $note = document.getElementById('slotNotice');
-const $share= document.getElementById('shareBtn');
-const $ts   = document.getElementById('filledAt');
+const $loading  = document.getElementById('loading');
+const $dots     = document.getElementById('dots');
+const slotCard  = document.getElementById('slotCard');
+const slotMain  = document.getElementById('slotMain');
+const slotSub   = document.getElementById('slotSub');
+const slotNotice= document.getElementById('slotNotice');
+const filledAt  = document.getElementById('filledAt');
+const shareBtn  = document.getElementById('shareBtn');
 
 /* 點點動畫 */
 let dotTimer = setInterval(()=>{
@@ -185,92 +197,87 @@ let dotTimer = setInterval(()=>{
   if($dots.textContent.length>3) $dots.textContent='.';
 }, 340);
 
-/* 組字串（維持你現在的版面） */
-function fillAndShow(data){
-  const date   = data.date   || data.Date   || '';
-  const slot   = data.slot   || data.Slot   || data.kind || '';
-  const time   = data.time   || data.Time   || '';
-  const doctor = data.doctor || data.Doctor || '';
-  const name   = data.name   || data.Name   || '';
-  const num    = data.number || data.num    || data.No || '';
-
-  const wd = date ? `星期${weekdayZh(date)}` : '';
-  $card.className = 'slot-card ' + slotClass(slot);
-
-  // 上行：日期（星期）｜診別 時間 ［醫師］
-  $main.textContent = [date, wd].filter(Boolean).join(' ') + (slot||time||doctor ? `｜${[slot, time, doctor?`［${doctor}］`:'' ].filter(Boolean).join(' ')}` : '');
-
-  // 下行：姓名／號碼（如有）
-  $sub.textContent = (name || num) ? `姓名：${name||'—'}　號碼：${num?`${num} 號`:'—'}` : '';
-
-  // 報到提醒
-  $note.textContent = slotCheckinText(slot, data);
-
-  // 時戳
-  const now = new Date();
-  $ts.textContent = `建立時間：${now.getFullYear()}/${pad2(now.getMonth()+1)}/${pad2(now.getDate())} ${pad2(now.getHours())}:${pad2(now.getMinutes())}:${pad2(now.getSeconds())}`;
-
-  // 關 loading
-  clearInterval(dotTimer);
-  $loading.style.display='none';
-}
-
-/* 主流程：從 URL 或 sessionStorage 取 cipher，解密 → 顯示；失敗也要關 loading */
-(function boot(){
+(async function init(){
   try{
-    let cipher = qs('cipher');
-    if(!cipher){
-      // 有些流程會把 cipher 暫存
-      cipher = sessionStorage.getItem('cipher') || '';
-    }else{
-      try{ sessionStorage.setItem('cipher', cipher); }catch(_){}
-      // 移除網址上的 cipher 參數（避免外洩）
+    // 1) 先拿 id / receipt（從 cipher 或 sessionStorage）
+    let id=null, receipt='';
+    const paramCipher = qs('cipher');
+    if(paramCipher){
+      try{
+        const obj = aesDec(paramCipher);
+        id = obj.id || obj.bookingId || null;
+        receipt = obj.receipt || obj.rcpt || '';
+        // 存起來備用
+        try{ sessionStorage.setItem('lastBookingId', String(id||'')); }catch(_){}
+        try{ if(receipt) sessionStorage.setItem('rcpt:'+String(id||''), String(receipt)); }catch(_){}
+      }catch(_){}
+      // 清掉網址上的參數，避免外露
       history.replaceState({}, "", location.pathname);
     }
+    if(!id) id = sessionStorage.getItem('lastBookingId') || null;
+    if(!receipt && id) receipt = sessionStorage.getItem('rcpt:'+id) || '';
 
-    if(cipher){
-      try{
-        const data = aesDec(cipher);
-        fillAndShow(data);
-        return;
-      }catch(e){
-        // 解不開就當純文字 JSON 試一次
-        try{
-          const data = JSON.parse(decodeURIComponent(cipher));
-          fillAndShow(data);
-          return;
-        }catch(_){}
-      }
+    if(!id){
+      alert('連結無效或已過期，請回首頁重新操作。');
+      location.href='index.html'; return;
     }
 
-    // 沒有 cipher：嘗試從最近一筆暫存補救（僅顯示文字，不再叫 API）
-    let fallback = {};
+    // 2) 用 id/receipt 叫 API 取詳細資料
+    const r = await axios.get(API, { params:{ action:'detail', id, receipt } });
+    const d = r.data || {};
+    if (d.error) { alert('無法取得預約資料，請回首頁。'); location.href='index.html'; return; }
+
+    const ymd = normalizeYMD(d.date);
+    const wk  = weekdayZh(ymd);
+
+    // 3) 盡量補上實際時段 / 醫師
+    let timeRange = '';
+    let doctor = (d.doctor || '').trim();
+    let slotMeta = null;
     try{
-      const id = sessionStorage.getItem('lastBookingId');
-      const raw = id ? sessionStorage.getItem('rcpt:'+String(id)) : '';
-      if(raw){ fallback = { note:'', receipt: raw }; }
+      const slotsResp = await axios.get(API, { params:{ action:'getSlots', date: ymd } });
+      const data = slotsResp.data;
+      const slots = Array.isArray(data) ? data : (Array.isArray(data?.slots) ? data.slots : []);
+      const hit = slots.find(x => String(x.label) === String(d.slot));
+      slotMeta  = hit || null;
+      timeRange = hit?.time || '';
+      if(!doctor && hit && hit.doctor) doctor = String(hit.doctor);
     }catch(_){}
-    fillAndShow(fallback);
+
+    // 4) 套診別色卡 + 寫字
+    slotCard.className = 'slot-card ' + slotClass(d.slot||'');
+    const docTxt = doctor ? `【${doctor}】` : '';
+    slotMain.textContent = `${ymd} 星期${wk}（${d.slot||''}） ${timeRange||''} ${docTxt}`;
+    slotSub.textContent  = `姓名：${d.name||''}，號碼：${d.num||''} 號。`;
+    const noticeText = slotCheckinText(d.slot || "", slotMeta);
+    slotNotice.innerHTML = noticeText ? `⭐ ${noticeText}` : "";
+
+    filledAt.textContent = d.submittedAt ? fmtTsTW(d.submittedAt) : '';
+
+    // 5) 分享
+    const shareText =
+`✔️陳萬龍診所門診預約成功！
+
+${ymd} 星期${wk}（${d.slot||''}） ${timeRange||''} ${docTxt}
+姓名：${d.name||''}，號碼：${d.num||''} 號。
+
+🔺請留意最晚報到時間為門診結束前一小時。`;
+    shareBtn.onclick = async ()=>{
+      try{
+        if(navigator.share) await navigator.share({ text: shareText });
+        else{ await navigator.clipboard.writeText(shareText); alert('已複製分享內容！'); }
+      }catch(_){}
+    };
+
   }catch(e){
     console.error(e);
-    // 不論如何都要把 loading 關掉，避免卡住
+    alert('系統忙碌或網路不穩，請回首頁再試一次。');
+    location.href='index.html';
+  }finally{
     clearInterval(dotTimer);
     $loading.style.display='none';
   }
 })();
-
-/* 分享（選用，不影響主要流程） */
-$share.addEventListener('click', async ()=>{
-  const text = `${$main.textContent}\n${$sub.textContent}`.trim();
-  try{
-    if(navigator.share){
-      await navigator.share({ title:'預約成功', text });
-    }else{
-      await navigator.clipboard.writeText(text);
-      alert('已複製到剪貼簿');
-    }
-  }catch(_){}
-});
 </script>
 </body>
 </html>
