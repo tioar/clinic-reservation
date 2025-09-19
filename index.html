@@ -59,19 +59,14 @@ body{margin:0;background:var(--bg);color:#1f1330;font-family:"Noto Sans TC","Mic
   box-shadow: 0 0 0 2px #e9ddff;
 }
 
-/* ✅ 今天樣式（深灰格子＋白日期；膠囊白底黑字） */
+/* ✅ 今天樣式（更淺的灰底 ＋ 日期白字；不顯示膠囊） */
 .day.today{
-  background:#374151;           /* 深灰底 */
-  border-color:#1f2937;
+  background:#4b5563;      /* 淺一階深灰 */
+  border-color:#374151;
 }
 .day.today .d{ color:#ffffff; } /* 日期白字 */
-.pill.today{
-  background:#ffffff;           /* 白底黑字 */
-  color:#111827;
-  border-color:#e5e7eb;
-}
 
-/* pills in calendar cells */
+/* pills */
 .pill{display:inline-flex;align-items:center;justify-content:center;gap:.3rem;border:1px solid #e3e6ee;border-radius:999px;padding:.18rem .6rem;font-weight:900;font-size:clamp(.76rem,.9vw,.92rem);line-height:1.1;white-space:nowrap;min-width:4.2em}
 .pill .remain{white-space:nowrap}
 .pill.early{background:#e7f7ee;color:#065f46;border-color:#b8ead4}
@@ -127,7 +122,7 @@ body{margin:0;background:var(--bg);color:#1f1330;font-family:"Noto Sans TC","Mic
 .picked .hl.night{color:#1d4ed8}
 .picked .hl.appt {color:#b51695}
 
-/* = Form 一欄一行 + 防外凸 = */
+/* = Form = */
 .form-grid{display:grid;gap:14px;grid-template-columns:1fr}
 .form-grid > div{min-width:0}
 .form-label-strong{font-weight:900;margin-bottom:6px;color:#1f1330}
@@ -138,7 +133,7 @@ body{margin:0;background:var(--bg);color:#1f1330;font-family:"Noto Sans TC","Mic
   padding:0 .9rem;background:#fff
 }
 
-/* 日期輸入：固定高度 + 對齊 WebKit 內部，並用假 placeholder */
+/* 日期輸入 */
 .date-wrap{position:relative;height:46px}
 input[type="date"].form-input{appearance:none;-webkit-appearance:none;height:100%;padding:0 .9rem;font-size:16px}
 input[type="date"]::-webkit-date-and-time-value{height:100%;line-height:46px}
@@ -156,7 +151,7 @@ input[type="date"]::-webkit-calendar-picker-indicator{padding:0 8px 0 0}
 /* 同意條款自動補黑色粗體 * */
 label.agree span::after{content:" *";color:#000;font-weight:900}
 
-/* ==== Modal 統一大圓角 ==== */
+/* ==== Modal ==== */
 .modal-rounded .modal-content{border-radius:20px !important;overflow:hidden;border:1px solid #e9e0ff}
 #rulesModal .modal-header{background:#f3edff}
 #rulesModal .modal-body{background:#f6f3ff}
@@ -168,13 +163,7 @@ label.agree span::after{content:" *";color:#000;font-weight:900}
 .chip-strong{background:#f3f0ff;color:#4a2f82;border-color:#e4ddff}
 .chip-range{background:#f8fafc;color:#334155}
 
-/* 預約須知：數字縮排列表 */
-.numlist{list-style:none;padding:0;margin:0}
-.numlist li{display:flex;gap:12px;align-items:flex-start;margin:12px 0}
-.numlist .num{flex:0 0 1.8em;font-weight:900;color:#2a183d;text-align:right}
-.numlist .txt{flex:1}
-
-/* ===== 全螢幕動態遮罩 ===== */
+/* 遮罩 */
 #mask{
   position:fixed; inset:0;
   display:none;
@@ -232,7 +221,7 @@ label.agree span::after{content:" *";color:#000;font-weight:900}
     <div class="section picked" id="picked"></div>
   </div>
 
-  <!-- 表單：一欄一行 -->
+  <!-- 表單 -->
   <div class="cardish section mt-3">
     <input type="hidden" id="date"/><input type="hidden" id="slot"/>
     <input type="hidden" id="g-recaptcha-response" name="g-recaptcha-response"/>
@@ -327,7 +316,7 @@ const API="https://script.google.com/macros/s/AKfycbz1jtOWBJEETvotCU2y022ow4lOlm
 const RECAPTCHA_SITE_KEY="6LdqprArAAAAACpuAXemZUH3KNER1t1iw07YjGHu";
 const AES_KEY="A2x5fT9qR7nC1vB8mK3pZ6sD4uH0yW2j";
 
-/* 一次性簽章暫存：以日期為 key */
+/* 一次性簽章暫存 */
 const nonceStore = {}; // { 'YYYY-MM-DD': {nonce, sig, exp} }
 
 /* reCAPTCHA */
@@ -406,7 +395,7 @@ $('agreeConfirm').addEventListener('click',()=>{
   if(noticeModalInst) noticeModalInst.hide();
 });
 
-/* iOS/Safari date 假 placeholder 控制 */
+/* iOS/Safari date 假 placeholder */
 (function(){
   const wrap = document.getElementById('dateWrap');
   const input = document.getElementById('birthday');
@@ -460,8 +449,7 @@ function renderSkeleton(monthDate){
     const isToday = (key===TODAY_KEY);
     const cls=inWindow?'day':'day disabled';
     const todayClass=isToday?' today':'';
-    const meta=isToday?`<span class="pill today">今天</span>`:'—';
-    html+=`<div class="${cls}${todayClass}" data-ymd="${key}"><div class="d">${d}</div><div class="meta">${meta}</div></div>`;
+    html+=`<div class="${cls}${todayClass}" data-ymd="${key}"><div class="d">${d}</div><div class="meta">—</div></div>`;
   }
   $days.innerHTML=html; $panel.style.display='none'; $picked.style.display='none';
 }
@@ -514,7 +502,7 @@ function hydrateMonth(monthDate, dayMap){
     const isToday=(key===TODAY_KEY);
     if(!inWindow || !hasOpen){
       cls += (inWindow?'':' disabled');
-      inner+=`<div class="meta">${isToday?`<span class="pill today">今天</span>`:'—'}</div>`;
+      inner+=`<div class="meta">—</div>`;
     }else{
       cls+=' clickable';
       const slotPills=meta.slots.filter(s=>s.status==='open').map(s=>{
@@ -522,15 +510,14 @@ function hydrateMonth(monthDate, dayMap){
         const label=s.slot==='early'?'早診':s.slot==='noon'?'午診':s.slot==='night'?'晚診':'約診';
         return `<span class="pill ${tag}"><span class="lbl">${label}</span> <span class="remain">剩餘 ${Math.max(0,s.remain)} 人</span></span>`;
       }).join('');
-      const todayBadge = isToday ? `<span class="pill today">今天</span>` : '';
-      inner+=`<div class="meta">${todayBadge}${slotPills}</div>`;
+      inner+=`<div class="meta">${slotPills}</div>`;
     }
     if(isToday) cls+=' today';
     html+=`<div class="${cls}" data-ymd="${key}">${inner}</div>`;
   }
   $days.innerHTML=html;
 
-  /* 👉 點日期：加 .selected（保紫框），再開下方列表 */
+  /* 點日期開下方列表 */
   $days.querySelectorAll('.day.clickable').forEach(el=>{
     el.addEventListener('click',()=>{
       $days.querySelectorAll('.day.selected').forEach(d=>d.classList.remove('selected'));
@@ -567,8 +554,6 @@ function selectRow(row){
   const mapVal={early:'早診',noon:'午診',night:'晚診',appt:'約診'};
   $('date').value=row.dataset.date;
   $('slot').value=mapVal[row.dataset.slot]||'';
-
-  // 不顯示「已選擇」那一行，只保留滾動
   $('submitBtn').scrollIntoView({behavior:'smooth',block:'center'});
 }
 
