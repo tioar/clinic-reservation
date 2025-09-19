@@ -528,7 +528,7 @@ $('submitBtn').addEventListener('click',async(e)=>{
   if(ph.length<8||ph.length>10){alert('電話長度不符');return;}
   const age=Math.floor((Date.now()-new Date(b))/31536000000); if(age<0||age>150){alert('生日超出限制');return;}
   try{
-    submitting=true; $('submitBtn').disabled=true; showMask('預約提交中，請勿關閉或重新整理頁面');
+    submitting=true; $('submitBtn').disabled=true; showMask('預約中，請勿關閉或重新整理頁面');
     const recaptchaToken=await getRecaptchaToken(); $('g-recaptcha-response').value=recaptchaToken;
     const params={action:'submit',date:d,slot:s,name:n,birthday:b,id:id,phone:ph,recaptchaToken,t:Date.now()};
     const r=await axios.get(API,{params});
