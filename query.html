@@ -4,10 +4,9 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>陳萬龍診所門診查詢／取消預約</title>
-<!-- Google Fonts：Noto Sans TC（400/500/700）-->
-<link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+
+<!-- Google Fonts：與 index 一致（400/600/800/900） -->
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;600;800;900&display=swap" rel="stylesheet">
 
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
 <link rel="icon" type="image/png" href="favicon.png">
@@ -19,7 +18,7 @@
   const RECAPTCHA_SITE_KEY = "6LdqprArAAAAACpuAXemZUH3KNER1t1iw07YjGHu";
 </script>
 
-<!-- ★ 必載：reCAPTCHA v3 -->
+<!-- reCAPTCHA v3 -->
 <script src="https://www.google.com/recaptcha/api.js?render=6LdqprArAAAAACpuAXemZUH3KNER1t1iw07YjGHu"></script>
 
 <style>
@@ -31,7 +30,11 @@
     --outline:#cfd3de;
     --outline-text:#5c6170;
   }
-  body{ background:#f4eefc; }
+  body{
+    background:#f4eefc;
+    /* 與 index 一致的字體順序 */
+    font-family:"Noto Sans TC","Microsoft JhengHei",system-ui,sans-serif;
+  }
   .card{
     max-width:780px; margin:32px auto; padding:28px 22px 32px;
     border-radius:24px; border:1px solid var(--line); background:#fff;
@@ -59,13 +62,13 @@
   .row-early { background:#e7f7ee; color:#0f5132; }
   .row-noon  { background:#fff3df; color:#7a4d00; }
   .row-night { background:#e8f2ff; color:#1d4ed8; }
-  .row-appt  { background:#fde7ef; color:#b51695; } /* ★ 約診：洋紅 */
+  .row-appt  { background:#fde7ef; color:#b51695; } /* 約診：洋紅 */
   .row-closed{ background:#ffe6e6; color:#b02a37; }
 
   .btn-cancel{background:#dc3545;border:none;color:#fff;font-weight:700;border-radius:50rem;padding:0.25rem 0.75rem;}
   .btn-cancel:hover{background:#b02a37}
 
-  /* ★ 新增：禁用狀態（灰色、不可點） */
+  /* 禁用狀態（灰色、不可點） */
   .btn-cancel:disabled{
     background:#adb5bd !important;
     color:#fff !important;
@@ -120,7 +123,7 @@ function slotKey(label){
   if(!label) return '';
   if(label.includes('早')) return 'early';
   if(label.includes('午')) return 'noon';
-  if(label.includes('晚')) return 'night';
+  iflabel = label.includes('晚'); if(label.includes('晚')) return 'night';
   if(label.includes('約診')) return 'appt';
   if(label.includes('未開放')) return 'closed';
   return '';
@@ -137,7 +140,6 @@ const $dots = document.getElementById('dots');
 /* 遮罩動畫 */
 let dotTimer=null;
 function showing(txt){
-  // 以元素的第一個文字節點為標題，保持原結構
   $ing.childNodes[0].nodeValue = (txt||'處理中請稍等');
   $ing.style.display='flex';
   if(dotTimer) clearInterval(dotTimer);
@@ -194,7 +196,7 @@ function guessTime(slot){
 
 function appendRow(item,pid){
   const ymd=item.date||'', w=weekday(ymd), t=item.time||guessTime(item.slot)||'';
-  const disableCancel = !item.canCancel; // ★ 用後端的可取消旗標
+  const disableCancel = !item.canCancel;
   const key = slotKey(item.slot||'');
   const row=document.createElement('div');
   row.className='list-row row-'+key+' mb-2';
@@ -208,7 +210,6 @@ function appendRow(item,pid){
       </button>
     </div>`;
 
-  // 單筆取消：帶 rowId + 身分證字號（後端會驗證為本人且非當天/過去）
   row.querySelector('.btn-cancel').onclick = () => {
     if (!disableCancel) cancelBooking(item.id, pid);
   };
@@ -224,8 +225,8 @@ async function cancelBooking(rowId, pid){
     const resp = await axios.get(API, {
       params:{
         action:'cancel',
-        id: rowId,          // 單筆 id
-        idnum: pid,         // 同步帶上身分證字號，後端驗證本人
+        id: rowId,
+        idnum: pid,
         recaptchaToken: token,
         t: Date.now()
       }
@@ -236,7 +237,7 @@ async function cancelBooking(rowId, pid){
     }
     if(resp.data && (resp.data.ok||resp.data.success)){
       alert(resp.data.message||'已取消該筆預約。');
-      await queryByPid();  // 重新載入列表
+      await queryByPid();
     }else{
       alert((resp.data&&resp.data.message)||'取消失敗，請稍後再試');
     }
@@ -253,4 +254,3 @@ $pid.addEventListener('keydown',e=>{ if(e.key==='Enter') queryByPid(); });
 </script>
 </body>
 </html>
-
