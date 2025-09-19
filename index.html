@@ -546,12 +546,14 @@ function selectRow(row){
   const mapVal={early:'早診',noon:'午診',night:'晚診',appt:'約診'};
   $('date').value=row.dataset.date;
   $('slot').value=mapVal[row.dataset.slot]||'';
-  /* 👉 picked 的高亮字帶上診別 class，字色同步 */
-  const chosen=`${row.dataset.date}｜<span class="hl ${row.dataset.slot}">${row.dataset.label} ${row.dataset.time} ${row.dataset.doc?`［${row.dataset.doc}］`:''}</span>  剩餘 ${row.dataset.rem}/${row.dataset.cap} 人`;
+
+  // 已選擇：不顯示剩餘人數
+  const chosen=`${row.dataset.date}｜<span class="hl ${row.dataset.slot}">${row.dataset.label} ${row.dataset.time} ${row.dataset.doc?`［${row.dataset.doc}］`:''}</span>`;
   $('picked').innerHTML=`已選擇：<b>${chosen}</b>`;
   $('picked').style.display='block';
   $('submitBtn').scrollIntoView({behavior:'smooth',block:'center'});
 }
+
 
 /* 切月 */
 $('btnPrev').addEventListener('click',async()=>{curMonth=addMonths(curMonth,-1);await bootMonth(curMonth)});
@@ -608,4 +610,5 @@ async function bootMonth(m){ renderSkeleton(m); const map=await fetchMonthDays(m
 </script>
 </body>
 </html>
+
 
