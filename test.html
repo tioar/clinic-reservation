@@ -133,6 +133,19 @@ label.agree span::after{content:" *";color:#000;font-weight:900}
 .numlist .num{flex:0 0 1.8em;font-weight:900;color:#2a183d;text-align:right}
 .numlist .txt{flex:1}
 
+/* ===== 全螢幕動態遮罩（新增） ===== */
+#mask{
+  position:fixed; inset:0;
+  display:none;                 /* 預設不顯示，避免左上角閃現 */
+  align-items:center; justify-content:center;
+  flex-direction:column; gap:6px;
+  z-index:9999;
+  background:rgba(255,255,255,.92);
+  backdrop-filter:blur(2px);
+  color:#4b2c86; font-size:18px; font-weight:700;
+}
+#dots{display:inline-block;width:2ch;text-align:left}
+
 /* Mobile */
 @media (max-width:600px){
   .wrap{padding:8px}
@@ -321,13 +334,26 @@ const W=['日','一','二','三','四','五','六'];
 const fmtTitle=d=>`${d.getFullYear()}年${d.getMonth()+1}月份`;
 const NOW=new Date(); let WINDOW_MIN=null,WINDOW_MAX=null; let curMonth=firstOfMonth(NOW);
 
-/* 遮罩 */
+/* 遮罩（使用你原本的 show/hide，僅靠 CSS 讓它全螢幕置中） */
 const $mask=$('mask'),$dots=$('dots'); let dotTimer=null;
-function showMask(txt){ $mask.textContent=(txt||'預約中請稍等，請勿關閉或重新整理頁面'); $mask.style.display='flex';
+function showMask(txt){
+  $mask.textContent=(txt||'預約中請稍等，請勿關閉或重新整理頁面');
+  $mask.style.display='flex';
   if(dotTimer) clearInterval(dotTimer);
-  const span=document.createElement('span'); span.id='dots'; span.textContent='...'; $mask.appendChild(span);
-  dotTimer=setInterval(()=>{ const d=$('dots'); if(!d) return; d.textContent=(d.textContent==='...')?'.':d.textContent+'.'; if(d.textContent.length>3)d.textContent='.';},340);}
-function hideMask(){ if(dotTimer) clearInterval(dotTimer); $mask.style.display='none'; }
+  const span=document.createElement('span');
+  span.id='dots';
+  span.textContent='...';
+  $mask.appendChild(span);
+  dotTimer=setInterval(()=>{
+    const d=$('dots'); if(!d) return;
+    d.textContent=(d.textContent==='...')?'.':d.textContent+'.';
+    if(d.textContent.length>3)d.textContent='.';
+  },340);
+}
+function hideMask(){
+  if(dotTimer) clearInterval(dotTimer);
+  $mask.style.display='none';
+}
 
 /* 規則 / 須知（打開&同意） */
 let noticeModalInst=null;
@@ -338,8 +364,8 @@ $('showNotice').addEventListener('click',e=>{
   noticeModalInst.show();
 });
 $('agreeConfirm').addEventListener('click',()=>{
-  $('agree').checked=true;           // 勾選核取
-  if(noticeModalInst) noticeModalInst.hide(); // 關閉視窗
+  $('agree').checked=true;
+  if(noticeModalInst) noticeModalInst.hide();
 });
 
 /* iOS/Safari date 假 placeholder 控制 */
@@ -411,13 +437,8 @@ async function fetchMonthDays(monthDate){
         const r=await axios.get(API,{params:{action:'getSlots',date:key,t:Date.now()}});
         const data=r.data;
 
-        /* ← 重要：儲存一次性簽章（若後端有回） */
         if (!Array.isArray(data) && data && data.nonce && data.sig && data.exp) {
-          nonceStore[key] = {
-            nonce: String(data.nonce),
-            sig:   String(data.sig),
-            exp:   Number(data.exp)
-          };
+          nonceStore[key] = {nonce:String(data.nonce), sig:String(data.sig), exp:Number(data.exp)};
         }
 
         const raw=Array.isArray(data)?data:(Array.isArray(data?.slots)?data.slots:[]);
@@ -525,7 +546,6 @@ $('submitBtn').addEventListener('click',async(e)=>{
 
     const params={action:'submit',date:d,slot:s,name:n,birthday:b,id:id,phone:ph,recaptchaToken,t:Date.now()};
 
-    /* ← 關鍵：把對應日期的 nonce/sig/exp 一起送出（若存在） */
     if (nonceStore[d]) {
       params.nonce = nonceStore[d].nonce;
       params.sig   = nonceStore[d].sig;
