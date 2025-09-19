@@ -111,19 +111,27 @@ input[type="date"]::-webkit-calendar-picker-indicator{padding:0 8px 0 0}
 /* 同意條款自動補黑色粗體 * */
 label.agree span::after{content:" *";color:#000;font-weight:900}
 
-/* 身分證欄顯示大寫 */
-.force-upper{text-transform:uppercase}
+/* ==== Modal 統一大圓角 ==== */
+.modal-rounded .modal-content{
+  border-radius:20px !important;
+  overflow:hidden;           /* 讓底部也吃到圓角 */
+  border:1px solid #e9e0ff;
+}
+#rulesModal .modal-header{background:#f3edff}
+#rulesModal .modal-body{background:#f6f3ff}
 
-/* 遮罩 */
-#mask{position:fixed;inset:0;display:none;align-items:center;justify-content:center;z-index:9999;font-size:18px;color:#4b2c86;background:rgba(255,255,255,.92);backdrop-filter:blur(2px)}
-#dots{display:inline-block;width:2ch;text-align:left}
-
-/* Modal 規則：每列一行 */
-.rule-line{display:flex;align-items:center;gap:10px;flex-wrap:nowrap;white-space:nowrap;font-weight:800;
+/* 規則：每列一行 */
+.rule-line{display:flex;align-items:center;gap:10px;white-space:nowrap;font-weight:800;
   font-size:clamp(12px,3.2vw,16px);min-width:0;letter-spacing:.5px}
 .chip{display:inline-flex;align-items:center;gap:6px;padding:.25rem .6rem;border-radius:999px;border:1px solid #e6e8f0;background:#fff}
 .chip-strong{background:#f3f0ff;color:#4a2f82;border-color:#e4ddff}
 .chip-range{background:#f8fafc;color:#334155}
+
+/* 預約須知：數字縮排列表 */
+.numlist{list-style:none;padding:0;margin:0}
+.numlist li{display:flex;gap:12px;align-items:flex-start;margin:12px 0}
+.numlist .num{flex:0 0 1.8em;font-weight:900;color:#2a183d;text-align:right}
+.numlist .txt{flex:1}
 
 /* Mobile */
 @media (max-width:600px){
@@ -185,17 +193,14 @@ label.agree span::after{content:" *";color:#000;font-weight:900}
       <div>
         <div class="form-label-strong">出生年月日 *</div>
         <div class="date-wrap" id="dateWrap">
-          <input id="birthday" type="date" class="form-input" inputmode="numeric" autocomplete="off" />
-          <span class="date-hint" id="dateHint">年／月／日</span>
+          <input id="birthday" type="date" class="form-input" inputmode="numeric" autocomplete="off"/>
+          <span class="date-hint" id="dateHint"> 年/月/日</span>
         </div>
       </div>
 
       <div>
         <div class="form-label-strong">身分證字號 *</div>
-        <input id="idnum" type="text" maxlength="10"
-               class="form-input force-upper"
-               placeholder="A123456789" autocomplete="off"
-               autocapitalize="characters" />
+        <input id="idnum" type="text" maxlength="10" class="form-input" placeholder="A123456789" autocomplete="off"/>
       </div>
 
       <div>
@@ -209,24 +214,23 @@ label.agree span::after{content:" *";color:#000;font-weight:900}
     </div>
     <div class="d-grid gap-2 mt-3">
       <button id="submitBtn" class="btn-main">送出預約</button>
-      <a class="btn-ghost text-center text-decoration-none" href="query.html">查詢／取消預約</a>
+      <a class="btn-ghost text-center text-decoration-none" href="query.html">查詢/取消預約</a>
     </div>
   </div>
 </div>
 
 <!-- 規則 Modal -->
-<div class="modal fade" id="rulesModal" tabindex="-1">
+<div class="modal fade modal-rounded" id="rulesModal" tabindex="-1">
   <div class="modal-dialog modal-lg modal-dialog-centered">
-    <div class="modal-content" style="border-radius:18px">
-      <div class="modal-header" style="background:#f3edff;border-bottom:1px solid #e9e0ff;border-top-left-radius:18px;border-top-right-radius:18px">
+    <div class="modal-content">
+      <div class="modal-header">
         <h5 class="modal-title" style="font-weight:900;color:#4a2f82">開放預約日期規則</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="關閉"></button>
       </div>
-      <div class="modal-body" style="background:#f6f3ff">
+      <div class="modal-body">
         <div class="p-2 rounded-3" style="background:#efeaff;border:1px solid #e5dcff">
           <div class="rule-line"><span class="chip chip-strong">週一</span><span>可預約 →</span><span class="chip chip-range">［ 週四 ~ 下下週一 ］</span></div>
           <div class="rule-line"><span class="chip chip-strong">週二</span><span>可預約 →</span><span class="chip chip-range">［ 週五 ~ 下下週二 ］</span></div>
-          <!-- 修正：chip-強 -> chip-strong -->
           <div class="rule-line"><span class="chip chip-strong">週三</span><span>可預約 →</span><span class="chip chip-range">［ 週六 ~ 下下週三 ］</span></div>
           <div class="rule-line"><span class="chip chip-strong">週四</span><span>可預約 →</span><span class="chip chip-range">［ 下週一 ~ 下下週四 ］</span></div>
           <div class="rule-line"><span class="chip chip-strong">週五</span><span>可預約 →</span><span class="chip chip-range">［ 下週二 ~ 下下週五 ］</span></div>
@@ -240,22 +244,29 @@ label.agree span::after{content:" *";color:#000;font-weight:900}
 </div>
 
 <!-- 預約須知 Modal -->
-<div class="modal fade" id="noticeModal" tabindex="-1">
+<div class="modal fade modal-rounded" id="noticeModal" tabindex="-1">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
-      <div class="modal-header"><h5 class="modal-title">預約須知與個資告知</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-header"><h5 class="modal-title">預約須知與個資告知</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="關閉"></button></div>
       <div class="modal-body" style="text-align:left">
-        <p>1. 本院蒐集之個人資料（姓名、電話、身分證字號）僅用於掛號與醫療聯繫，不另作他用。</p>
-        <p>2. 請於預約的門診結束前一小時到場報到（早診10:30前；午診16:00前；晚診20:00前），逾時視同放棄，會釋出名額給現場掛號。</p>
-        <p>3. 如需取消，請於前一日線上辦理；當日請以電話通知 (03) 515-2971。</p>
-        <p>4. 本院保留因醫療需求調整看診順序之權利。</p>
-        <p>5. 勾選同意表示理解並接受上述內容。</p>
+        <ol class="numlist">
+          <li><span class="num">1.</span><span class="txt">本院蒐集之個人資料（姓名、電話、身分證字號）僅用於掛號與醫療聯繫，不另作他用。</span></li>
+          <li><span class="num">2.</span><span class="txt">請於預約的門診結束前一小時到場報到（早診10:30前；午診16:00前；晚診20:00前），逾時視同放棄，會釋出名額給現場掛號。</span></li>
+          <li><span class="num">3.</span><span class="txt">如需取消，請於前一日線上辦理；當日請以電話通知 (03) 515-2971。</span></li>
+          <li><span class="num">4.</span><span class="txt">本院保留因醫療需求調整看診順序之權利。</span></li>
+          <li><span class="num">5.</span><span class="txt">勾選同意表示理解並接受上述內容。</span></li>
+        </ol>
+        <div class="d-grid mt-3">
+          <button id="agreeConfirm" class="btn-main">同意</button>
+        </div>
       </div>
     </div>
   </div>
 </div>
 
+<!-- Bootstrap -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<!-- reCAPTCHA v3 -->
 <script src="https://www.google.com/recaptcha/api.js?render=6LdqprArAAAAACpuAXemZUH3KNER1t1iw07YjGHu"></script>
 
 <script>
@@ -315,9 +326,18 @@ function showMask(txt){ $mask.firstChild.nodeValue=(txt||'預約中請稍等，�
     if($dots.textContent.length>3)$dots.textContent='.';},340);}
 function hideMask(){ if(dotTimer) clearInterval(dotTimer); $mask.style.display='none'; }
 
-/* 規則 / 須知 */
+/* 規則 / 須知（打開&同意） */
+let noticeModalInst=null;
 $('openRules').addEventListener('click',()=>new bootstrap.Modal(document.getElementById('rulesModal')).show());
-$('showNotice').addEventListener('click',e=>{e.preventDefault(); new bootstrap.Modal(document.getElementById('noticeModal')).show();});
+$('showNotice').addEventListener('click',e=>{
+  e.preventDefault();
+  noticeModalInst=new bootstrap.Modal(document.getElementById('noticeModal'));
+  noticeModalInst.show();
+});
+$('agreeConfirm').addEventListener('click',()=>{
+  $('agree').checked=true;           // 勾選核取
+  if(noticeModalInst) noticeModalInst.hide(); // 關閉視窗
+});
 
 /* iOS/Safari date 假 placeholder 控制 */
 (function(){
@@ -329,18 +349,6 @@ $('showNotice').addEventListener('click',e=>{e.preventDefault(); new bootstrap.M
   input.addEventListener('focus', ()=>wrap.classList.add('focus'));
   input.addEventListener('blur', ()=>wrap.classList.remove('focus'));
   refresh();
-})();
-
-/* 讓身分證輸入即時轉大寫（含貼上） */
-(function () {
-  const idInput = document.getElementById('idnum');
-  const toUpper = () => {
-    if (!idInput) return;
-    const pos = idInput.selectionStart;
-    idInput.value = idInput.value.toUpperCase().replace(/\s+/g,'');
-    try { idInput.setSelectionRange(pos,pos); } catch(_){}
-  };
-  ['input','change','paste','blur'].forEach(ev=>idInput.addEventListener(ev,toUpper));
 })();
 
 /* 週標題 */
@@ -478,6 +486,14 @@ function selectRow(row){
 /* 切月 */
 $('btnPrev').addEventListener('click',async()=>{curMonth=addMonths(curMonth,-1);await bootMonth(curMonth)});
 $('btnNext').addEventListener('click',async()=>{curMonth=addMonths(curMonth, 1);await bootMonth(curMonth)});
+
+/* 身分證字號：英文自動大寫 */
+$('idnum').addEventListener('input',e=>{
+  const p=e.target.selectionStart;
+  e.target.value=e.target.value.toUpperCase();
+  // 維持游標位置
+  try{ e.target.setSelectionRange(p,p);}catch(_){}
+});
 
 /* 送出 */
 let submitting=false;
