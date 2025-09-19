@@ -53,6 +53,12 @@ body{margin:0;background:var(--bg);color:#1f1330;font-family:"Noto Sans TC","Mic
 .day.clickable:hover{box-shadow:0 0 0 2px #d7caf6}
 .day.disabled{background:#f1f2f6;color:#8b90a3;border-color:#e5e7eb;opacity:.85;pointer-events:none}
 
+/* 👉 日期格子：選到仍維持紫色框線 */
+.day.selected{
+  border: 2px solid #cdbbff;
+  box-shadow: 0 0 0 2px #e9ddff;
+}
+
 /* pills in calendar cells */
 .pill{display:inline-flex;align-items:center;justify-content:center;gap:.3rem;border:1px solid #e3e6ee;border-radius:999px;padding:.18rem .6rem;font-weight:900;font-size:clamp(.76rem,.9vw,.92rem);line-height:1.1;white-space:nowrap;min-width:4.2em}
 .pill .remain{white-space:nowrap}
@@ -69,44 +75,63 @@ body{margin:0;background:var(--bg);color:#1f1330;font-family:"Noto Sans TC","Mic
 .tile:hover{box-shadow:0 0 0 2px #e6dbff}
 .tile .remain{margin-left:auto;font-weight:900;white-space:nowrap}
 .tile .doc{color:#6b5f92;font-weight:800}
-/* 選取後依診別上色：早=綠、午=橘、晚=藍、約=粉；未選=白 */
-.tile.selected{background:#fff;box-shadow:none} /* 預設不設色 */
+
+/* 👉 時段卡片：選到依診別「底色＋字色」 */
+.tile.selected{background:#fff;box-shadow:none}
+.tile.selected strong{font-weight:900}
+
+/* 早診：綠 */
 .tile.selected.early{background:#e7f7ee;box-shadow:0 0 0 2px #b8ead4}
-.tile.selected.noon {background:#fff3df;box-shadow:0 0 0 2px #ffd79a}
+.tile.selected.early strong,
+.tile.selected.early .remain,
+.tile.selected.early .doc{ color:#065f46; }
+
+/* 午診：橘 */
+.tile.selected.noon{background:#fff3df;box-shadow:0 0 0 2px #ffd79a}
+.tile.selected.noon strong,
+.tile.selected.noon .remain,
+.tile.selected.noon .doc{ color:#7a4d00; }
+
+/* 晚診：藍 */
 .tile.selected.night{background:#e8f2ff;box-shadow:0 0 0 2px #cfe2ff}
-.tile.selected.appt {background:#fde7ef;box-shadow:0 0 0 2px #ff99e6}
+.tile.selected.night strong,
+.tile.selected.night .remain,
+.tile.selected.night .doc{ color:#1d4ed8; }
 
+/* 約診：粉 */
+.tile.selected.appt{background:#fde7ef;box-shadow:0 0 0 2px #ff99e6}
+.tile.selected.appt strong,
+.tile.selected.appt .remain,
+.tile.selected.appt .doc{ color:#b51695; }
 
+/* 👉 已選擇行（picked）裡的高亮字，跟診別同色 */
 .picked{display:none;margin-top:8px;color:#3b2c5f}
 .picked b{color:#000}
-.picked .hl{color:#6236a7;font-weight:900}
+.picked .hl{font-weight:900}
+.picked .hl.early{color:#065f46}
+.picked .hl.noon {color:#7a4d00}
+.picked .hl.night{color:#1d4ed8}
+.picked .hl.appt {color:#b51695}
 
 /* = Form 一欄一行 + 防外凸 = */
 .form-grid{display:grid;gap:14px;grid-template-columns:1fr}
 .form-grid > div{min-width:0}
-.form-label-strong{font-weight:900;margin-bottom:6px;color:#1f1330} /* 標題+星號 粗體黑 */
+.form-label-strong{font-weight:900;margin-bottom:6px;color:#1f1330}
 .form-input{
   width:100%;min-width:0;max-width:100%;
   border:1px solid #ced2db;border-radius:12px;
-  font-size:1rem;height:46px; /* 統一輸入高度 */
+  font-size:1rem;height:46px;
   padding:0 .9rem;background:#fff
 }
 
 /* 日期輸入：固定高度 + 對齊 WebKit 內部，並用假 placeholder */
 .date-wrap{position:relative;height:46px}
-input[type="date"].form-input{
-  appearance:none;-webkit-appearance:none;
-  height:100%;padding:0 .9rem;font-size:16px; /* 16px 避免 iOS 放大 */
-}
+input[type="date"].form-input{appearance:none;-webkit-appearance:none;height:100%;padding:0 .9rem;font-size:16px}
 input[type="date"]::-webkit-date-and-time-value{height:100%;line-height:46px}
 input[type="date"]::-webkit-datetime-edit{padding:0}
 input[type="date"]::-webkit-datetime-edit-fields-wrapper{padding:0;margin:0}
 input[type="date"]::-webkit-calendar-picker-indicator{padding:0 8px 0 0}
-
-.date-hint{
-  position:absolute;left:14px;top:50%;transform:translateY(-50%);
-  color:#9aa0aa;pointer-events:none;font-size:16px;line-height:1
-}
+.date-hint{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:#9aa0aa;pointer-events:none;font-size:16px;line-height:1}
 .date-wrap.has-value .date-hint, .date-wrap.focus .date-hint{display:none}
 
 /* 扁平化按鈕 */
@@ -118,11 +143,7 @@ input[type="date"]::-webkit-calendar-picker-indicator{padding:0 8px 0 0}
 label.agree span::after{content:" *";color:#000;font-weight:900}
 
 /* ==== Modal 統一大圓角 ==== */
-.modal-rounded .modal-content{
-  border-radius:20px !important;
-  overflow:hidden;           /* 讓底部也吃到圓角 */
-  border:1px solid #e9e0ff;
-}
+.modal-rounded .modal-content{border-radius:20px !important;overflow:hidden;border:1px solid #e9e0ff}
 #rulesModal .modal-header{background:#f3edff}
 #rulesModal .modal-body{background:#f6f3ff}
 
@@ -139,10 +160,10 @@ label.agree span::after{content:" *";color:#000;font-weight:900}
 .numlist .num{flex:0 0 1.8em;font-weight:900;color:#2a183d;text-align:right}
 .numlist .txt{flex:1}
 
-/* ===== 全螢幕動態遮罩（新增） ===== */
+/* ===== 全螢幕動態遮罩 ===== */
 #mask{
   position:fixed; inset:0;
-  display:none;                 /* 預設不顯示，避免左上角閃現 */
+  display:none;
   align-items:center; justify-content:center;
   flex-direction:column; gap:6px;
   z-index:9999;
@@ -164,7 +185,6 @@ label.agree span::after{content:" *";color:#000;font-weight:900}
   .pill{display:block;width:100%;text-align:center;padding:.12rem .4rem;font-size:.78rem;line-height:1.15;min-width:auto;margin-bottom:4px}
   .pill .remain{display:none}
   .tile{padding:10px;border-radius:14px}
-  /* 手機也維持 46px 高度，不會再變細一條 */
   .date-wrap,.form-input,input[type="date"].form-input{height:46px}
 }
 </style>
@@ -223,7 +243,7 @@ label.agree span::after{content:" *";color:#000;font-weight:900}
       </div>
 
       <div>
-        <div class="form-label-strong">連絡電話 *</div>
+        <div class="form-label-strong">聯絡電話 *</div>
         <input id="phone" type="text" maxlength="10" inputmode="numeric" class="form-input" placeholder="0958xxxxxx" autocomplete="off"/>
       </div>
     </div>
@@ -293,7 +313,7 @@ const API="https://script.google.com/macros/s/AKfycbz1jtOWBJEETvotCU2y022ow4lOlm
 const RECAPTCHA_SITE_KEY="6LdqprArAAAAACpuAXemZUH3KNER1t1iw07YjGHu";
 const AES_KEY="A2x5fT9qR7nC1vB8mK3pZ6sD4uH0yW2j";
 
-/* 一次性簽章暫存（關鍵）：以日期為 key */
+/* 一次性簽章暫存：以日期為 key */
 const nonceStore = {}; // { 'YYYY-MM-DD': {nonce, sig, exp} }
 
 /* reCAPTCHA */
@@ -340,7 +360,7 @@ const W=['日','一','二','三','四','五','六'];
 const fmtTitle=d=>`${d.getFullYear()}年${d.getMonth()+1}月份`;
 const NOW=new Date(); let WINDOW_MIN=null,WINDOW_MAX=null; let curMonth=firstOfMonth(NOW);
 
-/* 遮罩（使用你原本的 show/hide，僅靠 CSS 讓它全螢幕置中） */
+/* 遮罩 */
 const $mask=$('mask'),$dots=$('dots'); let dotTimer=null;
 function showMask(txt){
   $mask.textContent=(txt||'預約中請稍等，請勿關閉或重新整理頁面');
@@ -356,12 +376,9 @@ function showMask(txt){
     if(d.textContent.length>3)d.textContent='.';
   },340);
 }
-function hideMask(){
-  if(dotTimer) clearInterval(dotTimer);
-  $mask.style.display='none';
-}
+function hideMask(){ if(dotTimer) clearInterval(dotTimer); $mask.style.display='none'; }
 
-/* 規則 / 須知（打開&同意） */
+/* 規則 / 須知 */
 let noticeModalInst=null;
 $('openRules').addEventListener('click',()=>new bootstrap.Modal(document.getElementById('rulesModal')).show());
 $('showNotice').addEventListener('click',e=>{
@@ -488,7 +505,15 @@ function hydrateMonth(monthDate, dayMap){
     html+=`<div class="${cls}" data-ymd="${key}">${inner}</div>`;
   }
   $days.innerHTML=html;
-  $days.querySelectorAll('.day.clickable').forEach(el=>el.addEventListener('click',()=>openDay(el.dataset.ymd, dayMap[el.dataset.ymd])));
+
+  /* 👉 點日期：加 .selected（保紫框），再開下方列表 */
+  $days.querySelectorAll('.day.clickable').forEach(el=>{
+    el.addEventListener('click',()=>{
+      $days.querySelectorAll('.day.selected').forEach(d=>d.classList.remove('selected'));
+      el.classList.add('selected');
+      openDay(el.dataset.ymd, dayMap[el.dataset.ymd]);
+    });
+  });
   showLoadingDots(false);
 }
 
@@ -500,7 +525,7 @@ function openDay(dateYMD, meta){
   let html=`<div class="head">${dateYMD}（星期${['日','一','二','三','四','五','六'][new Date(dateYMD).getDay()]}）</div><div class="slot-grid">`;
   html+=open.map(s=>{
     const label=mapSlot[s.slot]||s.label||''; const time=s.time||''; const doc=s.doctor?`［${s.doctor}］`:''; const rem=Math.max(0,s.remain);
-    return `<div class="tile ${s.slot}" data-date="${dateYMD}" data-slot="${s.slot}"${s.slot}" data-label="${label}" data-time="${time}" data-doc="${s.doctor||''}" data-rem="${rem}" data-cap="${s.cap}">
+    return `<div class="tile ${s.slot}" data-date="${dateYMD}" data-slot="${s.slot}" data-label="${label}" data-time="${time}" data-doc="${s.doctor||''}" data-rem="${rem}" data-cap="${s.cap}">
       <div><strong>${label}</strong> ${time} ${doc}</div>
       <div class="remain">剩餘 ${rem}/${s.cap} 人</div>
     </div>`;}).join('');
@@ -511,13 +536,15 @@ function openDay(dateYMD, meta){
   rows.forEach(row=>row.addEventListener('click',()=>selectRow(row)));
   if(rows.length===1) selectRow(rows[0]);
 }
+
 function selectRow(row){
   $panel.querySelectorAll('.tile').forEach(x=>x.classList.remove('selected'));
   row.classList.add('selected');
   const mapVal={early:'早診',noon:'午診',night:'晚診',appt:'約診'};
   $('date').value=row.dataset.date;
   $('slot').value=mapVal[row.dataset.slot]||'';
-  const chosen=`${row.dataset.date}｜<span class="hl">${row.dataset.label} ${row.dataset.time} ${row.dataset.doc?`［${row.dataset.doc}］`:''}</span>  剩餘 ${row.dataset.rem}/${row.dataset.cap} 人`;
+  /* 👉 picked 的高亮字帶上診別 class，字色同步 */
+  const chosen=`${row.dataset.date}｜<span class="hl ${row.dataset.slot}">${row.dataset.label} ${row.dataset.time} ${row.dataset.doc?`［${row.dataset.doc}］`:''}</span>  剩餘 ${row.dataset.rem}/${row.dataset.cap} 人`;
   $('picked').innerHTML=`已選擇：<b>${chosen}</b>`;
   $('picked').style.display='block';
   $('submitBtn').scrollIntoView({behavior:'smooth',block:'center'});
@@ -578,4 +605,3 @@ async function bootMonth(m){ renderSkeleton(m); const map=await fetchMonthDays(m
 </script>
 </body>
 </html>
-
