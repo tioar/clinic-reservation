@@ -59,13 +59,12 @@ body{margin:0;background:var(--bg);color:#1f1330;font-family:"Noto Sans TC","Mic
   box-shadow: 0 0 0 2px #e9ddff;
 }
 
-/* ✅ 今天樣式（更淺的灰底 ＋ 日期白字；meta 也白字） */
+/* ✅ 今天樣式（更淺的灰底 ＋ 日期白字；不顯示膠囊） */
 .day.today{
-  background:#7b838f;      /* 淺一階深灰 */
+  background:#4b5563;      /* 淺一階深灰 */
   border-color:#374151;
 }
-.day.today .d{ color:#ffffff; }          /* 日期白字 */
-.day.today .meta{ color:#ffffff; font-weight:800; } /* 「今天」白字 */
+.day.today .d{ color:#ffffff; } /* 日期白字 */
 
 /* pills */
 .pill{display:inline-flex;align-items:center;justify-content:center;gap:.3rem;border:1px solid #e3e6ee;border-radius:999px;padding:.18rem .6rem;font-weight:900;font-size:clamp(.76rem,.9vw,.92rem);line-height:1.1;white-space:nowrap;min-width:4.2em}
@@ -114,7 +113,7 @@ body{margin:0;background:var(--bg);color:#1f1330;font-family:"Noto Sans TC","Mic
 .tile.selected.appt .remain,
 .tile.selected.appt .doc{ color:#b51695; }
 
-/* 👉 已選擇行（picked）預設隱藏 */
+/* 👉 已選擇行（picked）預設隱藏（保留元素但不會被顯示） */
 .picked{display:none;margin-top:8px;color:#3b2c5f}
 .picked b{color:#000}
 .picked .hl{font-weight:900}
@@ -450,11 +449,7 @@ function renderSkeleton(monthDate){
     const isToday = (key===TODAY_KEY);
     const cls=inWindow?'day':'day disabled';
     const todayClass=isToday?' today':'';
-    const metaText = isToday ? '今天' : '—';   // 這裡改成今天
-    html+=`<div class="${cls}${todayClass}" data-ymd="${key}">
-             <div class="d">${d}</div>
-             <div class="meta">${metaText}</div>
-           </div>`;
+    html+=`<div class="${cls}${todayClass}" data-ymd="${key}"><div class="d">${d}</div><div class="meta">—</div></div>`;
   }
   $days.innerHTML=html; $panel.style.display='none'; $picked.style.display='none';
 }
@@ -505,11 +500,9 @@ function hydrateMonth(monthDate, dayMap){
     const inWindow=cur>=WINDOW_MIN && cur<=WINDOW_MAX;
     const hasOpen=!!(meta?.slots?.some(s=>s.status==='open'));
     const isToday=(key===TODAY_KEY);
-
     if(!inWindow || !hasOpen){
-      if(!inWindow) cls+=' disabled';
-      const metaText = isToday ? '今天' : '—';    // 這裡改成今天
-      inner+=`<div class="meta">${metaText}</div>`;
+      cls += (inWindow?'':' disabled');
+      inner+=`<div class="meta">—</div>`;
     }else{
       cls+=' clickable';
       const slotPills=meta.slots.filter(s=>s.status==='open').map(s=>{
@@ -519,7 +512,6 @@ function hydrateMonth(monthDate, dayMap){
       }).join('');
       inner+=`<div class="meta">${slotPills}</div>`;
     }
-
     if(isToday) cls+=' today';
     html+=`<div class="${cls}" data-ymd="${key}">${inner}</div>`;
   }
