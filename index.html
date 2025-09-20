@@ -32,16 +32,18 @@ body{margin:0;background:var(--bg);color:#1f1330;font-family:"Noto Sans TC","Mic
 .cal-title .title-text{font-size:clamp(1.2rem,2.4vw,1.6rem);font-weight:900}
 .loader{color:#6b5f92;font-size:.95rem;white-space:nowrap;min-width:6.5em}
 
-/* nav arrows -> 純三角形（無圓形背景） */
+/* nav arrows */
 .nav{display:flex;gap:10px}
 .nav-btn{border:none;background:none;cursor:pointer;width:0;height:0;border-style:solid}
 .nav-btn.prev{border-width:12px 16px 12px 0;border-color:transparent var(--primary) transparent transparent}
 .nav-btn.next{border-width:12px 0 12px 16px;border-color:transparent transparent transparent var(--primary)}
 .nav-btn[disabled]{opacity:.35;cursor:not-allowed}
 
-/* 規則按鈕 */
-.rule-bar{padding:6px 12px 0 12px}
+/* 規則列 */
+.rule-bar{padding:6px 12px 0 12px;display:flex;align-items:center;gap:14px}
 .rule-btn{border:none;background:#efe9ff;color:#4a2f82;font-weight:800;border-radius:999px;padding:.42rem .9rem;font-size:.92rem}
+/* 現在時間：紫色粗體、不換行 */
+.nowtime{color:#6236a7;font-weight:900;white-space:nowrap;font-size:.98rem}
 
 /* = Calendar grid = */
 .grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px;padding:10px}
@@ -53,18 +55,13 @@ body{margin:0;background:var(--bg);color:#1f1330;font-family:"Noto Sans TC","Mic
 .day.clickable:hover{box-shadow:0 0 0 2px #d7caf6}
 .day.disabled{background:#f1f2f6;color:#8b90a3;border-color:#e5e7eb;opacity:.85;pointer-events:none}
 
-/* 👉 日期格子：選到仍維持紫色框線 */
-.day.selected{
-  border: 2px solid #cdbbff;
-  box-shadow: 0 0 0 2px #e9ddff;
-}
+/* 選到維持紫色框線 */
+.day.selected{border:2px solid #cdbbff;box-shadow:0 0 0 2px #e9ddff}
 
-/* ✅ 今天樣式（更淺的灰底 ＋ 日期白字；不顯示膠囊） */
-.day.today{
-  background:#4b5563;      /* 淺一階深灰 */
-  border-color:#374151;
-}
-.day.today .d{ color:#ffffff; } /* 日期白字 */
+/* ✅ 今天樣式：深灰底、日期白字、底部顯示「今天」小字且不換行 */
+.day.today{background:#4b5563;border-color:#374151}
+.day.today .d{color:#ffffff}
+.day.today .meta{color:#ffffff;font-weight:800;font-size:.78rem;line-height:1;white-space:nowrap}
 
 /* pills */
 .pill{display:inline-flex;align-items:center;justify-content:center;gap:.3rem;border:1px solid #e3e6ee;border-radius:999px;padding:.18rem .6rem;font-weight:900;font-size:clamp(.76rem,.9vw,.92rem);line-height:1.1;white-space:nowrap;min-width:4.2em}
@@ -82,38 +79,20 @@ body{margin:0;background:var(--bg);color:#1f1330;font-family:"Noto Sans TC","Mic
 .tile:hover{box-shadow:0 0 0 2px #e6dbff}
 .tile .remain{margin-left:auto;font-weight:400;white-space:nowrap}
 .tile .doc{color:#6b5f92;font-weight:800}
-/* 左側主文字整行粗體 */
 .tile .main{font-weight:900}
 
-/* 👉 時段卡片：選到依診別「底色＋字色」 */
+/* 時段選取顏色 */
 .tile.selected{background:#fff;box-shadow:none}
-.tile.selected strong{font-weight:900}
-
-/* 早診：綠 */
 .tile.selected.early{background:#e7f7ee;box-shadow:0 0 0 2px #b8ead4}
-.tile.selected.early strong,
-.tile.selected.early .remain,
-.tile.selected.early .doc{ color:#065f46; }
-
-/* 午診：橘 */
+.tile.selected.early strong,.tile.selected.early .remain,.tile.selected.early .doc{color:#065f46}
 .tile.selected.noon{background:#fff3df;box-shadow:0 0 0 2px #ffd79a}
-.tile.selected.noon strong,
-.tile.selected.noon .remain,
-.tile.selected.noon .doc{ color:#7a4d00; }
-
-/* 晚診：藍 */
+.tile.selected.noon strong,.tile.selected.noon .remain,.tile.selected.noon .doc{color:#7a4d00}
 .tile.selected.night{background:#e8f2ff;box-shadow:0 0 0 2px #cfe2ff}
-.tile.selected.night strong,
-.tile.selected.night .remain,
-.tile.selected.night .doc{ color:#1d4ed8; }
-
-/* 約診：粉 */
+.tile.selected.night strong,.tile.selected.night .remain,.tile.selected.night .doc{color:#1d4ed8}
 .tile.selected.appt{background:#fde7ef;box-shadow:0 0 0 2px #ff99e6}
-.tile.selected.appt strong,
-.tile.selected.appt .remain,
-.tile.selected.appt .doc{ color:#b51695; }
+.tile.selected.appt strong,.tile.selected.appt .remain,.tile.selected.appt .doc{color:#b51695}
 
-/* 👉 已選擇行（picked）預設隱藏（保留元素但不會被顯示） */
+/* 已選擇行（隱藏） */
 .picked{display:none;margin-top:8px;color:#3b2c5f}
 .picked b{color:#000}
 .picked .hl{font-weight:900}
@@ -126,12 +105,7 @@ body{margin:0;background:var(--bg);color:#1f1330;font-family:"Noto Sans TC","Mic
 .form-grid{display:grid;gap:14px;grid-template-columns:1fr}
 .form-grid > div{min-width:0}
 .form-label-strong{font-weight:900;margin-bottom:6px;color:#1f1330}
-.form-input{
-  width:100%;min-width:0;max-width:100%;
-  border:1px solid #ced2db;border-radius:12px;
-  font-size:1rem;height:46px;
-  padding:0 .9rem;background:#fff
-}
+.form-input{width:100%;min-width:0;max-width:100%;border:1px solid #ced2db;border-radius:12px;font-size:1rem;height:46px;padding:0 .9rem;background:#fff}
 
 /* 日期輸入 */
 .date-wrap{position:relative;height:46px}
@@ -143,37 +117,27 @@ input[type="date"]::-webkit-calendar-picker-indicator{padding:0 8px 0 0}
 .date-hint{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:#9aa0aa;pointer-events:none;font-size:16px;line-height:1}
 .date-wrap.has-value .date-hint, .date-wrap.focus .date-hint{display:none}
 
-/* 扁平化按鈕 */
+/* 按鈕 */
 .btn-main,.btn-ghost{border-radius:999px;font-weight:900;padding:.9rem 1.15rem;font-size:1.05rem}
 .btn-main{background:var(--primary);color:#fff;border:none}
 .btn-ghost{background:#fff;border:1px solid #d7dbe5;color:#3a3f47}
 
-/* 同意條款自動補黑色粗體 * */
+/* 同意條款 * */
 label.agree span::after{content:" *";color:#000;font-weight:900}
 
-/* ==== Modal ==== */
+/* Modal */
 .modal-rounded .modal-content{border-radius:20px !important;overflow:hidden;border:1px solid #e9e0ff}
 #rulesModal .modal-header{background:#f3edff}
 #rulesModal .modal-body{background:#f6f3ff}
 
-/* 規則：每列一行 */
-.rule-line{display:flex;align-items:center;gap:10px;white-space:nowrap;font-weight:800;
-  font-size:clamp(12px,3.2vw,16px);min-width:0;letter-spacing:.5px}
+/* 規則列 */
+.rule-line{display:flex;align-items:center;gap:10px;white-space:nowrap;font-weight:800;font-size:clamp(12px,3.2vw,16px);min-width:0;letter-spacing:.5px}
 .chip{display:inline-flex;align-items:center;gap:6px;padding:.25rem .6rem;border-radius:999px;border:1px solid #e6e8f0;background:#fff}
 .chip-strong{background:#f3f0ff;color:#4a2f82;border-color:#e4ddff}
 .chip-range{background:#f8fafc;color:#334155}
 
 /* 遮罩 */
-#mask{
-  position:fixed; inset:0;
-  display:none;
-  align-items:center; justify-content:center;
-  flex-direction:column; gap:6px;
-  z-index:9999;
-  background:rgba(255,255,255,.92);
-  backdrop-filter:blur(2px);
-  color:#4b2c86; font-size:18px; font-weight:400;
-}
+#mask{position:fixed;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;gap:6px;z-index:9999;background:rgba(255,255,255,.92);backdrop-filter:blur(2px);color:#4b2c86;font-size:18px;font-weight:400}
 #dots{display:inline-block;width:2ch;text-align:left}
 
 /* Mobile */
@@ -193,7 +157,7 @@ label.agree span::after{content:" *";color:#000;font-weight:900}
 </style>
 </head>
 <body>
-<!-- 全頁遮罩：預設隱藏 -->
+<!-- 全頁遮罩 -->
 <div id="mask" style="display:none">預約中請稍等，請勿關閉或重新整理頁面<span id="dots">...</span></div>
 
 <div class="wrap">
@@ -212,6 +176,7 @@ label.agree span::after{content:" *";color:#000;font-weight:900}
     </div>
 
     <div class="rule-bar">
+      <span id="nowTime" class="nowtime"></span>
       <button class="rule-btn" id="openRules">開放預約日期規則</button>
     </div>
 
@@ -273,7 +238,7 @@ label.agree span::after{content:" *";color:#000;font-weight:900}
         <div class="p-2 rounded-3" style="background:#efeaff;border:1px solid #e5dcff">
           <div class="rule-line"><span class="chip chip-strong">週一</span><span>可預約 →</span><span class="chip chip-range">［ 週四 ~ 下下週一 ］</span></div>
           <div class="rule-line"><span class="chip chip-strong">週二</span><span>可預約 →</span><span class="chip chip-range">［ 週五 ~ 下下週二 ］</span></div>
-          <div class="rule-line"><span class="chip chip-strong">週三</span><span>可預約 →</span><span class="chip chip-range">［ 週六 ~ 下下週三 ］</span></div>
+          <div class="rule-line"><span class="chip chip-強">週三</span><span>可預約 →</span><span class="chip chip-range">［ 週六 ~ 下下週三 ］</span></div>
           <div class="rule-line"><span class="chip chip-strong">週四</span><span>可預約 →</span><span class="chip chip-range">［ 下週一 ~ 下下週四 ］</span></div>
           <div class="rule-line"><span class="chip chip-strong">週五</span><span>可預約 →</span><span class="chip chip-range">［ 下週二 ~ 下下週五 ］</span></div>
           <div class="rule-line"><span class="chip chip-strong">週六</span><span>可預約 →</span><span class="chip chip-range">［ 下週二 ~ 下下週六 ］</span></div>
@@ -318,6 +283,16 @@ const AES_KEY="A2x5fT9qR7nC1vB8mK3pZ6sD4uH0yW2j";
 
 /* 一次性簽章暫存 */
 const nonceStore = {}; // { 'YYYY-MM-DD': {nonce, sig, exp} }
+
+/* ===== 現在時間顯示 ===== */
+function updateNowTime(){
+  const now=new Date();
+  const pad2=n=>String(n).padStart(2,'0');
+  const W=['日','一','二','三','四','五','六'];
+  const txt=`現在時間：${now.getFullYear()}/${pad2(now.getMonth()+1)}/${pad2(now.getDate())} (週${W[now.getDay()]})`;
+  const el=document.getElementById('nowTime');
+  if(el) el.textContent=txt;
+}
 
 /* reCAPTCHA */
 let recaptchaLoaded=false, recaptchaLoading=null;
@@ -370,15 +345,9 @@ function showMask(txt){
   $mask.textContent=(txt||'預約中請稍等，請勿關閉或重新整理頁面');
   $mask.style.display='flex';
   if(dotTimer) clearInterval(dotTimer);
-  const span=document.createElement('span');
-  span.id='dots';
-  span.textContent='...';
+  const span=document.createElement('span'); span.id='dots'; span.textContent='...';
   $mask.appendChild(span);
-  dotTimer=setInterval(()=>{
-    const d=$('dots'); if(!d) return;
-    d.textContent=(d.textContent==='...')?'.':d.textContent+'.';
-    if(d.textContent.length>3)d.textContent='.';
-  },340);
+  dotTimer=setInterval(()=>{const d=$('dots'); if(!d) return; d.textContent=(d.textContent==='...')?'.':d.textContent+'.'; if(d.textContent.length>3)d.textContent='.';},340);
 }
 function hideMask(){ if(dotTimer) clearInterval(dotTimer); $mask.style.display='none'; }
 
@@ -390,10 +359,7 @@ $('showNotice').addEventListener('click',e=>{
   noticeModalInst=new bootstrap.Modal(document.getElementById('noticeModal'));
   noticeModalInst.show();
 });
-$('agreeConfirm').addEventListener('click',()=>{
-  $('agree').checked=true;
-  if(noticeModalInst) noticeModalInst.hide();
-});
+$('agreeConfirm').addEventListener('click',()=>{ $('agree').checked=true; if(noticeModalInst) noticeModalInst.hide(); });
 
 /* iOS/Safari date 假 placeholder */
 (function(){
@@ -432,7 +398,7 @@ async function getWindow(){
   }
 }
 
-/* 骨架 */
+/* 骨架（今天的 meta 直接放「今天」） */
 function renderSkeleton(monthDate){
   const first=firstOfMonth(monthDate), last=endOfMonth(monthDate);
   $title.textContent=fmtTitle(first); showLoadingDots(true);
@@ -449,12 +415,16 @@ function renderSkeleton(monthDate){
     const isToday = (key===TODAY_KEY);
     const cls=inWindow?'day':'day disabled';
     const todayClass=isToday?' today':'';
-    html+=`<div class="${cls}${todayClass}" data-ymd="${key}"><div class="d">${d}</div><div class="meta">—</div></div>`;
+    const metaText=isToday?'今天':'—';
+    html+=`<div class="${cls}${todayClass}" data-ymd="${key}">
+             <div class="d">${d}</div>
+             <div class="meta">${metaText}</div>
+           </div>`;
   }
   $days.innerHTML=html; $panel.style.display='none'; $picked.style.display='none';
 }
 
-/* 逐日 slots（同時存下 nonce/sig/exp） */
+/* 逐日 slots */
 async function fetchMonthDays(monthDate){
   const first=firstOfMonth(monthDate), last=endOfMonth(monthDate);
   const jobs=[];
@@ -488,7 +458,7 @@ async function fetchMonthDays(monthDate){
   const arr=await Promise.all(jobs); const map={}; arr.forEach(d=>map[d.date]=d); return map;
 }
 
-/* 寫入月曆 */
+/* 寫入月曆（今天不顯示 pills，只顯示「今天」） */
 function hydrateMonth(monthDate, dayMap){
   const first=firstOfMonth(monthDate), last=endOfMonth(monthDate);
   let html=''; const pad=first.getDay();
@@ -500,18 +470,22 @@ function hydrateMonth(monthDate, dayMap){
     const inWindow=cur>=WINDOW_MIN && cur<=WINDOW_MAX;
     const hasOpen=!!(meta?.slots?.some(s=>s.status==='open'));
     const isToday=(key===TODAY_KEY);
-    if(!inWindow || !hasOpen){
+
+    if(isToday){
+      inner+=`<div class="meta">今天</div>`;
+    }else if(!inWindow || !hasOpen){
       cls += (inWindow?'':' disabled');
       inner+=`<div class="meta">—</div>`;
     }else{
       cls+=' clickable';
-      const slotPills=meta.slots.filter(s=>s.status==='open').map(s=>{
+      const pills=meta.slots.filter(s=>s.status==='open').map(s=>{
         const tag=s.slot==='early'?'early':s.slot==='noon'?'noon':s.slot==='night'?'night':'appt';
         const label=s.slot==='early'?'早診':s.slot==='noon'?'午診':s.slot==='night'?'晚診':'約診';
         return `<span class="pill ${tag}"><span class="lbl">${label}</span> <span class="remain">剩餘 ${Math.max(0,s.remain)} 人</span></span>`;
       }).join('');
-      inner+=`<div class="meta">${slotPills}</div>`;
+      inner+=`<div class="meta">${pills}</div>`;
     }
+
     if(isToday) cls+=' today';
     html+=`<div class="${cls}" data-ymd="${key}">${inner}</div>`;
   }
@@ -586,11 +560,7 @@ $('submitBtn').addEventListener('click',async(e)=>{
 
     const params={action:'submit',date:d,slot:s,name:n,birthday:b,id:id,phone:ph,recaptchaToken,t:Date.now()};
 
-    if (nonceStore[d]) {
-      params.nonce = nonceStore[d].nonce;
-      params.sig   = nonceStore[d].sig;
-      params.exp   = nonceStore[d].exp;
-    }
+    if (nonceStore[d]) { params.nonce = nonceStore[d].nonce; params.sig = nonceStore[d].sig; params.exp = nonceStore[d].exp; }
 
     const r=await axios.get(API,{params});
     if(!r.data?.ok){ alert(r.data?.message||'送出失敗，請稍後再試'); return; }
@@ -607,8 +577,12 @@ $('submitBtn').addEventListener('click',async(e)=>{
 
 /* 啟動 */
 async function bootMonth(m){ renderSkeleton(m); const map=await fetchMonthDays(m); hydrateMonth(m,map); }
-(async function init(){ try{await loadRecaptcha();}catch(_){}
-  await getWindow(); await bootMonth(curMonth); })();
+(async function init(){
+  try{await loadRecaptcha();}catch(_){}
+  updateNowTime();               // ← 顯示現在時間
+  await getWindow();
+  await bootMonth(curMonth);
+})();
 </script>
 </body>
 </html>
