@@ -87,7 +87,6 @@ body{margin:0;background:var(--bg);color:#1f1330;font-family:"Noto Sans TC","Mic
 
 /* 依診別選取樣式 */
 .tile.selected{background:#fff;box-shadow:none}
-.tile.selected strong{font-weight:900}
 .tile.selected.early{background:#e7f7ee;box-shadow:0 0 0 2px #b8ead4}
 .tile.selected.early strong,.tile.selected.early .remain,.tile.selected.early .doc{color:#065f46}
 .tile.selected.noon{background:#fff3df;box-shadow:0 0 0 2px #ffd79a}
@@ -144,6 +143,25 @@ label.agree span::after{content:" *";color:#000;font-weight:900}
 /* 遮罩 */
 #mask{position:fixed;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;gap:6px;z-index:9999;background:rgba(255,255,255,.92);backdrop-filter:blur(2px);color:#4b2c86;font-size:18px;font-weight:400}
 #dots{display:inline-block;width:2ch;text-align:left}
+
+/* == 額滿樣式 == */
+.pill.full{
+  background:#eef1f5;
+  color:#6b7280;
+  border-color:#e5e7eb;
+  opacity:.9;
+}
+.tile.full{
+  background:#f3f4f6;
+  border-color:#e5e7eb;
+  color:#6b7280;
+  cursor:default;
+}
+.tile.full:hover{ box-shadow:none; }
+.tile.full .status-full{
+  color:#b91c1c; /* 紅字 */
+  font-weight:900;
+}
 
 /* Mobile */
 @media (max-width:600px){
@@ -473,6 +491,7 @@ async function fetchMonthDays(monthDate){
 }
 
 /* 寫入月曆（今天只顯示「—」，但保留可點；其他日照常） */
+/* ✅ 調整：顯示 full 膠囊（灰色＋已額滿），並允許點進當日面板 */
 function hydrateMonth(monthDate, dayMap){
   const first=firstOfMonth(monthDate), last=endOfMonth(monthDate);
   let html=''; const pad=first.getDay();
@@ -485,21 +504,24 @@ function hydrateMonth(monthDate, dayMap){
     let cls='day';
     let inner=`<div class="d">${d}</div>`;
     const inWindow=cur>=WINDOW_MIN && cur<=WINDOW_MAX;
-    const hasOpen=!!(meta?.slots?.some(s=>s.status==='open'));
 
-    // 內容
+    const hasAny=!!(meta?.slots?.length);
+
     if(isToday){
-      // 今天：只顯示「—」
       inner+=`<div class="meta">—</div>`;
-    }else if(!inWindow || !hasOpen){
+    }else if(!inWindow || !hasAny){
       if(!inWindow) cls+=' disabled';
       inner+=`<div class="meta">—</div>`;
     }else{
       cls+=' clickable';
-      const pills=meta.slots.filter(s=>s.status==='open').map(s=>{
+      const pills=(meta.slots||[]).map(s=>{
         const tag=s.slot==='early'?'early':s.slot==='noon'?'noon':s.slot==='night'?'night':'appt';
         const label=s.slot==='early'?'早診':s.slot==='noon'?'午診':s.slot==='night'?'晚診':'約診';
-        return `<span class="pill ${tag}"><span class="lbl">${label}</span> <span class="remain">剩餘 ${Math.max(0,s.remain)} 人</span></span>`;
+        if(s.status==='full'){
+          return `<span class="pill ${tag} full"><span class="lbl">${label}</span> <span class="remain">已額滿</span></span>`;
+        }else{
+          return `<span class="pill ${tag}"><span class="lbl">${label}</span> <span class="remain">剩餘 ${Math.max(0,s.remain)} 人</span></span>`;
+        }
       }).join('');
       inner+=`<div class="meta">${pills}</div>`;
     }
@@ -521,28 +543,50 @@ function hydrateMonth(monthDate, dayMap){
 }
 
 /* 當日清單 */
+/* ✅ 調整：同時列出 open 與 full。full 顯示灰卡＋紅字「已額滿」 */
 function openDay(dateYMD, meta){
   const mapSlot={early:'早診',noon:'午診',night:'晚診',appt:'約診'};
-  const open=(meta?.slots||[]).filter(s=>s.status==='open');
-  if(!open.length){ $panel.style.display='none'; return; }
+  const slots=(meta?.slots||[]);
+  if(!slots.length){ $panel.style.display='none'; return; }
+
   let html=`<div class="head">${dateYMD}（星期${['日','一','二','三','四','五','六'][new Date(dateYMD).getDay()]}）</div><div class="slot-grid">`;
-  html+=open.map(s=>{
-    const label=mapSlot[s.slot]||s.label||''; const time=s.time||''; const doc=s.doctor?`［${s.doctor}］`:''; const rem=Math.max(0,s.remain);
-    return `<div class="tile ${s.slot}" data-date="${dateYMD}" data-slot="${s.slot}" data-label="${label}" data-time="${time}" data-doc="${s.doctor||''}" data-rem="${rem}" data-cap="${s.cap}">
+
+  html+=slots.map(s=>{
+    const label=mapSlot[s.slot]||s.label||''; 
+    const time=s.time||''; 
+    const doc=s.doctor?`［${s.doctor}］`:''; 
+    const rem=Math.max(0,s.remain);
+    const baseCls = `tile ${s.slot}` + (s.status==='full' ? ' full' : '');
+    const right = (s.status==='full')
+      ? `<div class="remain"><span class="status-full">已額滿</span></div>`
+      : `<div class="remain">剩餘 ${rem}/${s.cap} 人</div>`;
+    return `<div class="${baseCls}" data-date="${dateYMD}" data-slot="${s.slot}" data-label="${label}" data-time="${time}" data-doc="${s.doctor||''}" data-rem="${rem}" data-cap="${s.cap}" data-status="${s.status}">
       <div class="main"><strong>${label}</strong> ${time} ${doc}</div>
-      <div class="remain">剩餘 ${rem}/${s.cap} 人</div>
-    </div>`;}).join('');
+      ${right}
+    </div>`;
+  }).join('');
+
   html+=`</div>`;
-  $panel.innerHTML=html; $panel.style.display='block';
+  $panel.innerHTML=html; 
+  $panel.style.display='block';
 
   const rows=$panel.querySelectorAll('.tile');
   rows.forEach(row=>row.addEventListener('click',()=>selectRow(row)));
   if(rows.length===1) selectRow(rows[0]);
 }
 
+/* 選取列 */
+/* ✅ 調整：若為額滿卡片，不寫入 form 的隱藏欄位 */
 function selectRow(row){
   $panel.querySelectorAll('.tile').forEach(x=>x.classList.remove('selected'));
   row.classList.add('selected');
+
+  if(row.dataset.status === 'full'){
+    $('date').value='';
+    $('slot').value='';
+    return;
+  }
+
   const mapVal={early:'早診',noon:'午診',night:'晚診',appt:'約診'};
   $('date').value=row.dataset.date;
   $('slot').value=mapVal[row.dataset.slot]||'';
@@ -604,4 +648,3 @@ async function bootMonth(m){ renderSkeleton(m); const map=await fetchMonthDays(m
 </script>
 </body>
 </html>
-
