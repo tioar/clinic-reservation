@@ -629,22 +629,22 @@ $('submitBtn').addEventListener('click',async(e)=>{
         id=($('idnum').value||'').trim().toUpperCase(), phRaw=($('phone').value||'').trim(),
         ag=$('agree').checked;
 
-  if(!d||!s||!n||!b||!id||!phRaw||!ag){alert('資料未填完整');return;}
+  if(!d||!s||!n||!b||!id||!phRaw||!ag){alert('資料未填寫完整，請檢查後重試');return;}
 
   // 生日合理性
   const age=Math.floor((Date.now()-new Date(b))/31536000000);
-  if(age<0||age>150){alert('生日超出限制');return;}
+  if(age<0||age>150){alert('出生年月日不合理，請檢查後重試');return;}
 
   // ✅ 身分證（含檢查碼）
   if(!validateTaiwanId(id)){
-    alert('身份證字號錯誤請重新填寫');
+    alert('身份證字號驗證錯誤，請檢查後重試');
     return;
   }
 
   // ✅ 連絡電話：10 碼純數字
   const ph = onlyDigits(phRaw);
   if(!/^\d{10}$/.test(ph)){
-    alert('連絡電話填寫錯誤請重新填寫');
+    alert('聯絡電話字數錯誤，請檢查後重試');
     return;
   }
 
@@ -661,7 +661,7 @@ $('submitBtn').addEventListener('click',async(e)=>{
     }
 
     const r=await axios.get(API,{params});
-    if(!r.data?.ok){ alert(r.data?.message||'送出失敗，請稍後再試'); return; }
+    if(!r.data?.ok){ alert(r.data?.message||'送出失敗，請稍後再試一次'); return; }
     const idFromApi=r?.data?.id||r?.data?.Id||r?.data?.bookingId||r?.data?.data?.id;
     const receipt=r?.data?.receipt||r?.data?.rcpt||'';
     try{ if(receipt&&idFromApi) sessionStorage.setItem('rcpt:'+String(idFromApi),String(receipt));
@@ -680,3 +680,4 @@ async function bootMonth(m){ renderSkeleton(m); const map=await fetchMonthDays(m
 </script>
 </body>
 </html>
+
