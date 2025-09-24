@@ -216,7 +216,8 @@ label.agree span::after{content:" *";color:#000;font-weight:900}
 
       <div>
         <div class="form-label-strong">聯絡電話 *</div>
-        <input id="phone" type="text" maxlength="10" inputmode="numeric" class="form-input" placeholder="0958xxxxxx" autocomplete="off"/>
+        <!-- 新增 pattern，並保留 maxlength / inputmode -->
+        <input id="phone" type="text" maxlength="10" inputmode="numeric" pattern="\d{10}" class="form-input" placeholder="0958xxxxxx" autocomplete="off"/>
       </div>
     </div>
 
@@ -287,6 +288,35 @@ const AES_KEY="A2x5fT9qR7nC1vB8mK3pZ6sD4uH0yW2j";
 
 /* 一次性簽章暫存 */
 const nonceStore = {}; // { 'YYYY-MM-DD': {nonce, sig, exp} }
+
+/* ====== 驗證工具（新增） ====== */
+// 只留數字
+function onlyDigits(s){ return String(s||'').replace(/\D/g,''); }
+
+// 中華民國身分證字號檢核（含檢查碼）
+function validateTaiwanId(id){
+  if(!/^[A-Z][12]\d{8}$/.test(id)) return false;
+  const codeMap = {
+    A:10,B:11,C:12,D:13,E:14,F:15,G:16,H:17,I:34,J:18,
+    K:19,L:20,M:21,N:22,O:35,P:23,Q:24,R:25,S:26,T:27,
+    U:28,V:29,W:32,X:30,Y:31,Z:33
+  };
+  const c0 = id[0];
+  const n = codeMap[c0];
+  if(n===undefined) return false;
+
+  const X = Math.floor(n/10), Y = n%10;
+  const digits = id.slice(1).split('').map(ch=>parseInt(ch,10));
+  const weights = [8,7,6,5,4,3,2,1,1]; // d1~d9
+
+  let sum = 0;
+  sum += X * 1;
+  sum += Y * 9;
+  for(let i=0;i<digits.length;i++){
+    sum += digits[i] * weights[i];
+  }
+  return (sum % 10) === 0;
+}
 
 /* reCAPTCHA */
 let recaptchaLoaded=false, recaptchaLoading=null;
@@ -579,18 +609,45 @@ $('idnum').addEventListener('input',e=>{
   try{ e.target.setSelectionRange(p,p);}catch(_){}
 });
 
+/* 聯絡電話：只允許即時輸入數字且最多 10 碼（新增） */
+$('phone').addEventListener('input', e=>{
+  const p = e.target.selectionStart;
+  const cleaned = onlyDigits(e.target.value).slice(0,10);
+  e.target.value = cleaned;
+  try{
+    const pos = Math.min(p, cleaned.length);
+    e.target.setSelectionRange(pos, pos);
+  }catch(_){}
+});
+
 /* 送出 */
 let submitting=false;
 $('submitBtn').addEventListener('click',async(e)=>{
   e.preventDefault(); if(submitting) return;
   const d=($('date').value||'').trim(), s=($('slot').value||'').trim(),
         n=($('name').value||'').trim(), b=($('birthday').value||'').trim(),
-        id=($('idnum').value||'').trim().toUpperCase(), ph=($('phone').value||'').trim(),
+        id=($('idnum').value||'').trim().toUpperCase(), phRaw=($('phone').value||'').trim(),
         ag=$('agree').checked;
-  if(!d||!s||!n||!b||!id||!ph||!ag){alert('資料未填完整');return;}
-  if(!/^[A-Z][12]\d{8}$/.test(id)){alert('身分證格式錯誤');return;}
-  if(ph.length<8||ph.length>10){alert('電話長度不符');return;}
-  const age=Math.floor((Date.now()-new Date(b))/31536000000); if(age<0||age>150){alert('生日超出限制');return;}
+
+  if(!d||!s||!n||!b||!id||!phRaw||!ag){alert('資料未填完整');return;}
+
+  // 生日合理性
+  const age=Math.floor((Date.now()-new Date(b))/31536000000);
+  if(age<0||age>150){alert('生日超出限制');return;}
+
+  // ✅ 身分證（含檢查碼）
+  if(!validateTaiwanId(id)){
+    alert('身份證字號錯誤請重新填寫');
+    return;
+  }
+
+  // ✅ 連絡電話：10 碼純數字
+  const ph = onlyDigits(phRaw);
+  if(!/^\d{10}$/.test(ph)){
+    alert('連絡電話填寫錯誤請重新填寫');
+    return;
+  }
+
   try{
     submitting=true; $('submitBtn').disabled=true; showMask();
     const recaptchaToken=await getRecaptchaToken(); $('g-recaptcha-response').value=recaptchaToken;
@@ -623,4 +680,3 @@ async function bootMonth(m){ renderSkeleton(m); const map=await fetchMonthDays(m
 </script>
 </body>
 </html>
-
