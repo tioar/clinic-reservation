@@ -4,47 +4,24 @@
   <meta charset="UTF-8">
   <title>陳萬龍診所預約後台管理</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-
   <link rel="icon" type="image/png" href="favicon.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;800;900&display=swap" rel="stylesheet">
-
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 
   <style>
     :root{
-      --primary:#3b697d;
-      --primary-600:#2f5565;
-      --border:#d9dee7;
-
-      /* row tint colors */
+      --primary:#3b697d; --primary-600:#2f5565; --border:#d9dee7;
       --early-light:#e7f7ee; --early-dark:#cfeedd; --early-bar:#16a34a;
       --noon-light:#fff3df;  --noon-dark:#ffe4b3;  --noon-bar:#f59e0b;
       --night-light:#e8f2ff; --night-dark:#cfe2ff; --night-bar:#3b82f6;
       --appt-light:#f9e0f5;  --appt-dark:#f3b3e6;  --appt-bar:#b51695;
-
-      --queue-orange:#f59e0b;
-      --queue-orange-600:#d97706;
-      --queue-orange-700:#b45309;
-      --coral:#ff7f50;
-      --stop-red:#d32f2f;
-      --query-green:#148f3f;
-      --black:#000;
+      --queue-orange:#f59e0b; --queue-orange-600:#d97706; --queue-orange-700:#b45309;
+      --coral:#ff7f50; --stop-red:#d32f2f; --query-green:#148f3f; --black:#000;
     }
-
-    body{
-      font-family:'Noto Sans TC','Microsoft JhengHei',system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
-      background:linear-gradient(160deg,#ecf1f6,#e6edf6);
-      min-height:100vh;
-      color:#334155;
-      -webkit-tap-highlight-color: transparent;
-    }
-
-    /* ===== 卡片 ===== */
+    body{font-family:'Noto Sans TC','Microsoft JhengHei',system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:linear-gradient(160deg,#ecf1f6,#e6edf6);min-height:100vh;color:#334155;-webkit-tap-highlight-color: transparent;}
     .card{ border-radius:28px; border:2px solid var(--border); box-shadow:0 6px 14px rgba(0,0,0,.06); overflow:hidden; }
-
-    /* ===== 共用按鈕 ===== */
     .btn{ border-radius:999px; font-weight:700; border:0; }
     .btn-main{ background:var(--primary); color:#fff !important; }
     .btn-main:hover, .btn-main.active{ background:var(--primary-600); color:#fff !important; }
@@ -55,49 +32,33 @@
     .btn-danger{ background:#dc3545; color:#fff !important; }
     .btn-danger:hover{ background:#b02a37; color:#fff !important; }
 
-    /* ===== Login ===== */
     .login-card{ display:grid; place-items:center; min-height:calc(100vh - 6rem); padding:3rem 1rem; }
     .login-card .card{ width:100%; max-width:460px; padding:28px 24px; }
     .login-card .header{ display:flex; align-items:center; gap:14px; margin-bottom:10px; }
-    .login-card .logo{
-      width:56px; height:56px; border-radius:50%;
-      display:grid; place-items:center;
-      background:var(--primary); color:#fff; font-weight:900; font-size:28px; line-height:1;
-      box-shadow:0 8px 18px rgba(59,105,125,.25);
-    }
+    .login-card .logo{ width:56px; height:56px; border-radius:50%; display:grid; place-items:center; background:var(--primary); color:#fff; font-weight:900; font-size:28px; line-height:1; box-shadow:0 8px 18px rgba(59,105,125,.25); }
     .login-card h1{ font-weight:900; }
     .login-card .form-control{ border-radius:16px; padding:.675rem .95rem; border:2px solid #d1d5db; }
     .login-card .form-control:focus{ border-color:var(--primary); box-shadow:0 0 0 .2rem rgba(59,105,125,.2); outline:none; }
 
-    /* ===== 頂部區 ===== */
     .card-head{ display:flex; align-items:center; gap:12px; }
-    .card-head .logo{
-      width:44px; height:44px; border-radius:50%;
-      display:grid; place-items:center;
-      background:var(--primary); color:#fff; font-weight:900; font-size:24px; line-height:1;
-      box-shadow:0 6px 14px rgba(59,105,125,.18);
-    }
+    .card-head .logo{ width:44px; height:44px; border-radius:50%; display:grid; place-items:center; background:var(--primary); color:#fff; font-weight:900; font-size:24px; line-height:1; box-shadow:0 6px 14px rgba(59,105,125,.18); }
     .card-head h3{ font-weight:900; }
     .card-head .subtitle{ margin-top:2px; font-size:.95rem; color:#64748b; }
     .card-head .subtitle b{ color:#0f172a; font-weight:900; }
 
-    /* ===== 分頁鈕 ===== */
     .tabbar{ gap:.5rem; flex-wrap:wrap; }
     .tabbar .btn{ padding:.55rem 1rem; }
     .tabbar .btn:not(.active){ background:#6b7a90; color:#fff; }
     .tabbar .btn.active{ background:var(--primary-600); color:#fff; box-shadow:0 6px 14px rgba(47,85,101,.28); }
 
-    /* ===== 日期列 / 統計卡 / 表格 ===== */
     .date-nav{ display:flex; flex-wrap:wrap; align-items:center; gap:.5rem .5rem; }
     .date-nav .form-control{ width:160px; border-radius:14px; }
     .totals{ font-weight:900; color:#1f3f57; } .totals .muted{ color:#6b7a90; font-weight:800; }
 
-    .stat{ border:2px dashed var(--border); border-radius:20px; padding:.9rem 1rem; background:#fff;
-           display:flex; align-items:center; gap:.9rem; box-shadow:0 4px 10px rgba(0,0,0,.04); overflow:hidden; }
+    .stat{ border:2px dashed var(--border); border-radius:20px; padding:.9rem 1rem; background:#fff; display:flex; align-items:center; gap:.9rem; box-shadow:0 4px 10px rgba(0,0,0,.04); overflow:hidden; }
     .stat .cap{ padding:.35rem .7rem; border-radius:999px; font-weight:900; line-height:1; }
     .stat .kv{font-weight:800}
     .stat .note{color:#6b7280;font-weight:700}
-
     .stat-early{ background:var(--early-light); border-color:var(--early-bar); }
     .stat-early .cap{ background:#dff5ea; color:#065f46; border:1px solid #b8ead4; }
     .stat-noon{  background:var(--noon-light);  border-color:var(--noon-bar); }
@@ -131,7 +92,6 @@
     .small-note{ color:#64748b; font-size:.925rem; }
     .small-note code{ background:#f6f7fb; padding:.1rem .25rem; border-radius:6px; }
 
-    /* ===== 叫號控制：橘色主題 ===== */
     .btn-queue{ background:var(--queue-orange) !important; color:#fff !important; }
     .btn-queue:hover{ background:var(--queue-orange-600) !important; color:#fff !important; }
     .tabbar .btn-queue.active{ background:var(--queue-orange-700) !important; box-shadow:0 6px 14px rgba(245,158,11,.32) !important; }
@@ -141,51 +101,26 @@
     #tab-queue .btn-ghost{ border-color:var(--queue-orange); color:var(--queue-orange-700); }
     #tab-queue .btn-ghost:hover{ background:#fff3e0; }
 
-    .q-now-input{
-      width: clamp(140px, 42vw, 260px);
-      font-size: clamp(40px, 12vw, 86px);
-      font-weight:900; color:#d90429;
-      text-align:center; letter-spacing:1px;
-      border-radius:14px; border:2px solid var(--queue-orange); background:#fffaf2;
-      -moz-appearance: textfield;
-    }
-    .q-now-input::-webkit-outer-spin-button,
-    .q-now-input::-webkit-inner-spin-button{ -webkit-appearance: none; margin:0; }
-    @supports (-webkit-touch-callout: none){
-      .q-now-input{ font-variant-numeric: tabular-nums; }
-    }
+    .q-now-input{ width: clamp(140px, 42vw, 260px); font-size: clamp(40px, 12vw, 86px); font-weight:900; color:#d90429; text-align:center; letter-spacing:1px; border-radius:14px; border:2px solid var(--queue-orange); background:#fffaf2; -moz-appearance: textfield; }
+    .q-now-input::-webkit-outer-spin-button, .q-now-input::-webkit-inner-spin-button{ -webkit-appearance: none; margin:0; }
+    @supports (-webkit-touch-callout: none){ .q-now-input{ font-variant-numeric: tabular-nums; } }
     .q-step{ width:56px; height:56px; border-radius:999px; font-size:30px; font-weight:900; line-height:1; padding:0; }
     .q-now-row{ align-items:center; gap:12px; flex-wrap:wrap; }
     .q-actions{ display:flex; align-items:center; gap:12px; margin-left:auto; }
 
-    #tab-queue .cap.cap-pill{
-      background:var(--queue-orange); color:#fff; border-radius:999px;
-      padding:.55rem 1.1rem; font-weight:900; font-size:1.2rem;
-    }
-
+    #tab-queue .cap.cap-pill{ background:var(--queue-orange); color:#fff; border-radius:999px; padding:.55rem 1.1rem; font-weight:900; font-size:1.2rem; }
     .qlabel{ font-weight:900; font-size:1.2rem; }
-    .qlabel.q-auto{   color:var(--black); }
-    .qlabel.q-stop{ color:var(--coral); }
-    .qlabel.q-closed{ color:var(--stop-red); }
-    .qlabel.q-query{  color:var(--query-green); }
+    .qlabel.q-auto{ color:var(--black); } .qlabel.q-stop{ color:var(--coral); } .qlabel.q-closed{ color:var(--stop-red); } .qlabel.q-query{ color:var(--query-green); }
 
     #tab-queue .form-check-input{ width: 2.8em; height: 1.6em; border-width:2px; }
-    #qAuto{    border-color:var(--black) !important; }
-    #qStopped{ border-color:var(--coral) !important; }
-    #qClosed{  border-color:var(--stop-red) !important; }
-    #qQuery{   border-color:var(--query-green) !important; }
-    #qAuto:checked{    background-color:var(--black) !important;    border-color:var(--black) !important; }
+    #qAuto{ border-color:var(--black) !important; } #qStopped{ border-color:var(--coral) !important; } #qClosed{ border-color:var(--stop-red) !important; } #qQuery{ border-color:var(--query-green) !important; }
+    #qAuto:checked{ background-color:var(--black) !important; border-color:var(--black) !important; }
     #qStopped:checked{ background-color:var(--coral) !important; border-color:var(--coral) !important; }
-    #qClosed:checked{  background-color:var(--stop-red) !important;    border-color:var(--stop-red) !important; }
-    #qQuery:checked{   background-color:var(--query-green) !important; border-color:var(--query-green) !important; }
+    #qClosed:checked{ background-color:var(--stop-red) !important; border-color:var(--stop-red) !important; }
+    #qQuery:checked{ background-color:var(--query-green) !important; border-color:var(--query-green) !important; }
 
     #qSet, #qReset, #qSaveFlags{
-      border-radius:999px !important;
-      padding:.60rem 1.20rem !important;
-      font-size:1.05rem !important;
-      font-weight:900 !important;
-      line-height:1 !important;
-      min-width:130px !important;
+      border-radius:999px !important; padding:.60rem 1.20rem !important; font-size:1.05rem !important; font-weight:900 !important; line-height:1 !important; min-width:130px !important;
     }
     #qReset{ background:#b51695 !important; color:#fff !important; border-color:#b51695 !important; }
     #qReset:hover{ background:#9b127f !important; border-color:#9b127f !important; color:#fff !important; }
@@ -249,7 +184,7 @@
       <button class="btn btn-main" id="tabBtnSpecial" data-tab="tab-special">臨時異動</button>
     </div>
 
-    <!-- ====== 今天名單 ====== -->
+    <!-- 今天名單 -->
     <section id="tab-today">
       <div class="card mb-3 p-3">
         <div class="d-flex align-items-center justify-content-between">
@@ -286,7 +221,7 @@
       </div>
     </section>
 
-    <!-- ====== 明天名單 ====== -->
+    <!-- 明天名單 -->
     <section id="tab-tomorrow" style="display:none;">
       <div class="card mb-3 p-3">
         <div class="d-flex align-items-center justify-content-between">
@@ -323,7 +258,7 @@
       </div>
     </section>
 
-    <!-- ====== 預約設定 ====== -->
+    <!-- 預約設定 -->
     <section id="tab-settings" style="display:none;">
       <div class="card mb-4 p-3">
         <div class="d-flex align-items-center justify-content-between">
@@ -404,11 +339,19 @@
       </div>
     </section>
 
-    <!-- ====== 臨時異動 ====== -->
+    <!-- 臨時異動 -->
     <section id="tab-special" style="display:none;">
       <div class="card mb-4 p-3">
         <h5 class="mb-3 fw-bold">新增臨時異動</h5>
         <input type="date" id="newDate" class="form-control mb-3" style="border-radius:14px;">
+
+        <!-- 停診開關 -->
+        <div class="form-check form-switch mb-3">
+          <input class="form-check-input" type="checkbox" id="neStop">
+          <label class="form-check-label" for="neStop" style="font-weight:800;color:#d32f2f">
+            是否停診（勾選後僅寫入停診旗標，其他上限/時段忽略）
+          </label>
+        </div>
 
         <div class="row g-2 align-items-center">
           <div class="col-12 col-md-3"><span class="tag tag-early"></span><strong>早診上限</strong></div>
@@ -461,6 +404,7 @@
           <table class="table align-middle" id="tbl">
             <colgroup>
               <col style="width:110px;">
+              <col style="width:70px;">
               <col style="width:80px;"><col style="width:80px;"><col style="width:80px;"><col style="width:80px;">
               <col style="width:150px;"><col style="width:150px;"><col style="width:150px;"><col style="width:150px;">
               <col style="width:90px;"><col style="width:90px;">
@@ -470,6 +414,7 @@
             <thead>
               <tr>
                 <th>日期</th>
+                <th>停診</th>
                 <th>早診上限</th><th>午診上限</th><th>晚診上限</th><th>約診上限</th>
                 <th>早診時段</th><th>午診時段</th><th>晚診時段</th><th>約診時段</th>
                 <th>起始號碼</th><th>間隔位數</th>
@@ -483,7 +428,7 @@
       </div>
     </section>
 
-    <!-- ====== 叫號控制 ====== -->
+    <!-- 叫號控制 -->
     <section id="tab-queue" style="display:none;">
       <div class="card mb-3 p-3">
         <div class="d-flex align-items-center justify-content-between">
@@ -495,7 +440,6 @@
         </div>
 
         <div class="row g-3 mt-2">
-          <!-- 左：目前號碼 -->
           <div class="col-12 col-md-6">
             <div class="stat">
               <div class="cap cap-pill">目前號碼</div>
@@ -514,7 +458,6 @@
             </div>
           </div>
 
-          <!-- 右：開關 -->
           <div class="col-12 col-md-6">
             <div class="stat">
               <div class="cap cap-pill">開關</div>
@@ -541,7 +484,7 @@
               </div>
             </div>
           </div>
-        </div><!-- /row -->
+        </div>
       </div>
     </section>
 
@@ -819,8 +762,8 @@ async function loadDaily(){
       <td><input class="form-control form-control-sm" id="dTE-${x.row}" value="${x.timeE||''}" style="border-radius:12px;"></td>
       <td><input class="form-control form-control-sm" id="dTN-${x.row}" value="${x.timeN||''}" style="border-radius:12px;"></td>
       <td><input class="form-control form-control-sm" id="dTLt-${x.row}" value="${x.timeL||''}" style="border-radius:12px;"></td>
-      <td><input class="form-control form-control-sm text-center" id="dST-${x.row}" type="number" value="${x.startNo||1}" min="1" style="width:5.5ch;border-radius:12px;"></td>
-      <td><input class="form-control form-control-sm text-center" id="dSP-${x.row}" type="number" value="${x.step||1}" min="1" style="width:5.5ch;border-radius:12px;"></td>
+      <td><input class="form-control form-control-sm text-center" id="dST-${x.row}" type="number" value="${x.startNo||1}" min="1" style="border-radius:12px;"></td>
+      <td><input class="form-control form-control-sm text-center" id="dSP-${x.row}" type="number" value="${x.step||1}" min="1" style="border-radius:12px;"></td>
       <td><button class="btn btn-sm btn-main" onclick="saveDaily('${x.weekdayEn}','${x.row}')">儲存</button></td>`;
     tb.appendChild(tr);
   });
@@ -874,28 +817,49 @@ const neApptTime=document.getElementById('neApptTime');
 const neNote=document.getElementById('neNote');
 const neStartNo=document.getElementById('neStartNo');
 const neStep=document.getElementById('neStep');
+const neStop=document.getElementById('neStop');
 const addBtn=document.getElementById('addBtn');
 const tbl=document.getElementById('tbl');
+
+function toggleNewStopLock() {
+  const lock = neStop.checked;
+  [
+    neEarlyLimit, neNoonLimit, neNightLimit, neApptLimit,
+    neEarlyTime, neNoonTime, neNightTime, neApptTime,
+    neStartNo, neStep
+  ].forEach(el => {
+    el.disabled = lock;
+    if (lock) {
+      if (el.type === 'number') el.value = 0;
+      else el.value = '';
+    }
+  });
+}
+neStop.addEventListener('change', toggleNewStopLock);
 
 addBtn.onclick = async ()=>{
   try{
     if(!newDate.value) return alert("請選日期");
+    const isStop = !!neStop.checked;
+
     const q={
       日期:newDate.value,
-      早診上限:Number(neEarlyLimit.value||0),
-      午診上限:Number(neNoonLimit.value||0),
-      晚診上限:Number(neNightLimit.value||0),
-      約診上限:Number(neApptLimit.value||0),
-      早診時段:neEarlyTime.value||'',
-      午診時段:neNoonTime.value||'',
-      晚診時段:neNightTime.value||'',
-      約診時段:neApptTime.value||'',
-      起始號碼:Number(neStartNo.value||1),
-      間隔位數:Math.max(1,Number(neStep.value||1)),
-      備註:neNote.value||''
+      是否停診: isStop ? true : false,
+      早診上限: isStop ? 0 : Number(neEarlyLimit.value||0),
+      午診上限: isStop ? 0 : Number(neNoonLimit.value||0),
+      晚診上限: isStop ? 0 : Number(neNightLimit.value||0),
+      約診上限: isStop ? 0 : Number(neApptLimit.value||0),
+      早診時段: isStop ? '' : (neEarlyTime.value||''),
+      午診時段: isStop ? '' : (neNoonTime.value||''),
+      晚診時段: isStop ? '' : (neNightTime.value||''),
+      約診時段: isStop ? '' : (neApptTime.value||''),
+      起始號碼: isStop ? 1 : Number(neStartNo.value||1),
+      間隔位數: isStop ? 1 : Math.max(1,Number(neStep.value||1)),
+      備註: neNote.value||''
     };
     await adminCall('adminAdd', q);
     alert("新增完成"); loadSpecials();
+    neStop.checked=false; toggleNewStopLock();
   }catch(e){ console.error(e); alert('新增失敗或尚未登入'); }
 };
 
@@ -904,8 +868,10 @@ async function loadSpecials(){
   const tbody=tbl.querySelector('tbody'); tbody.innerHTML="";
   arr.forEach(x=>{
     const tr=document.createElement('tr');
+    const stop = (x["是否停診"]===true || String(x["是否停診"]).toUpperCase()==='TRUE');
     tr.innerHTML=`
       <td>${x.日期}</td>
+      <td>${ stop ? '<span class="badge" style="background:#d32f2f">停診</span>' : '<span class="badge bg-secondary">—</span>' }</td>
       <td>${x.早診上限||0}</td><td>${x.午診上限||0}</td><td>${x.晚診上限||0}</td><td>${x.約診上限||0}</td>
       <td>${x.早診時段||''}</td><td>${x.午診時段||''}</td><td>${x.晚診時段||''}</td><td>${x.約診時段||''}</td>
       <td>${x.起始號碼||1}</td><td>${x.間隔位數||1}</td>
@@ -928,6 +894,11 @@ async function editRow(id){
   const html=`<div class="modal fade" id="editM"><div class="modal-dialog modal-lg"><div class="modal-content">
    <div class="modal-header"><h5 class="modal-title">編輯 ${f.日期}</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
    <div class="modal-body">
+     <div class="form-check form-switch mb-3">
+       <input class="form-check-input" type="checkbox" id="edStop" ${ (f["是否停診"]===true || String(f["是否停診"]).toUpperCase()==='TRUE') ? 'checked' : '' }>
+       <label class="form-check-label" for="edStop" style="font-weight:800;color:#d32f2f">是否停診</label>
+     </div>
+
      <div class="row g-2">
        <div class="col-6 col-md-3"><label class="form-label">早診上限</label><input id="edEL" class="form-control" type="number" value="${f["早診上限"]||0}" style="border-radius:14px;"></div>
        <div class="col-6 col-md-3"><label class="form-label">午診上限</label><input id="edNL" class="form-control" type="number" value="${f["午診上限"]||0}" style="border-radius:14px;"></div>
@@ -952,21 +923,49 @@ async function editRow(id){
   </div></div></div>`;
   document.body.insertAdjacentHTML('beforeend', html);
   const mEl=document.getElementById("editM"); const m=new bootstrap.Modal(mEl); m.show();
+
+  const edStop = document.getElementById('edStop');
+  const edEL   = document.getElementById('edEL');
+  const edNL   = document.getElementById('edNL');
+  const edTL   = document.getElementById('edTL');
+  const edAL   = document.getElementById('edAL');
+  const edTE   = document.getElementById('edTE');
+  const edTN   = document.getElementById('edTN');
+  const edTLt  = document.getElementById('edTLt');
+  const edTA   = document.getElementById('edTA');
+  const edStartNo = document.getElementById('edStartNo');
+  const edStep = document.getElementById('edStep');
+
+  function toggleEditStopLock(){
+    const lock = edStop.checked;
+    [edEL,edNL,edTL,edAL,edTE,edTN,edTLt,edTA,edStartNo,edStep].forEach(el=>{
+      el.disabled = lock;
+      if(lock){
+        if(el.type==='number') el.value = 0;
+        else el.value = '';
+      }
+    });
+  }
+  edStop.addEventListener('change', toggleEditStopLock);
+  toggleEditStopLock();
+
   document.getElementById("saveBtn").onclick=async()=>{
     if(!confirm("確定儲存？")) return;
+    const isStop = !!edStop.checked;
     await adminCall('adminAdd',{
       日期:f.日期,
-      早診上限:document.getElementById('edEL').value,
-      午診上限:document.getElementById('edNL').value,
-      晚診上限:document.getElementById('edTL').value,
-      約診上限:document.getElementById('edAL').value,
-      早診時段:document.getElementById('edTE').value,
-      午診時段:document.getElementById('edTN').value,
-      晚診時段:document.getElementById('edTLt').value,
-      約診時段:document.getElementById('edTA').value,
-      備註:document.getElementById('edNote').value,
-      起始號碼:Number(document.getElementById('edStartNo').value||1),
-      間隔位數:Math.max(1,Number(document.getElementById('edStep').value||1))
+      是否停診: isStop ? true : false,
+      早診上限: isStop ? 0 : Number(edEL.value||0),
+      午診上限: isStop ? 0 : Number(edNL.value||0),
+      晚診上限: isStop ? 0 : Number(edTL.value||0),
+      約診上限: isStop ? 0 : Number(edAL.value||0),
+      早診時段: isStop ? '' : edTE.value,
+      午診時段: isStop ? '' : edTN.value,
+      晚診時段: isStop ? '' : edTLt.value,
+      約診時段: isStop ? '' : edTA.value,
+      備註: document.getElementById('edNote').value,
+      起始號碼: isStop ? 1 : Number(edStartNo.value||1),
+      間隔位數: isStop ? 1 : Math.max(1, Number(edStep.value||1))
     });
     m.hide(); mEl.addEventListener('hidden.bs.modal', ()=> mEl.remove(), {once:true});
     loadSpecials();
@@ -1069,7 +1068,6 @@ document.getElementById('qSaveFlags').onclick = async ()=>{
   initQueueTab();
 };
 
-// 直接輸入數字→即時寫入
 if (qNow) {
   qNow.addEventListener('change', async () => {
     const n = Number(qNow.value || 0);
@@ -1083,6 +1081,3 @@ if(ADMIN_TOKEN){ showApp(); } else { showLogin(); }
 </script>
 </body>
 </html>
-
-
-
