@@ -237,7 +237,7 @@ function appendRow(item,pid){
 
 async function cancelBooking(rowId, pid){
   if(!confirm(`確認取消這筆預約？`)) return;
-  showing('取消中請稍等');
+  showing('取消中');
   try{
     const token = await recaptchaToken('cancel');
     const resp = await axios.get(API, {
@@ -272,6 +272,7 @@ $pid.addEventListener('keydown',e=>{ if(e.key==='Enter') queryByPid(); });
 </script>
 </body>
 </html>
+
 
 
 
