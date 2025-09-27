@@ -140,13 +140,33 @@ input[type="date"]::-webkit-calendar-picker-indicator{padding:0 8px 0 0}
 .chip-strong{background:#eaf1ff;color:var(--primary);border-color:#d7e6ff}
 .chip-range{background:#f8fafc;color:#334155}
 
-/* ===================== 全頁遮罩（載入中） ===================== */
+/* ===================== 全頁遮罩（進度條式） ===================== */
 #mask{
   position:fixed; inset:0; display:none;
-  align-items:center; justify-content:center; flex-direction:column; gap:10px;
-  z-index:9999; background:rgba(255,255,255,.92); backdrop-filter:blur(2px);
+  align-items:center; justify-content:center; flex-direction:column; gap:14px;
+  z-index:9999; background:rgba(255,255,255,.94); backdrop-filter:blur(2px);
   color:var(--primary); font-size:18px; font-weight:700;
 }
+.progress-wrap{
+  width:min(480px,84vw);
+  background: #eef3f7;
+  border:1px solid var(--baby-blue);
+  height:14px;
+  overflow:hidden;             /* 方角、不圓角 */
+}
+.progress-bar{
+  width:0%; height:100%;
+  background:linear-gradient(90deg,var(--provence),var(--classic-blue));
+  position:relative;
+}
+.progress-bar::after{
+  content:"";
+  position:absolute; inset:0;
+  background:repeating-linear-gradient(45deg, rgba(255,255,255,.25) 0, rgba(255,255,255,.25) 10px, transparent 10px, transparent 20px);
+  animation:stripe 1s linear infinite;
+}
+@keyframes stripe{ from{background-position:0 0} to{background-position:40px 0} }
+.progress-num{font-size:14px;color:#334155}
 
 /* ===================== Skeleton（骨架屏：方角 + Ponder 漸層） ===================== */
 @keyframes shimmer { 0%{background-position:-200% 0} 100%{background-position:200% 0} }
@@ -182,14 +202,18 @@ input[type="date"]::-webkit-calendar-picker-indicator{padding:0 8px 0 0}
   .pill .remain{display:none}
   .tile{padding:10px}
   .date-wrap,.form-input,input[type="date"].form-input{height:46px}
+  .progress-wrap{width:84vw}
 }
 </style>
 </head>
 <body>
-<!-- 全頁遮罩 -->
+<!-- 全頁遮罩（進度條） -->
 <div id="mask" style="display:none">
   <div class="loading-text">預約中請稍等，請勿關閉或重新整理頁面</div>
-  <div class="skeleton skel-title" style="width:240px"></div>
+  <div class="progress-wrap" aria-label="loading">
+    <div id="maskProgress" class="progress-bar"></div>
+  </div>
+  <div id="maskProgressNum" class="progress-num">0%</div>
 </div>
 
 <div class="wrap">
@@ -275,7 +299,7 @@ input[type="date"]::-webkit-calendar-picker-indicator{padding:0 8px 0 0}
       <div class="modal-body">
         <div class="p-2" style="background:#f6f9ff;border:1px solid #e3ecff">
           <div class="rule-line"><span class="chip chip-strong">週一</span><span>可預約 →</span><span class="chip chip-range">［ 週四 ~ 下下週一 ］</span></div>
-          <div class="rule-line"><span class="chip chip-強">週二</span><span>可預約 →</span><span class="chip chip-range">［ 週五 ~ 下下週二 ］</span></div>
+          <div class="rule-line"><span class="chip chip-strong">週二</span><span>可預約 →</span><span class="chip chip-range">［ 週五 ~ 下下週二 ］</span></div>
           <div class="rule-line"><span class="chip chip-strong">週三</span><span>可預約 →</span><span class="chip chip-range">［ 週六 ~ 下下週三 ］</span></div>
           <div class="rule-line"><span class="chip chip-strong">週四</span><span>可預約 →</span><span class="chip chip-range">［ 下週一 ~ 下下週四 ］</span></div>
           <div class="rule-line"><span class="chip chip-strong">週五</span><span>可預約 →</span><span class="chip chip-range">［ 下週二 ~ 下下週五 ］</span></div>
@@ -384,7 +408,30 @@ const fmtTitle=d=>`${d.getFullYear()}年${d.getMonth()+1}月份`;
 const NOW=new Date(); const TODAY_KEY=ymd(NOW);
 let WINDOW_MIN=null,WINDOW_MAX=null; let curMonth=firstOfMonth(NOW);
 
-/* 現在時間 */
+/* ====== 進度條控制 ====== */
+let _progTimer=null, _progVal=0;
+const _bar=$('maskProgress'), _num=$('maskProgressNum');
+
+function _updateProgress(v){
+  _bar.style.width = v + '%';
+  if(_num) _num.textContent = Math.round(v) + '%';
+}
+function _startProgress(){
+  clearInterval(_progTimer);
+  _progVal = 0; _updateProgress(_progVal);
+  _progTimer = setInterval(()=>{
+    // 模擬前進到 90% 之內
+    const step = Math.random()*12; 
+    _progVal = Math.min(90, _progVal + step);
+    _updateProgress(_progVal);
+  }, 260);
+}
+function _finishProgress(){
+  clearInterval(_progTimer);
+  _progVal = 100; _updateProgress(_progVal);
+}
+
+/* ====== 現在時間 ====== */
 function fmtNowLabel(){
   const d=new Date();
   const w='日一二三四五六'[d.getDay()];
@@ -397,21 +444,26 @@ function fmtNowLabel(){
   tick(); setInterval(tick, 60*1000);
 })();
 
-/* 遮罩 */
+/* ====== 遮罩（進度條） ====== */
 const $mask = $('mask');
 function showMask(txt){
   $mask.style.display = 'flex';
-  if ($mask.firstElementChild) $mask.firstElementChild.textContent = txt || '預約中請稍等，請勿關閉或重新整理頁面';
+  const t = $mask.querySelector('.loading-text');
+  if (t) t.textContent = txt || '預約中請稍等，請勿關閉或重新整理頁面';
+  _startProgress();
 }
-function hideMask(){ $mask.style.display = 'none'; }
+function hideMask(){
+  _finishProgress();
+  // 稍微延遲讓使用者看到 100%
+  setTimeout(()=>{ $mask.style.display = 'none'; _updateProgress(0); }, 220);
+}
 
 /* 週標題 */
 $whead.innerHTML=W.map(w=>`<div class="wday">${w}</div>`).join('');
 
 /* 骨架：建立 7×6 宮格 */
 (function buildSkeleton(){
-  let h='';
-  for(let i=0;i<42;i++) h+=`<div class="skel-day" aria-hidden="true"></div>`;
+  let h=''; for(let i=0;i<42;i++) h+=`<div class="skel-day" aria-hidden="true"></div>`;
   $skel.innerHTML=h;
 })();
 
