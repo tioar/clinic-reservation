@@ -35,7 +35,7 @@ body{
 }
 /* 全站方角（拿掉圓角） */
 button, input, .cardish, .tile, .pill, .modal-content, .form-input, .rule-btn {
-  border-radius:0 !重要;
+  border-radius:0 !important;
 }
 
 .wrap{max-width:960px;margin:16px auto;padding:12px}
@@ -114,11 +114,13 @@ button, input, .cardish, .tile, .pill, .modal-content, .form-input, .rule-btn {
 .tile.selected.appt{background:#f9e7ee;outline:2px solid #f6b6dc}
 .tile.full .status-full{color:#b91c1c;font-weight:700}
 
-/* = Form =（★ 下方表單：保持原樣，未更動） */
+/* = Form = */
 .form-grid{display:grid;gap:14px;grid-template-columns:1fr}
 .form-grid > div{min-width:0}
 .form-label-strong{font-weight:700;margin-bottom:6px;color:#1f2b3a}
 .form-input{width:100%;min-width:0;max-width:100%;border:1px solid #cfd6df;font-size:1rem;height:46px;padding:0 .9rem;background:#fff}
+
+/* 日期輸入 */
 .date-wrap{position:relative;height:46px}
 input[type="date"].form-input{appearance:none;-webkit-appearance:none;height:100%;padding:0 .9rem;font-size:16px}
 input[type="date"]::-webkit-date-and-time-value{height:100%;line-height:46px}
@@ -126,6 +128,8 @@ input[type="date"]::-webkit-datetime-edit{padding:0}
 input[type="date"]::-webkit-datetime-edit-fields-wrapper{padding:0;margin:0}
 input[type="date"]::-webkit-calendar-picker-indicator{padding:0 8px 0 0}
 .date-hint{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:#9aa0aa;pointer-events:none;font-size:16px;line-height:1}
+
+/* 扁平按鈕（方角） */
 .btn-main,.btn-ghost{font-weight:700;padding:.9rem 1.15rem;font-size:1.05rem}
 .btn-main{background:var(--primary);color:#fff;border:1px solid var(--primary)}
 .btn-ghost{background:#fff;border:1px solid #d7dbe5;color:#3a3f47}
@@ -145,7 +149,7 @@ input[type="date"]::-webkit-calendar-picker-indicator{padding:0 8px 0 0}
 }
 .progress-wrap{
   width:min(480px,84vw);
-  background:#eef3f7;
+  background: #eef3f7;
   border:1px solid var(--baby-blue);
   height:14px;
   overflow:hidden;             /* 方角、不圓角 */
@@ -164,28 +168,26 @@ input[type="date"]::-webkit-calendar-picker-indicator{padding:0 8px 0 0}
 @keyframes stripe{ from{background-position:0 0} to{background-position:40px 0} }
 .progress-num{font-size:14px;color:#334155}
 
-/* ===================== 小型進度條（calLoader & 月曆骨架用） ===================== */
-.bar{
-  --w:160px; --h:8px;
-  width:var(--w); height:var(--h);
-  background:#eef3f7; border:1px solid var(--baby-blue);
-  overflow:hidden; display:inline-block;
+/* ===================== Skeleton（骨架屏：方角 + Ponder 漸層） ===================== */
+@keyframes shimmer { 0%{background-position:-200% 0} 100%{background-position:200% 0} }
+.skeleton{
+  display:block;
+  background:linear-gradient(90deg, var(--baby-blue) 20%, var(--provence) 40%, var(--baby-blue) 60%);
+  background-size:200% 100%;
+  animation:shimmer 1.6s infinite;
 }
-.bar .fill{
-  height:100%; width:40%;
-  background:linear-gradient(90deg,var(--provence),var(--classic-blue));
-  position:relative; transform:translateX(-40%);
-  animation:indet 1.1s infinite linear;
-}
-@keyframes indet{ to{ transform:translateX(140%); } }
-
-/* ===================== Skeleton（改成進度條格） ===================== */
+.skel-title{height:28px;width:60%;margin:8px 0}
+.skel-line{height:18px;width:100%;margin:6px 0}
+.skel-box{height:80px;width:100%;margin:10px 0}
 .skel-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px;padding:10px}
-.skel-day{
-  height:74px; border:1px solid var(--baby-blue); background:#f7fafc;
-  display:flex; align-items:center; justify-content:center;
-}
-.skel-day .bar{ --w:70%; --h:8px; }
+.skel-day{height:74px;border:1px solid var(--baby-blue);background:linear-gradient(90deg,#e7edf3 10%,#f2f6fa 30%,#e7edf3 50%);animation:shimmer 1.6s infinite;background-size:200% 100%}
+.skel-day:nth-child(7n+1){border-color:var(--classic-blue)}
+.skel-day:nth-child(7n+2){border-color:var(--provence)}
+.skel-day:nth-child(7n+3){border-color:var(--baby-blue)}
+.skel-day:nth-child(7n+4){border-color:var(--monument)}
+.skel-day:nth-child(7n+5){border-color:var(--stucco)}
+.skel-day:nth-child(7n+6){border-color:var(--provence)}
+.skel-day:nth-child(7n+7){border-color:var(--classic-blue)}
 
 /* Mobile */
 @media (max-width:600px){
@@ -221,10 +223,7 @@ input[type="date"]::-webkit-calendar-picker-indicator{padding:0 8px 0 0}
     <div class="cal-head">
       <div class="cal-title">
         <span class="title-text" id="calTitle">—</span>
-        <!-- 月曆載入指示：小型進度條 -->
-        <span id="calLoader" class="loader" style="display:none">
-          <span class="bar"><span class="fill"></span></span>
-        </span>
+        <span id="calLoader" class="loader" style="display:none">載入中…</span>
       </div>
       <div class="nav">
         <button id="btnPrev" class="nav-btn" aria-label="上一月" title="上一月">&lt;</button>
@@ -240,7 +239,7 @@ input[type="date"]::-webkit-calendar-picker-indicator{padding:0 8px 0 0}
     <!-- 週標題 -->
     <div class="grid" id="whead"></div>
 
-    <!-- 骨架容器（進度條格），待資料完成後隱藏 -->
+    <!-- 骨架容器（預設顯示），待資料完成後隱藏 -->
     <div id="calSkeleton" class="skel-grid" aria-hidden="true"></div>
 
     <!-- 真實日期格與面板 -->
@@ -249,7 +248,7 @@ input[type="date"]::-webkit-calendar-picker-indicator{padding:0 8px 0 0}
     <div class="section picked" id="picked" style="display:none"></div>
   </div>
 
-  <!-- 表單（★ 未更動） -->
+  <!-- 表單 -->
   <div class="cardish section mt-3">
     <input type="hidden" id="date"/><input type="hidden" id="slot"/>
     <input type="hidden" id="g-recaptcha-response" name="g-recaptcha-response"/>
@@ -300,7 +299,7 @@ input[type="date"]::-webkit-calendar-picker-indicator{padding:0 8px 0 0}
       <div class="modal-body">
         <div class="p-2" style="background:#f6f9ff;border:1px solid #e3ecff">
           <div class="rule-line"><span class="chip chip-strong">週一</span><span>可預約 →</span><span class="chip chip-range">［ 週四 ~ 下下週一 ］</span></div>
-          <div class="rule-line"><span class="chip chip-強">週二</span><span>可預約 →</span><span class="chip chip-range">［ 週五 ~ 下下週二 ］</span></div>
+          <div class="rule-line"><span class="chip chip-strong">週二</span><span>可預約 →</span><span class="chip chip-range">［ 週五 ~ 下下週二 ］</span></div>
           <div class="rule-line"><span class="chip chip-strong">週三</span><span>可預約 →</span><span class="chip chip-range">［ 週六 ~ 下下週三 ］</span></div>
           <div class="rule-line"><span class="chip chip-strong">週四</span><span>可預約 →</span><span class="chip chip-range">［ 下週一 ~ 下下週四 ］</span></div>
           <div class="rule-line"><span class="chip chip-strong">週五</span><span>可預約 →</span><span class="chip chip-range">［ 下週二 ~ 下下週五 ］</span></div>
@@ -352,9 +351,9 @@ const AES_KEY="A2x5fT9qR7nC1vB8mK3pZ6sD4uH0yW2j";
 const nonceStore = {}; // { 'YYYY-MM-DD': {nonce, sig, exp} }
 
 /* ====== 驗證工具 ====== */
-function onlyDigits(s){ return String(s||'').replace(/\\D/g,''); }
+function onlyDigits(s){ return String(s||'').replace(/\D/g,''); }
 function validateTaiwanId(id){
-  if(!/^[A-Z][12]\\d{8}$/.test(id)) return false;
+  if(!/^[A-Z][12]\d{8}$/.test(id)) return false;
   const codeMap = {A:10,B:11,C:12,D:13,E:14,F:15,G:16,H:17,I:34,J:18,K:19,L:20,M:21,N:22,O:35,P:23,Q:24,R:25,S:26,T:27,U:28,V:29,W:32,X:30,Y:31,Z:33};
   const c0 = id[0], n = codeMap[c0]; if(n===undefined) return false;
   const X = Math.floor(n/10), Y = n%10, digits = id.slice(1).split('').map(ch=>parseInt(ch,10));
@@ -409,7 +408,7 @@ const fmtTitle=d=>`${d.getFullYear()}年${d.getMonth()+1}月份`;
 const NOW=new Date(); const TODAY_KEY=ymd(NOW);
 let WINDOW_MIN=null,WINDOW_MAX=null; let curMonth=firstOfMonth(NOW);
 
-/* ====== 進度條控制（全頁遮罩用，維持原樣） ====== */
+/* ====== 進度條控制 ====== */
 let _progTimer=null, _progVal=0;
 const _bar=$('maskProgress'), _num=$('maskProgressNum');
 
@@ -421,6 +420,7 @@ function _startProgress(){
   clearInterval(_progTimer);
   _progVal = 0; _updateProgress(_progVal);
   _progTimer = setInterval(()=>{
+    // 模擬前進到 90% 之內
     const step = Math.random()*12; 
     _progVal = Math.min(90, _progVal + step);
     _updateProgress(_progVal);
@@ -454,24 +454,20 @@ function showMask(txt){
 }
 function hideMask(){
   _finishProgress();
+  // 稍微延遲讓使用者看到 100%
   setTimeout(()=>{ $mask.style.display = 'none'; _updateProgress(0); }, 220);
 }
 
 /* 週標題 */
 $whead.innerHTML=W.map(w=>`<div class="wday">${w}</div>`).join('');
 
-/* 骨架：建立 7×6 宮格 → 每格置中一條小進度條 */
+/* 骨架：建立 7×6 宮格 */
 (function buildSkeleton(){
-  let h='';
-  for(let i=0;i<42;i++){
-    h+=`<div class="skel-day" aria-hidden="true">
-          <span class="bar"><span class="fill"></span></span>
-        </div>`;
-  }
+  let h=''; for(let i=0;i<42;i++) h+=`<div class="skel-day" aria-hidden="true"></div>`;
   $skel.innerHTML=h;
 })();
 
-/* 顯示/隱藏骨架 + 標題旁小進度條 */
+/* 顯示/隱藏骨架 */
 function toggleSkeleton(on){
   $skel.style.display = on ? 'grid' : 'none';
   $days.style.display = on ? 'none' : 'grid';
@@ -522,7 +518,7 @@ async function fetchMonthDays(monthDate){
           const label=String(x.label||'');
           const slot=label.includes('早')?'early':label.includes('午')?'noon':label.includes('晚')?'night':label.includes('約')?'appt':'other';
           const time=x.time||x.timeRange||'';
-          const doctor=String(x.doctor||'').replace(/[［\\[]|[］\\]]/g,'');
+          const doctor=String(x.doctor||'').replace(/[［\[]|[］\]]/g,'');
           const status=limit<=0?'closed':(remain<=0?'full':'open');
           return {slot,cap:limit,used,remain,status,time,doctor,label};
         });
@@ -616,7 +612,7 @@ function selectRow(row){
   if(row.dataset.status === 'full'){ $('date').value=''; $('slot').value=''; return; }
   const mapVal={early:'早診',noon:'午診',night:'晚診',appt:'約診'};
   $('date').value=row.dataset.date;
-  $('slot').value=mapVal[row.dataset.slot]||';
+  $('slot').value=mapVal[row.dataset.slot]||'';
   $('submitBtn').scrollIntoView({behavior:'smooth',block:'center'});
 }
 
@@ -640,16 +636,16 @@ $('phone').addEventListener('input', e=>{
 let submitting=false;
 $('submitBtn').addEventListener('click',async(e)=>{
   e.preventDefault(); if(submitting) return;
-  const d=($('date').value||').trim(), s=($('slot').value||').trim(),
-        n=($('name').value||).trim(), b=($('birthday').value||).trim(),
-        id=($('idnum').value||).trim().toUpperCase(), phRaw=($('phone').value||).trim(),
+  const d=($('date').value||'').trim(), s=($('slot').value||'').trim(),
+        n=($('name').value||'').trim(), b=($('birthday').value||'').trim(),
+        id=($('idnum').value||'').trim().toUpperCase(), phRaw=($('phone').value||'').trim(),
         ag=$('agree').checked;
   if(!d||!s||!n||!b||!id||!phRaw||!ag){alert('資料未填寫完整，請檢查後重試');return;}
   const age=Math.floor((Date.now()-new Date(b))/31536000000);
   if(age<0||age>150){alert('出生年月日不合理，請檢查後重試');return;}
   if(!validateTaiwanId(id)){ alert('身份證字號驗證錯誤，請檢查後重試'); return; }
   const ph = onlyDigits(phRaw);
-  if(!/^\\d{10}$/.test(ph)){ alert('聯絡電話字數錯誤，請檢查後重試'); return; }
+  if(!/^\d{10}$/.test(ph)){ alert('聯絡電話字數錯誤，請檢查後重試'); return; }
 
   try{
     submitting=true; $('submitBtn').disabled=true; showMask();
