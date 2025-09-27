@@ -68,8 +68,10 @@ body{margin:0;background:var(--bg);color:#1f1330;font-family:"Noto Sans TC","Mic
 .pill.noon {background:#fff3df;color:#7a4d00;border-color:#ffd79a}
 .pill.night{background:#e8f2ff;color:#1d4ed8;border-color:#cfe2ff}
 .pill.appt {background:#fde7ef;color:#b51695;border-color:#ff99e6}
+/* ★ 停診 */
+.pill.stop{background:#fce8e6;color:#b91c1c;border-color:#f5c2c0}
 
-/* == 額滿樣式 == */
+/* 額滿樣式 */
 .pill.full{background:#eef1f5;color:#6b7280;border-color:#e5e7eb;opacity:.9;}
 .tile.full{background:#f3f4f6;border-color:#e5e7eb;color:#6b7280;cursor:default;}
 .tile.full:hover{box-shadow:none;}
@@ -119,7 +121,6 @@ input[type="date"]::-webkit-datetime-edit{padding:0}
 input[type="date"]::-webkit-datetime-edit-fields-wrapper{padding:0;margin:0}
 input[type="date"]::-webkit-calendar-picker-indicator{padding:0 8px 0 0}
 .date-hint{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:#9aa0aa;pointer-events:none;font-size:16px;line-height:1}
-.date-wrap.has-value .date-hint,.date-wrap.focus .date-hint{display:none}
 
 /* 扁平化按鈕 */
 .btn-main,.btn-ghost{border-radius:999px;font-weight:900;padding:.9rem 1.15rem;font-size:1.05rem}
@@ -216,7 +217,6 @@ label.agree span::after{content:" *";color:#000;font-weight:900}
 
       <div>
         <div class="form-label-strong">聯絡電話 *</div>
-        <!-- 新增 pattern，並保留 maxlength / inputmode -->
         <input id="phone" type="text" maxlength="10" inputmode="numeric" pattern="\d{10}" class="form-input" placeholder="0958xxxxxx" autocomplete="off"/>
       </div>
     </div>
@@ -282,39 +282,24 @@ label.agree span::after{content:" *";color:#000;font-weight:900}
 <script src="https://www.google.com/recaptcha/api.js?render=6LdqprArAAAAACpuAXemZUH3KNER1t1iw07YjGHu"></script>
 
 <script>
-const API="https://script.google.com/macros/s/AKfycbw3vGOL_Cp_t20fykHM8yN2408e8RTeorQjC-i-cAtyXV9l8Mubs48-8Fd6cI6cmQti/exec";
+/* ====== 基本設定 ====== */
+const API="https://script.google.com/macros/s/AKfycbx2AU_ep6FjgqRK4WMNOxPXCi6qYDCoHTzVFp6TIcb_dzD52cDBZNp6_CHxuZlGcg5E/exec";
 const RECAPTCHA_SITE_KEY="6LdqprArAAAAACpuAXemZUH3KNER1t1iw07YjGHu";
 const AES_KEY="A2x5fT9qR7nC1vB8mK3pZ6sD4uH0yW2j";
 
 /* 一次性簽章暫存 */
 const nonceStore = {}; // { 'YYYY-MM-DD': {nonce, sig, exp} }
 
-/* ====== 驗證工具（新增） ====== */
-// 只留數字
+/* ====== 驗證工具 ====== */
 function onlyDigits(s){ return String(s||'').replace(/\D/g,''); }
-
-// 中華民國身分證字號檢核（含檢查碼）
 function validateTaiwanId(id){
   if(!/^[A-Z][12]\d{8}$/.test(id)) return false;
-  const codeMap = {
-    A:10,B:11,C:12,D:13,E:14,F:15,G:16,H:17,I:34,J:18,
-    K:19,L:20,M:21,N:22,O:35,P:23,Q:24,R:25,S:26,T:27,
-    U:28,V:29,W:32,X:30,Y:31,Z:33
-  };
-  const c0 = id[0];
-  const n = codeMap[c0];
-  if(n===undefined) return false;
-
-  const X = Math.floor(n/10), Y = n%10;
-  const digits = id.slice(1).split('').map(ch=>parseInt(ch,10));
-  const weights = [8,7,6,5,4,3,2,1,1]; // d1~d9
-
-  let sum = 0;
-  sum += X * 1;
-  sum += Y * 9;
-  for(let i=0;i<digits.length;i++){
-    sum += digits[i] * weights[i];
-  }
+  const codeMap = {A:10,B:11,C:12,D:13,E:14,F:15,G:16,H:17,I:34,J:18,K:19,L:20,M:21,N:22,O:35,P:23,Q:24,R:25,S:26,T:27,U:28,V:29,W:32,X:30,Y:31,Z:33};
+  const c0 = id[0], n = codeMap[c0]; if(n===undefined) return false;
+  const X = Math.floor(n/10), Y = n%10, digits = id.slice(1).split('').map(ch=>parseInt(ch,10));
+  const weights = [8,7,6,5,4,3,2,1,1];
+  let sum = X*1 + Y*9;
+  for(let i=0;i<digits.length;i++) sum += digits[i]*weights[i];
   return (sum % 10) === 0;
 }
 
@@ -363,7 +348,7 @@ const fmtTitle=d=>`${d.getFullYear()}年${d.getMonth()+1}月份`;
 const NOW=new Date(); const TODAY_KEY=ymd(NOW);
 let WINDOW_MIN=null,WINDOW_MAX=null; let curMonth=firstOfMonth(NOW);
 
-/* 現在時間（左側文字） */
+/* 現在時間 */
 function fmtNowLabel(){
   const d=new Date();
   const w='日一二三四五六'[d.getDay()];
@@ -373,8 +358,7 @@ function fmtNowLabel(){
   const el=document.getElementById('nowTime');
   if(!el) return;
   const tick=()=>{ el.textContent=fmtNowLabel(); };
-  tick();
-  setInterval(tick, 60*1000);
+  tick(); setInterval(tick, 60*1000);
 })();
 
 /* 遮罩 */
@@ -383,15 +367,9 @@ function showMask(txt){
   $mask.textContent=(txt||'預約中請稍等，請勿關閉或重新整理頁面');
   $mask.style.display='flex';
   if(dotTimer) clearInterval(dotTimer);
-  const span=document.createElement('span');
-  span.id='dots';
-  span.textContent='...';
-  $mask.appendChild(span);
-  dotTimer=setInterval(()=>{
-    const d=$('dots'); if(!d) return;
-    d.textContent=(d.textContent==='...')?'.':d.textContent+'.';
-    if(d.textContent.length>3)d.textContent='.';
-  },340);
+  const span=document.createElement('span'); span.id='dots'; span.textContent='...'; $mask.appendChild(span);
+  dotTimer=setInterval(()=>{ const d=$('dots'); if(!d) return;
+    d.textContent=(d.textContent==='...')?'.':d.textContent+'.'; if(d.textContent.length>3)d.textContent='.'; },340);
 }
 function hideMask(){ if(dotTimer) clearInterval(dotTimer); $mask.style.display='none'; }
 
@@ -403,10 +381,7 @@ $('showNotice').addEventListener('click',e=>{
   noticeModalInst=new bootstrap.Modal(document.getElementById('noticeModal'));
   noticeModalInst.show();
 });
-$('agreeConfirm').addEventListener('click',()=>{
-  $('agree').checked=true;
-  if(noticeModalInst) noticeModalInst.hide();
-});
+$('agreeConfirm').addEventListener('click',()=>{ $('agree').checked=true; if(noticeModalInst) noticeModalInst.hide(); });
 
 /* iOS/Safari date 假 placeholder */
 (function(){
@@ -467,23 +442,21 @@ function renderSkeleton(monthDate){
   $days.innerHTML=html; $panel.style.display='none'; $picked.style.display='none';
 }
 
-/* 逐日 slots */
+/* 逐日 slots（含停診 stop） */
 async function fetchMonthDays(monthDate){
   const first=firstOfMonth(monthDate), last=endOfMonth(monthDate);
   const jobs=[];
   for(let d=1; d<=last.getDate(); d++){
     const cur=new Date(first.getFullYear(),first.getMonth(),d);
     const key=ymd(cur);
-    if(cur<WINDOW_MIN || cur>WINDOW_MAX){ jobs.push(Promise.resolve({date:key,slots:[]})); continue; }
+    if(cur<WINDOW_MIN || cur>WINDOW_MAX){ jobs.push(Promise.resolve({date:key,slots:[],stop:false})); continue; }
     jobs.push((async()=>{
       try{
         const r=await axios.get(API,{params:{action:'getSlots',date:key,t:Date.now()}});
-        const data=r.data;
-
+        const data=r.data||{};
         if (!Array.isArray(data) && data && data.nonce && data.sig && data.exp) {
           nonceStore[key] = {nonce:String(data.nonce), sig:String(data.sig), exp:Number(data.exp)};
         }
-
         const raw=Array.isArray(data)?data:(Array.isArray(data?.slots)?data.slots:[]);
         const slots=(raw||[]).map(x=>{
           const limit=Number(x.limit)||0, used=Number(x.used)||0, remain=Math.max(0,limit-used);
@@ -494,14 +467,15 @@ async function fetchMonthDays(monthDate){
           const status=limit<=0?'closed':(remain<=0?'full':'open');
           return {slot,cap:limit,used,remain,status,time,doctor,label};
         });
-        return {date:key,slots};
-      }catch{ return {date:key,slots:[]} }
+        const stop = (data && data.stop===true);
+        return {date:key,slots,stop};
+      }catch{ return {date:key,slots:[],stop:false} }
     })());
   }
   const arr=await Promise.all(jobs); const map={}; arr.forEach(d=>map[d.date]=d); return map;
 }
 
-/* 寫入月曆（只顯示 cap>0） */
+/* 寫入月曆（顯示停診紅膠囊；停診日不可點） */
 function hydrateMonth(monthDate, dayMap){
   const first=firstOfMonth(monthDate), last=endOfMonth(monthDate);
   let html=''; const pad=first.getDay();
@@ -517,12 +491,17 @@ function hydrateMonth(monthDate, dayMap){
 
     const visibleSlots=(meta?.slots||[]).filter(s=>Number(s.cap)>0);
 
-    if(isToday){
+    if (meta?.stop===true){
+      // 停診：顯示紅色膠囊，不可點
+      cls += ' disabled';
+      inner+=`<div class="meta"><span class="pill stop">停診</span></div>`;
+    } else if(isToday){
       inner+=`<div class="meta">—</div>`;
-    }else if(!inWindow || visibleSlots.length===0){
+      cls+=' clickable';
+    } else if(!inWindow || visibleSlots.length===0){
       if(!inWindow) cls+=' disabled';
       inner+=`<div class="meta">—</div>`;
-    }else{
+    } else{
       cls+=' clickable';
       const pills=visibleSlots.map(s=>{
         const tag=s.slot==='early'?'early':s.slot==='noon'?'noon':s.slot==='night'?'night':'appt';
@@ -535,8 +514,7 @@ function hydrateMonth(monthDate, dayMap){
       inner+=`<div class="meta">${pills}</div>`;
     }
 
-    if(isToday) { cls+=' today clickable'; }
-    html+=`<div class="${cls}" data-ymd="${key}">${inner}</div>`;
+    html+=`<div class="${cls}${isToday?' today':''}" data-ymd="${key}">${inner}</div>`;
   }
   $days.innerHTML=html;
 
@@ -550,14 +528,14 @@ function hydrateMonth(monthDate, dayMap){
   showLoadingDots(false);
 }
 
-/* 當日清單（只列 cap>0） */
+/* 當日清單（停診則不顯示面板） */
 function openDay(dateYMD, meta){
+  if (meta?.stop===true){ $panel.style.display='none'; return; }
   const mapSlot={early:'早診',noon:'午診',night:'晚診',appt:'約診'};
   const slots=(meta?.slots||[]).filter(s=>Number(s.cap)>0);
   if(!slots.length){ $panel.style.display='none'; return; }
 
   let html=`<div class="head">${dateYMD}（星期${['日','一','二','三','四','五','六'][new Date(dateYMD).getDay()]}）</div><div class="slot-grid">`;
-
   html+=slots.map(s=>{
     const label=mapSlot[s.slot]||s.label||''; 
     const time=s.time||''; 
@@ -572,7 +550,6 @@ function openDay(dateYMD, meta){
       ${right}
     </div>`;
   }).join('');
-
   html+=`</div>`;
   $panel.innerHTML=html; 
   $panel.style.display='block';
@@ -588,9 +565,7 @@ function selectRow(row){
   row.classList.add('selected');
 
   if(row.dataset.status === 'full'){
-    $('date').value='';
-    $('slot').value='';
-    return;
+    $('date').value=''; $('slot').value=''; return;
   }
   const mapVal={early:'早診',noon:'午診',night:'晚診',appt:'約診'};
   $('date').value=row.dataset.date;
@@ -609,15 +584,12 @@ $('idnum').addEventListener('input',e=>{
   try{ e.target.setSelectionRange(p,p);}catch(_){}
 });
 
-/* 聯絡電話：只允許即時輸入數字且最多 10 碼（新增） */
+/* 聯絡電話：只允許數字且最多 10 碼 */
 $('phone').addEventListener('input', e=>{
   const p = e.target.selectionStart;
   const cleaned = onlyDigits(e.target.value).slice(0,10);
   e.target.value = cleaned;
-  try{
-    const pos = Math.min(p, cleaned.length);
-    e.target.setSelectionRange(pos, pos);
-  }catch(_){}
+  try{ const pos = Math.min(p, cleaned.length); e.target.setSelectionRange(pos, pos); }catch(_){}
 });
 
 /* 送出 */
@@ -631,34 +603,20 @@ $('submitBtn').addEventListener('click',async(e)=>{
 
   if(!d||!s||!n||!b||!id||!phRaw||!ag){alert('資料未填寫完整，請檢查後重試');return;}
 
-  // 生日合理性
   const age=Math.floor((Date.now()-new Date(b))/31536000000);
   if(age<0||age>150){alert('出生年月日不合理，請檢查後重試');return;}
 
-  // ✅ 身分證（含檢查碼）
-  if(!validateTaiwanId(id)){
-    alert('身份證字號驗證錯誤，請檢查後重試');
-    return;
-  }
+  if(!validateTaiwanId(id)){ alert('身份證字號驗證錯誤，請檢查後重試'); return; }
 
-  // ✅ 連絡電話：10 碼純數字
   const ph = onlyDigits(phRaw);
-  if(!/^\d{10}$/.test(ph)){
-    alert('聯絡電話字數錯誤，請檢查後重試');
-    return;
-  }
+  if(!/^\d{10}$/.test(ph)){ alert('聯絡電話字數錯誤，請檢查後重試'); return; }
 
   try{
     submitting=true; $('submitBtn').disabled=true; showMask();
     const recaptchaToken=await getRecaptchaToken(); $('g-recaptcha-response').value=recaptchaToken;
 
     const params={action:'submit',date:d,slot:s,name:n,birthday:b,id:id,phone:ph,recaptchaToken,t:Date.now()};
-
-    if (nonceStore[d]) {
-      params.nonce = nonceStore[d].nonce;
-      params.sig   = nonceStore[d].sig;
-      params.exp   = nonceStore[d].exp;
-    }
+    if (nonceStore[d]) { params.nonce = nonceStore[d].nonce; params.sig = nonceStore[d].sig; params.exp = nonceStore[d].exp; }
 
     const r=await axios.get(API,{params});
     if(!r.data?.ok){ alert(r.data?.message||'送出失敗，請稍後再試一次'); return; }
@@ -680,5 +638,3 @@ async function bootMonth(m){ renderSkeleton(m); const map=await fetchMonthDays(m
 </script>
 </body>
 </html>
-
-
