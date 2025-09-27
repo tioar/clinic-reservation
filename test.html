@@ -30,7 +30,7 @@
 html,body{width:100%;max-width:100%}
 body{
   margin:0;background:var(--bg);color:var(--ink);
-  font-family:"DFKai-SB","標楷體",serif;  /* ★ 改成標楷體 */
+  font-family:"DFKai-SB","標楷體",serif;  /* ★ 標楷體 */
   font-weight:400;
 }
 /* 全站方角（拿掉圓角） */
@@ -55,12 +55,19 @@ button, input, .cardish, .tile, .pill, .modal-content, .form-input, .rule-btn {
 .cal-title .title-text{font-size:clamp(1.2rem,2.4vw,1.6rem);font-weight:700}
 .loader{color:var(--monument);font-size:.95rem;white-space:nowrap;min-width:6.5em}
 
-/* nav arrows：方形箭頭 */
+/* nav arrows：方形文字版 < > */
 .nav{display:flex;gap:8px}
-.nav-btn{width:36px;height:36px;border:1px solid var(--primary);background:#fff;position:relative;cursor:pointer}
-.nav-btn::before{content:"";position:absolute;top:50%;left:50%;width:8px;height:8px;border-top:2px solid var(--primary);border-right:2px solid var(--primary);transform-origin:center}
-.nav-btn.prev::before{transform:translate(-40%,-50%) rotate(-135deg)}
-.nav-btn.next::before{transform:translate(-60%,-50%) rotate(45deg)}
+.nav-btn{
+  width:40px;height:36px;
+  border:1px solid var(--primary);
+  background:#fff; color:var(--primary);
+  font-family:"DFKai-SB","標楷體",serif;
+  font-weight:700; font-size:18px; line-height:1;
+  display:grid;place-items:center;
+  cursor:pointer; user-select:none;
+}
+.nav-btn:hover{background:#f2f6ff}
+.nav-btn:focus{outline:2px solid #c9d6ea; outline-offset:1px}
 .nav-btn[disabled]{opacity:.35;cursor:not-allowed}
 
 /* 規則列＋現在時間 */
@@ -142,35 +149,18 @@ input[type="date"]::-webkit-calendar-picker-indicator{padding:0 8px 0 0}
 }
 
 /* ===================== Skeleton（骨架屏：方角 + Ponder 漸層） ===================== */
-/* 閃爍掃描 */
-@keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
-}
-/* 基礎骨架條 */
+@keyframes shimmer { 0%{background-position:-200% 0} 100%{background-position:200% 0} }
 .skeleton{
   display:block;
-  background:linear-gradient(90deg,
-    var(--baby-blue) 20%,
-    var(--provence) 40%,
-    var(--baby-blue) 60%);
+  background:linear-gradient(90deg, var(--baby-blue) 20%, var(--provence) 40%, var(--baby-blue) 60%);
   background-size:200% 100%;
   animation:shimmer 1.6s infinite;
 }
-/* 不同尺寸 */
 .skel-title{height:28px;width:60%;margin:8px 0}
 .skel-line{height:18px;width:100%;margin:6px 0}
 .skel-box{height:80px;width:100%;margin:10px 0}
-
-/* 月曆格骨架 */
 .skel-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px;padding:10px}
-.skel-day{height:74px;border:1px solid var(--baby-blue);background:
-  linear-gradient(90deg,
-    #e7edf3 10%,
-    #f2f6fa 30%,
-    #e7edf3 50%) ;
-  animation:shimmer 1.6s infinite;background-size:200% 100%;
-}
+.skel-day{height:74px;border:1px solid var(--baby-blue);background:linear-gradient(90deg,#e7edf3 10%,#f2f6fa 30%,#e7edf3 50%);animation:shimmer 1.6s infinite;background-size:200% 100%}
 .skel-day:nth-child(7n+1){border-color:var(--classic-blue)}
 .skel-day:nth-child(7n+2){border-color:var(--provence)}
 .skel-day:nth-child(7n+3){border-color:var(--baby-blue)}
@@ -212,8 +202,8 @@ input[type="date"]::-webkit-calendar-picker-indicator{padding:0 8px 0 0}
         <span id="calLoader" class="loader" style="display:none">載入中…</span>
       </div>
       <div class="nav">
-        <button id="btnPrev" class="nav-btn prev" aria-label="上一月" title="上一月"></button>
-        <button id="btnNext" class="nav-btn next" aria-label="下一月" title="下一月"></button>
+        <button id="btnPrev" class="nav-btn" aria-label="上一月" title="上一月">&lt;</button>
+        <button id="btnNext" class="nav-btn" aria-label="下一月" title="下一月">&gt;</button>
       </div>
     </div>
 
@@ -285,7 +275,7 @@ input[type="date"]::-webkit-calendar-picker-indicator{padding:0 8px 0 0}
       <div class="modal-body">
         <div class="p-2" style="background:#f6f9ff;border:1px solid #e3ecff">
           <div class="rule-line"><span class="chip chip-strong">週一</span><span>可預約 →</span><span class="chip chip-range">［ 週四 ~ 下下週一 ］</span></div>
-          <div class="rule-line"><span class="chip chip-strong">週二</span><span>可預約 →</span><span class="chip chip-range">［ 週五 ~ 下下週二 ］</span></div>
+          <div class="rule-line"><span class="chip chip-強">週二</span><span>可預約 →</span><span class="chip chip-range">［ 週五 ~ 下下週二 ］</span></div>
           <div class="rule-line"><span class="chip chip-strong">週三</span><span>可預約 →</span><span class="chip chip-range">［ 週六 ~ 下下週三 ］</span></div>
           <div class="rule-line"><span class="chip chip-strong">週四</span><span>可預約 →</span><span class="chip chip-range">［ 下週一 ~ 下下週四 ］</span></div>
           <div class="rule-line"><span class="chip chip-strong">週五</span><span>可預約 →</span><span class="chip chip-range">［ 下週二 ~ 下下週五 ］</span></div>
@@ -324,7 +314,7 @@ input[type="date"]::-webkit-calendar-picker-indicator{padding:0 8px 0 0}
 
 <!-- Bootstrap -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<!-- reCAPTCHA v3（若你要啟用，替換成你的 SITE KEY；純外觀不影響） -->
+<!-- reCAPTCHA v3（若要啟用，替換為你的 SITE KEY） -->
 <script src="https://www.google.com/recaptcha/api.js?render=6LdqprArAAAAACpuAXemZUH3KNER1t1iw07YjGHu"></script>
 
 <script>
@@ -447,7 +437,7 @@ async function getWindow(){
   }
 }
 
-/* 先畫骨架版的標頭與空格（僅更新標題 & 上下月可否） */
+/* 先畫骨架版的標頭與上下月可否 */
 function renderSkeletonHeader(monthDate){
   const first=firstOfMonth(monthDate), minMonth=firstOfMonth(WINDOW_MIN), maxMonth=firstOfMonth(WINDOW_MAX);
   $title.textContent=fmtTitle(first);
@@ -590,7 +580,7 @@ $('phone').addEventListener('input', e=>{
   try{ const pos = Math.min(p, cleaned.length); e.target.setSelectionRange(pos, pos); }catch(_){}
 });
 
-/* 送出（與原本相同） */
+/* 送出 */
 let submitting=false;
 $('submitBtn').addEventListener('click',async(e)=>{
   e.preventDefault(); if(submitting) return;
@@ -635,7 +625,7 @@ $('showNotice').addEventListener('click',e=>{
 });
 $('agreeConfirm').addEventListener('click',()=>{ $('agree').checked=true; if(noticeModalInst) noticeModalInst.hide(); });
 
-/* 啟動流程：先顯示骨架 → 取資料 → 寫入真實月曆 */
+/* 啟動流程：先骨架 → 取資料 → 真實月曆 */
 async function bootMonth(m){
   toggleSkeleton(true);
   renderSkeletonHeader(m);
@@ -647,9 +637,7 @@ async function bootMonth(m){
 /* 初始 */
 (async function init(){ try{await loadRecaptcha();}catch(_){}
   await getWindow();
-  // 週標題
-  const W=['日','一','二','三','四','五','六'];
-  $('whead').innerHTML=W.map(w=>`<div class="wday">${w}</div>`).join('');
+  $('whead').innerHTML=['日','一','二','三','四','五','六'].map(w=>`<div class="wday">${w}</div>`).join('');
   await bootMonth(curMonth);
 })();
 </script>
