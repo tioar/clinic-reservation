@@ -1,4 +1,4 @@
-  <!doctype html>
+<!doctype html>
 <html lang="zh-Hant">
 <head>
 <meta charset="UTF-8" />
@@ -31,8 +31,7 @@ body{margin:0;background:var(--bg);color:#1f1330;font-family:"Noto Sans TC","Mic
 .cal-title{font-weight:900;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
 .cal-title .title-text{font-size:clamp(1.2rem,2.4vw,1.6rem);font-weight:900}
 .loader{color:#6b5f92;font-size:.95rem;white-space:nowrap;min-width:6.5em}
-.loader .spinner-border{ vertical-align:-2px; }
-
+.loader .spinner-border{vertical-align:-2px}
 
 /* nav arrows */
 .nav{display:flex;gap:10px}
@@ -143,9 +142,15 @@ label.agree span::after{content:" *";color:#000;font-weight:900}
 .chip-strong{background:#f3f0ff;color:#4a2f82;border-color:#e4ddff}
 .chip-range{background:#f8fafc;color:#334155}
 
-/* 遮罩 */
-#mask{position:fixed;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;gap:6px;z-index:9999;background:rgba(255,255,255,.92);backdrop-filter:blur(2px);color:#4b2c86;font-size:18px;font-weight:400}
-#dots{display:inline-block;width:2ch;text-align:left}
+/* 遮罩（轉圈圈） */
+#mask{
+  position:fixed; inset:0; display:none;
+  align-items:center; justify-content:center; flex-direction:column; gap:10px;
+  z-index:9999; background:rgba(255,255,255,.92); backdrop-filter:blur(2px);
+  color:#4b2c86; font-size:18px; font-weight:400;
+}
+#mask .loading-text{ font-weight:800; }
+#mask .spinner-border{ width:2.25rem; height:2.25rem; }
 
 /* Mobile */
 @media (max-width:600px){
@@ -164,8 +169,11 @@ label.agree span::after{content:" *";color:#000;font-weight:900}
 </style>
 </head>
 <body>
-<!-- 全頁遮罩 -->
-<div id="mask" style="display:none">預約中請稍等，請勿關閉或重新整理頁面<span id="dots">...</span></div>
+<!-- 全頁遮罩（轉圈圈） -->
+<div id="mask" style="display:none">
+  <div class="loading-text">預約中請稍等，請勿關閉或重新整理頁面</div>
+  <div class="spinner-border" role="status" aria-hidden="true"></div>
+</div>
 
 <div class="wrap">
   <div class="page-head"><div class="logo">＋</div><h1>陳萬龍診所門診線上預約</h1></div>
@@ -174,6 +182,7 @@ label.agree span::after{content:" *";color:#000;font-weight:900}
     <div class="cal-head">
       <div class="cal-title">
         <span class="title-text" id="calTitle">—</span>
+        <!-- 小轉圈 + 載入中 -->
         <span id="calLoader" class="loader" style="display:none">
           <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
           <span class="ms-2">載入中</span>
@@ -366,17 +375,16 @@ function fmtNowLabel(){
   tick(); setInterval(tick, 60*1000);
 })();
 
-/* 遮罩 */
-const $mask=$('mask'),$dots=$('dots'); let dotTimer=null;
+/* 遮罩（轉圈圈） */
+const $mask = $('mask');
 function showMask(txt){
-  $mask.textContent=(txt||'預約中請稍等，請勿關閉或重新整理頁面');
-  $mask.style.display='flex';
-  if(dotTimer) clearInterval(dotTimer);
-  const span=document.createElement('span'); span.id='dots'; span.textContent='...'; $mask.appendChild(span);
-  dotTimer=setInterval(()=>{ const d=$('dots'); if(!d) return;
-    d.textContent=(d.textContent==='...')?'.':d.textContent+'.'; if(d.textContent.length>3)d.textContent='.'; },340);
+  $mask.style.display = 'flex';
+  const t = $mask.querySelector('.loading-text');
+  if (t) t.textContent = txt || '預約中請稍等，請勿關閉或重新整理頁面';
 }
-function hideMask(){ if(dotTimer) clearInterval(dotTimer); $mask.style.display='none'; }
+function hideMask(){
+  $mask.style.display = 'none';
+}
 
 /* 規則 / 須知 */
 let noticeModalInst=null;
@@ -403,12 +411,10 @@ $('agreeConfirm').addEventListener('click',()=>{ $('agree').checked=true; if(not
 /* 週標題 */
 $whead.innerHTML=W.map(w=>`<div class="wday">${w}</div>`).join('');
 
-/* 載入動畫 */
-let dotsTimer=null;
+/* 載入動畫（改成只控制顯示/隱藏） */
 function showLoadingDots(on){
   $loader.style.display = on ? 'inline-flex' : 'none';
 }
-
 
 /* 可預約視窗 */
 async function getWindow(){
@@ -497,7 +503,6 @@ function hydrateMonth(monthDate, dayMap){
     const visibleSlots=(meta?.slots||[]).filter(s=>Number(s.cap)>0);
 
     if (meta?.stop===true){
-      // 停診：顯示紅色膠囊，不可點
       cls += ' disabled';
       inner+=`<div class="meta"><span class="pill stop">停診</span></div>`;
     } else if(isToday){
@@ -510,7 +515,7 @@ function hydrateMonth(monthDate, dayMap){
       cls+=' clickable';
       const pills=visibleSlots.map(s=>{
         const tag=s.slot==='early'?'early':s.slot==='noon'?'noon':s.slot==='night'?'night':'appt';
-        const label=s.slot==='early'?'早診':s.slot==='noon'?'午診':s.slot==='night'?'晚診':'約診';
+        const label=s.slot==='早診'?'早診':s.slot==='noon'?'午診':s.slot==='night'?'晚診':'約診';
         if(s.status==='full'){
           return `<span class="pill ${tag} full"><span class="lbl">${label}</span> <span class="remain">已額滿</span></span>`;
         }
@@ -643,5 +648,3 @@ async function bootMonth(m){ renderSkeleton(m); const map=await fetchMonthDays(m
 </script>
 </body>
 </html>
-
-
