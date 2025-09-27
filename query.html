@@ -87,7 +87,7 @@
 <body>
 <div id="ing" class="loading-overlay" style="display:none">
   <div class="spinner-border" role="status" aria-hidden="true"></div>
-  <div id="ingText" class="loading-text">查詢中，請稍候</div>
+  <div id="ingText" class="loading-text">請稍候</div>
 </div>
 
 
@@ -183,7 +183,7 @@ function recaptchaToken(action){
 async function queryByPid(){
   const pid = $pid.value.trim().toUpperCase();
   if(!/^[A-Z][12]\d{8}$/.test(pid)){ alert('請輸入正確的身分證字號'); return; }
-  showing('查詢中請稍等');
+  showing('查詢中');
   try{
     const token = await recaptchaToken('queryByPid');
     const r = await axios.get(API,{ params:{ action:'queryByPid', idnum: pid, recaptchaToken: token, t: Date.now() }});
@@ -272,6 +272,7 @@ $pid.addEventListener('keydown',e=>{ if(e.key==='Enter') queryByPid(); });
 </script>
 </body>
 </html>
+
 
 
 
