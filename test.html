@@ -9,8 +9,8 @@
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/crypto-js@4.2.0/crypto-js.min.js"></script>
 
-<!-- 全站仿宋：Iansui（Google Fonts） -->
-<link href="https://fonts.googleapis.com/css2?family=Iansui&display=swap" rel="stylesheet">
+<!-- 近似標楷體的開源字型：避免各平台落差 -->
+<link href="https://fonts.googleapis.com/css2?family=LXGW+WenKai+TC:wght@400;500;700&display=swap" rel="stylesheet">
 
 <style>
 /* ===================== 主題變數（PANTONE：Ponder 沉思） ===================== */
@@ -27,26 +27,36 @@
   --card:#ffffff;
   --line:#e6ebf1;
 
-  /* 灰藍色轉圈條的顏色 */
-  --spin-color:#7f93b1;     /* 深灰藍 */
-  --spin-fade: 1.2s;        /* 轉圈速度 */
+  /* 灰藍色轉圈條的顏色（依圖示） */
+  --spin-color:#7f93b1;
+  --spin-fade:1.2s;
 }
 
-/* ===================== 全域 Reset & 字型 ===================== */
+/* ===================== 字型 ===================== */
+/* 若你擁有「DFKai-SB 標楷體」之 Web Font 合法授權檔，放到 /fonts/ 並取消下列註解：
+@font-face{
+  font-family:"DFKaiWeb";
+  src:url("fonts/DFKaiSB.woff2") format("woff2"),
+      url("fonts/DFKaiSB.woff")  format("woff");
+  font-display:swap;
+}
+*/
+
 *{box-sizing:border-box}
 html,body{width:100%;max-width:100%}
 body{
   margin:0;background:var(--bg);color:var(--ink);
-  /* ★ 全站仿宋字體堆疊 */
+  /* ★ 全站以標楷體為第一優先；無則回落至各平台楷體/仿宋 → 開源 WenKai → 常見中文字體 */
   font-family:
-    "Iansui",                 /* Web Font：跨平台外觀一致 */
-    "CwTeXFangSong",
+    "DFKaiWeb",              /* ← 若有授權檔，最優先命中 */
+    "DFKai-SB","KaiTi","Kaiti TC","Kaiti SC","BiauKai",
+    "LXGW WenKai TC",
     "STFangsong","FangSong","FangSong_GB2312",
-    "DFKai-SB","KaiTi","Kaiti TC","Kaiti SC", /* 若使用者裝置有，會命中 */
     "PingFang TC","Microsoft JhengHei",
     serif;
   font-weight:400;
 }
+
 /* 全站方角（拿掉圓角） */
 button, input, .cardish, .tile, .pill, .modal-content, .form-input, .rule-btn { border-radius:0 !important; }
 
@@ -67,7 +77,7 @@ button, input, .cardish, .tile, .pill, .modal-content, .form-input, .rule-btn { 
 .cal-title .title-text{font-size:clamp(1.2rem,2.4vw,1.6rem);font-weight:700}
 .loader{color:var(--monument);font-size:.95rem;white-space:nowrap;min-width:6.5em}
 
-/* nav arrows：方形文字版 < >（仿宋字樣） */
+/* nav arrows：方形文字版 < > */
 .nav{display:flex;gap:8px}
 .nav-btn{
   width:40px;height:36px;border:1px solid var(--primary);
@@ -123,7 +133,7 @@ button, input, .cardish, .tile, .pill, .modal-content, .form-input, .rule-btn { 
 .tile.selected.appt{background:#f9e7ee;outline:2px solid #f6b6dc}
 .tile.full .status-full{color:#b91c1c;font-weight:700}
 
-/* = Form =（版面維持不變） */
+/* = Form = */
 .form-grid{display:grid;gap:14px;grid-template-columns:1fr}
 .form-grid > div{min-width:0}
 .form-label-strong{font-weight:700;margin-bottom:6px;color:#1f2b3a}
@@ -150,10 +160,7 @@ input[type="date"]::-webkit-calendar-picker-indicator{padding:0 8px 0 0}
 .chip-range{background:#f8fafc;color:#334155}
 
 /* ===================== 亮面掃過骨架（Shimmer） ===================== */
-@keyframes shimmer {
-  0%   { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
-}
+@keyframes shimmer { 0%{background-position:-200% 0} 100%{background-position:200% 0} }
 .skel-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px;padding:10px}
 .skel-day{
   height:74px;border:1px solid var(--baby-blue);
@@ -191,7 +198,7 @@ input[type="date"]::-webkit-calendar-picker-indicator{padding:0 8px 0 0}
 .spinner-sm i{transform-origin:11px 11px}
 .spinner-sm i::after{top:1px;left:10px;width:2px;height:6px;border-radius:1px}
 
-/* ===================== 全頁遮罩（使用放射轉圈） ===================== */
+/* ===================== 全頁遮罩（用轉圈） ===================== */
 #mask{
   position:fixed; inset:0; display:none;
   align-items:center; justify-content:center; flex-direction:column; gap:12px;
@@ -216,11 +223,9 @@ input[type="date"]::-webkit-calendar-picker-indicator{padding:0 8px 0 0}
 </style>
 </head>
 <body>
-<!-- 全頁遮罩（轉圈圈） -->
+<!-- 全頁遮罩（動態掛載轉圈） -->
 <div id="mask" style="display:none">
-  <div class="spinner-bars" aria-hidden="true">
-    <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
-  </div>
+  <div class="spin-here"></div>
   <div class="loading-text">處理中，請稍候…</div>
 </div>
 
@@ -231,13 +236,8 @@ input[type="date"]::-webkit-calendar-picker-indicator{padding:0 8px 0 0}
     <div class="cal-head">
       <div class="cal-title">
         <span class="title-text" id="calTitle">—</span>
-        <!-- 月曆載入中：小轉圈（灰藍） -->
-        <span id="calLoader" class="loader" style="display:none">
-          <span class="spinner-bars spinner-sm" aria-hidden="true">
-            <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
-          </span>
-          <span class="ms-2">載入中</span>
-        </span>
+        <!-- 標題右側載入提示（動態掛載） -->
+        <span id="calLoader" class="loader" style="display:none"></span>
       </div>
       <div class="nav">
         <button id="btnPrev" class="nav-btn" aria-label="上一月" title="上一月">&lt;</button>
@@ -253,7 +253,7 @@ input[type="date"]::-webkit-calendar-picker-indicator{padding:0 8px 0 0}
     <!-- 週標題 -->
     <div class="grid" id="whead"></div>
 
-    <!-- 骨架容器（亮面掃過），待資料完成後隱藏 -->
+    <!-- 亮面掃過骨架（載入時顯示） -->
     <div id="calSkeleton" class="skel-grid" aria-hidden="true"></div>
 
     <!-- 真實日期格與面板 -->
@@ -262,7 +262,7 @@ input[type="date"]::-webkit-calendar-picker-indicator{padding:0 8px 0 0}
     <div class="section picked" id="picked" style="display:none"></div>
   </div>
 
-  <!-- 表單（維持版面） -->
+  <!-- 表單 -->
   <div class="cardish section mt-3">
     <input type="hidden" id="date"/><input type="hidden" id="slot"/>
     <input type="hidden" id="g-recaptcha-response" name="g-recaptcha-response"/>
@@ -318,7 +318,7 @@ input[type="date"]::-webkit-calendar-picker-indicator{padding:0 8px 0 0}
           <div class="rule-line"><span class="chip chip-strong">週四</span><span>可預約 →</span><span class="chip chip-range">［ 下週一 ~ 下下週四 ］</span></div>
           <div class="rule-line"><span class="chip chip-strong">週五</span><span>可預約 →</span><span class="chip chip-range">［ 下週二 ~ 下下週五 ］</span></div>
           <div class="rule-line"><span class="chip chip-strong">週六</span><span>可預約 →</span><span class="chip chip-range">［ 下週二 ~ 下下週六 ］</span></div>
-          <div class="rule-line"><span class="chip chip-strong">週日</span><span>可預約 →</span><span class="chip chip-range">［ 下週三 ~ 下下週日 ］</span></div>
+          <div class="rule-line"><span class="chip chip-強">週日</span><span>可預約 →</span><span class="chip chip-range">［ 下週三 ~ 下下週日 ］</span></div>
         </div>
         <div class="mt-3 text-secondary" style="font-size:.95rem">如對門診時間有疑問，請對照「門診時刻表」與「最新消息」確認是否有門診異動。</div>
       </div>
@@ -365,9 +365,9 @@ const AES_KEY="A2x5fT9qR7nC1vB8mK3pZ6sD4uH0yW2j";
 const nonceStore = {}; // { 'YYYY-MM-DD': {nonce, sig, exp} }
 
 /* ====== 驗證工具 ====== */
-function onlyDigits(s){ return String(s||'').replace(/\D/g,''); }
+function onlyDigits(s){ return String(s||'').replace(/\\D/g,''); }
 function validateTaiwanId(id){
-  if(!/^[A-Z][12]\d{8}$/.test(id)) return false;
+  if(!/^[A-Z][12]\\d{8}$/.test(id)) return false;
   const codeMap = {A:10,B:11,C:12,D:13,E:14,F:15,G:16,H:17,I:34,J:18,K:19,L:20,M:21,N:22,O:35,P:23,Q:24,R:25,S:26,T:27,U:28,V:29,W:32,X:30,Y:31,Z:33};
   const c0 = id[0], n = codeMap[c0]; if(n===undefined) return false;
   const X = Math.floor(n/10), Y = n%10, digits = id.slice(1).split('').map(ch=>parseInt(ch,10));
@@ -408,7 +408,28 @@ function aesEnc(payload,ttlMs=10*60*1000){
   return encodeURIComponent(cipher);
 }
 
-/* DOM / Utils */
+/* ====== 小元件：放射條狀轉圈圈 ====== */
+function createSpinner(size="md"){
+  const root=document.createElement("span");
+  root.className="spinner-bars"+(size==="sm"?" spinner-sm":"");
+  for(let i=0;i<12;i++){ root.appendChild(document.createElement("i")); }
+  return root;
+}
+function mountSpinner(target,{size="md",label=""}={}){
+  const el = (typeof target==="string") ? document.querySelector(target) : target;
+  if(!el) return null;
+  el.innerHTML="";
+  const s=createSpinner(size);
+  el.appendChild(s);
+  if(label){
+    const t=document.createElement("span");
+    t.className="ms-2"; t.textContent=label;
+    el.appendChild(t);
+  }
+  return s;
+}
+
+/* ====== DOM / Utils ====== */
 const $=id=>document.getElementById(id);
 const $title=$('calTitle'),$loader=$('calLoader'),$whead=$('whead'),
       $days=$('days'),$panel=$('dayPanel'),$picked=$('picked'),$skel=$('calSkeleton');
@@ -422,7 +443,7 @@ const fmtTitle=d=>`${d.getFullYear()}年${d.getMonth()+1}月份`;
 const NOW=new Date(); const TODAY_KEY=ymd(NOW);
 let WINDOW_MIN=null,WINDOW_MAX=null; let curMonth=firstOfMonth(NOW);
 
-/* ====== 現在時間 ====== */
+/* 現在時間 */
 function fmtNowLabel(){
   const d=new Date();
   const w='日一二三四五六'[d.getDay()];
@@ -435,19 +456,20 @@ function fmtNowLabel(){
   tick(); setInterval(tick, 60*1000);
 })();
 
-/* ====== 遮罩（轉圈） ====== */
+/* 遮罩 */
 const $mask = $('mask');
 function showMask(txt){
-  $mask.style.display = 'flex';
-  const t = $mask.querySelector('.loading-text');
-  if (t) t.textContent = txt || '處理中，請稍候…';
+  $mask.style.display='flex';
+  mountSpinner($mask.querySelector('.spin-here'),{size:"md"});
+  const t=$mask.querySelector('.loading-text');
+  if(t) t.textContent = txt || '處理中，請稍候…';
 }
-function hideMask(){ $mask.style.display = 'none'; }
+function hideMask(){ $mask.style.display='none'; }
 
 /* 週標題 */
 $whead.innerHTML=W.map(w=>`<div class="wday">${w}</div>`).join('');
 
-/* 骨架：建立 7×6 宮格（亮面掃過） */
+/* 骨架 7×6（亮面掃過） */
 (function buildSkeleton(){
   let h=''; for(let i=0;i<42;i++) h+=`<div class="skel-day" aria-hidden="true"></div>`;
   $skel.innerHTML=h;
@@ -475,7 +497,7 @@ async function getWindow(){
   }
 }
 
-/* 先畫骨架版的標頭與上下月可否 */
+/* 先畫骨架版標頭與上下月可否 */
 function renderSkeletonHeader(monthDate){
   const first=firstOfMonth(monthDate), minMonth=firstOfMonth(WINDOW_MIN), maxMonth=firstOfMonth(WINDOW_MAX);
   $title.textContent=fmtTitle(first);
@@ -606,7 +628,7 @@ function selectRow(row){
 $('btnPrev').addEventListener('click',async()=>{curMonth=addMonths(curMonth,-1);await bootMonth(curMonth)});
 $('btnNext').addEventListener('click',async()=>{curMonth=addMonths(curMonth, 1);await bootMonth(curMonth)});
 
-/* 身分證自動大寫、電話僅數字 */
+/* 身分證大寫、電話僅數字 */
 $('idnum').addEventListener('input',e=>{
   const p=e.target.selectionStart; e.target.value=e.target.value.toUpperCase();
   try{ e.target.setSelectionRange(p,p);}catch(_){}
@@ -631,7 +653,7 @@ $('submitBtn').addEventListener('click',async(e)=>{
   if(age<0||age>150){alert('出生年月日不合理，請檢查後重試');return;}
   if(!validateTaiwanId(id)){ alert('身份證字號驗證錯誤，請檢查後重試'); return; }
   const ph = onlyDigits(phRaw);
-  if(!/^\d{10}$/.test(ph)){ alert('聯絡電話字數錯誤，請檢查後重試'); return; }
+  if(!/^\\d{10}$/.test(ph)){ alert('聯絡電話字數錯誤，請檢查後重試'); return; }
 
   try{
     submitting=true; $('submitBtn').disabled=true; showMask('預約中，請稍候…');
@@ -663,7 +685,7 @@ $('showNotice').addEventListener('click',e=>{
 });
 $('agreeConfirm').addEventListener('click',()=>{ $('agree').checked=true; if(noticeModalInst) noticeModalInst.hide(); });
 
-/* 啟動流程：先骨架 → 取資料 → 真實月曆 */
+/* 啟動：骨架 → 取資料 → 真實月曆 */
 async function bootMonth(m){
   toggleSkeleton(true);
   renderSkeletonHeader(m);
@@ -673,8 +695,11 @@ async function bootMonth(m){
 }
 
 /* 初始 */
-(async function init(){ try{await loadRecaptcha();}catch(_){}
+(async function init(){
+  try{await loadRecaptcha();}catch(_){}
   await getWindow();
+  // 標題旁掛載小型轉圈（先建立，toggle 時只切 display）
+  mountSpinner($loader,{size:"sm",label:"載入中"});
   $('whead').innerHTML=['日','一','二','三','四','五','六'].map(w=>`<div class="wday">${w}</div>`).join('');
   await bootMonth(curMonth);
 })();
