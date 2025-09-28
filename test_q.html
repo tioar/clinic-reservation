@@ -55,7 +55,7 @@ body{
   font-weight:400;
 }
 
-/* 全站»方角（不要圓角） */
+/* 全站方角（不要圓角） */
 .btn, .form-control, .cardish, .chip, .modal-content, .btn-main, .btn-outline-gray, .btn-cancel { border-radius:0 !important; }
 
 .cardish{max-width:780px;margin:32px auto;background:var(--card);border:1px solid var(--line);padding:28px 22px 32px}
@@ -92,7 +92,6 @@ body{
 /* 結果列表 */
 .list-head{display:grid;grid-template-columns:1.1fr .7fr .7fr .9fr 1fr .6fr .8fr;gap:8px;align-items:center;padding:8px 10px;border-bottom:1px solid #e6ebf1;color:#2f3b4a}
 .list-row {display:grid;grid-template-columns:1.1fr .7fr .7fr .9fr 1fr .6fr .8fr;gap:8px;align-items:center;padding:8px 10px;border:1px solid #e6ebf1;background:#fff;margin-top:8px}
-.badge-mini{display:inline-block;min-width:3em;text-align:center;padding:2px 6px;border:1px solid #d7dde6;font-weight:700}
 
 .row-early { background:#e7f2ea; color:#0b523a; }
 .row-noon  { background:#fff2df; color:#7a4d00; }
@@ -151,7 +150,7 @@ body{
   </div>
 
   <div class="note-bubble">
-    🔶線上取消預約的截止時間為門診前一天；門診當天請改以電話取消。診所電話(03)515-2971🔶
+    🔶 線上取消預約的截止時間為門診前一天；門診當天請改以電話取消。診所電話 (03) 515-2971 🔶
   </div>
 
   <div id="normalBox">
@@ -218,14 +217,20 @@ const $res  = document.getElementById('result');
 const $list = document.getElementById('list');
 const $hint = document.getElementById('hint');
 
-/* ====== 資料處理 ====== */
+/* 讓輸入即時轉大寫（不影響游標位置） */
+$pid.addEventListener('input', e=>{
+  const el=e.target, s=el.selectionStart, epos=el.selectionEnd;
+  const up=el.value.toUpperCase();
+  if(el.value!==up){ el.value=up; try{el.setSelectionRange(s,epos);}catch(_){ } }
+});
+
+/* ====== 對應欄位與顯示 ====== */
 function slotKey(label){
   if(!label) return '';
   if(label.includes('早')) return 'early';
   if(label.includes('午')) return 'noon';
   if(label.includes('晚')) return 'night';
   if(label.includes('約診')) return 'appt';
-  if(label.includes('未開放')) return 'closed';
   return '';
 }
 function weekday(ymd){
@@ -243,7 +248,13 @@ function guessTime(slot){
 
 function appendRow(item,pid){
   const ymd=item.date||'', w=weekday(ymd), t=item.time||guessTime(item.slot)||'';
-  const disableCancel = !item.canCancel;
+
+  /* ✅ 重點：兼容多種欄位名稱 */
+  const seatNo = item.num ?? item.number ?? item.no ?? item.No ?? '-';
+
+  /* 是否可取消：兼容 canCancel / cancelable */
+  const disableCancel = !(item.canCancel ?? item.cancelable ?? false);
+
   const key = slotKey(item.slot||'');
   const row=document.createElement('div');
   row.className='list-row '+(key?('row-'+key):'');
@@ -254,7 +265,7 @@ function appendRow(item,pid){
     <div>${item.slot||'-'}</div>
     <div>${t||'-'}</div>
     <div>${item.name||'-'}</div>
-    <div>${item.number!=null? item.number : '-'}</div>
+    <div>${seatNo}</div>
     <div>
       <button class="btn btn-cancel btn-sm" ${disableCancel?'disabled':''}>取消</button>
     </div>`;
@@ -294,7 +305,7 @@ async function cancelBooking(rowId, pid){
     if(resp.data && resp.data.error === 'robot'){ alert('驗證未通過，請重試。'); return; }
 
     if(resp.data && (resp.data.ok||resp.data.success)){
-      alert('已取消成功');
+      alert(resp.data.message||'已取消該筆預約。');
       await queryByPid();
     }else{
       alert((resp.data&&resp.data.message)||'取消失敗，請稍後再試');
@@ -306,7 +317,7 @@ async function cancelBooking(rowId, pid){
 }
 
 /* 綁定 */
-$btn.onclick=queryByPid;
+document.getElementById('btnQuery').onclick=queryByPid;
 $pid.addEventListener('keydown',e=>{ if(e.key==='Enter') queryByPid(); });
 </script>
 </body>
