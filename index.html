@@ -471,8 +471,8 @@ async function fetchMonthDays(monthDate){
         const raw=Array.isArray(data)?data:(Array.isArray(data?.slots)?data.slots:[]);
         const slots=(raw||[]).map(x=>{
           const limit=Number(x.limit)||0, used=Number(x.used)||0, remain=Math.max(0,limit-used);
-          const label=String(x.label||'');
-          const slot=label.includes('早')?'early':label.includes('午')?'noon':label.includes('晚')?'night':label.includes('約')?'appt':'other';
+          const label=String(x.label||'');                           // "早診/午診/晚診/約診"（可能）
+          const slot=label.includes('早')?'early':label.includes('午')?'noon':label.includes('晚')?'night':label.includes('約')?'appt':'other'; // 內部用
           const time=x.time||x.timeRange||'';
           const doctor=String(x.doctor||'').replace(/[［\[]|[］\]]/g,'');
           const status=limit<=0?'closed':(remain<=0?'full':'open');
@@ -505,17 +505,15 @@ function hydrateMonth(monthDate, dayMap){
     if (meta?.stop===true){
       cls += ' disabled';
       inner+=`<div class="meta"><span class="pill stop">停診</span></div>`;
-    } else if(isToday){
-      inner+=`<div class="meta">—</div>`;
-      cls+=' clickable';
     } else if(!inWindow || visibleSlots.length===0){
       if(!inWindow) cls+=' disabled';
       inner+=`<div class="meta">—</div>`;
     } else{
       cls+=' clickable';
+      const labelMap={early:'早診',noon:'午診',night:'晚診',appt:'約診'};
       const pills=visibleSlots.map(s=>{
-        const tag=s.slot==='early'?'early':s.slot==='noon'?'noon':s.slot==='night'?'night':'appt';
-        const label=s.slot==='早診'?'早診':s.slot==='noon'?'午診':s.slot==='night'?'晚診':'約診';
+        const tag=(s.slot==='early'||s.slot==='noon'||s.slot==='night')?s.slot:'appt';
+        const label=labelMap[tag];
         if(s.status==='full'){
           return `<span class="pill ${tag} full"><span class="lbl">${label}</span> <span class="remain">已額滿</span></span>`;
         }
