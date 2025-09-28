@@ -288,7 +288,7 @@ input[type="date"]::-webkit-calendar-picker-indicator{padding:0 8px 0 0}
       </div>
 
       <div>
-        <div class="form-label-strong">聯絡電話 *</div>
+        <div class="form-label-強">聯絡電話 *</div>
         <input id="phone" type="text" maxlength="10" inputmode="numeric" pattern="\d{10}" class="form-input" placeholder="0958xxxxxx" autocomplete="off"/>
       </div>
     </div>
@@ -571,24 +571,23 @@ async function fetchMonthDays(monthDate){
   const arr=await Promise.all(jobs); const map={}; arr.forEach(d=>map[d.date]=d); return map;
 }
 
-/* 寫入真實月曆（含：過期／未開放／停診／今天~開放日前顯示「灰掉診別」） */
+/* 寫入真實月曆（新增：preWindow 用 schedSlots 灰掉顯示） */
 function hydrateMonth(monthDate, dayMap){
   const first=firstOfMonth(monthDate), last=endOfMonth(monthDate);
   let html=''; const pad=first.getDay();
   for(let i=0;i<pad;i++) html+=`<div></div>`;
   for(let d=1; d<=last.getDate(); d++){
     const cur=new Date(first.getFullYear(),first.getMonth(),d);
-    const key=ymd(cur); 
-    const meta=dayMap[key]||{};
+    const key=ymd(cur); const meta=dayMap[key]||{};
     const isToday=(key===TODAY_KEY);
 
     const inWindow = cur>=WINDOW_MIN && cur<=WINDOW_MAX;
     const isPast   = cur < TODAY_START;
     const preWindow= (cur>=TODAY_START && cur<WINDOW_MIN);
 
-    // 兩種集合：可預約(openSlots) 與 有排班(schedSlots)
-    const openSlots =(meta.slots||[]).filter(s=>Number(s.cap)>0);
-    const schedSlots=(meta.slots||[]).filter(s=>['early','noon','night','appt'].includes(s.slot));
+    /* ★ 改成兩個集合 */
+    const openSlots  =(meta.slots||[]).filter(s=>Number(s.cap)>0);
+    const schedSlots =(meta.slots||[]).filter(s=>['early','noon','night','appt'].includes(s.slot));
 
     let cls='day';
     let inner=`<div class="d">${d}</div>`;
@@ -600,7 +599,7 @@ function hydrateMonth(monthDate, dayMap){
       cls+=' disabled';
       inner+=`<div class="meta"><span class="state">過期</span></div>`;
     } else if(preWindow){
-      // 今天~開放日前：若有排班就顯示灰掉的同色 pill，不可點；沒排班才顯示未開放
+      /* ★ 今天~開放日前：若有排班就顯示灰掉 pill；無排班才寫未開放 */
       cls+=' disabled';
       if(schedSlots.length){
         const pills=schedSlots.map(s=>{
@@ -618,7 +617,6 @@ function hydrateMonth(monthDate, dayMap){
       cls+=' disabled';
       inner+=`<div class="meta"><span class="state">未開放</span></div>`;
     } else {
-      // 可預約視窗：顯示可預約 pill（含額滿）
       cls+=' clickable';
       const pills=openSlots.map(s=>{
         const tag=s.slot, label=tag==='early'?'早診':tag==='noon'?'午診':tag==='night'?'晚診':'約診';
