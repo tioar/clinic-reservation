@@ -11,93 +11,89 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 
   <style>
-    /* ===== 主題（與前臺一致的 Ponder/Classic Blue） ===== */
     :root{
-      --primary:#34558b; --primary-600:#27426f; --line:#e6ebf1;
-      --ink:#1c2430; --bg:#f4f6f8; --card:#ffffff;
+      /* === 藍色系（依你提供）=== */
+      --classic-blue:#34558b;
+      --provence:#678fc9;
+      --baby-blue:#bfd2dd;
+      --monument:#7b858a;
+      --stucco:#9b8577;
 
-      /* 診別用色（與前臺一致） */
-      --early-light:#e7f2ea; --early-dark:#dff5ea; --early-bar:#0b523a;
-      --noon-light:#fff2df;  --noon-dark:#ffeccd; --noon-bar:#7a4d00;
-      --night-light:#e7f0fb; --night-dark:#e1ecff; --night-bar:#1646a2;
-      --appt-light:#f9e7ee;  --appt-dark:#ffe0ef; --appt-bar:#9b1f79;
+      --primary:var(--classic-blue);
+      --ink:#1c2430;
+      --bg:#f4f6f8;
+      --card:#ffffff;
+      --line:#e6ebf1;
 
+      --spin-color:#7f93b1;
+      --spin-fade:1.2s;
+
+      /* 其餘舊有色票保留（診別/叫號用） */
+      --early-light:#e7f7ee; --early-dark:#cfeedd; --early-bar:#16a34a;
+      --noon-light:#fff3df;  --noon-dark:#ffe4b3;  --noon-bar:#f59e0b;
+      --night-light:#e8f2ff; --night-dark:#cfe2ff; --night-bar:#3b82f6;
+      --appt-light:#f9e0f5;  --appt-dark:#f3b3e6;  --appt-bar:#b51695;
       --queue-orange:#f59e0b; --queue-orange-600:#d97706; --queue-orange-700:#b45309;
       --coral:#ff7f50; --stop-red:#d32f2f; --query-green:#148f3f; --black:#000;
-    }
 
-    /* ===== 全站方角 & 基本字體/底色 ===== */
-    html,body{height:100%}
+      --border: var(--line);
+      --primary-600:#2b4575; /* 主色 hover 深一階 */
+    }
+    /* 全站標楷體 */
     body{
-      font-family:'Noto Sans TC','Microsoft JhengHei',system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
-      background:var(--bg); color:#334155; -webkit-tap-highlight-color: transparent;
+      font-family:"DFKai-SB","BiauKai","TW-Kai","PMingLiU","MingLiU","Noto Sans TC","Microsoft JhengHei",serif;
+      background:linear-gradient(160deg,#ecf1f6,#e6edf6);
+      min-height:100vh;color:#334155;-webkit-tap-highlight-color: transparent;
     }
-    /* 方角：按鈕、輸入、卡片、modal 全部 0 */
-    .btn,.form-control,.card,.modal-content,.input-group .btn { border-radius:0 !important; }
+    .card{ border-radius:28px; border:2px solid var(--border); box-shadow:0 6px 14px rgba(0,0,0,.06); overflow:hidden; }
+    /* 按鈕改為直角 */
+    .btn{ border-radius:0 !important; font-weight:700; border:0; }
+    .btn-main{ background:var(--primary); color:#fff !important; }
+    .btn-main:hover, .btn-main.active{ background:var(--primary-600); color:#fff !important; }
+    .btn-ghost{ background:#94a3b8; color:#fff !important; }
+    .btn-ghost:hover, .btn-ghost.active{ background:#64748b; color:#fff !important; }
+    .btn-warning{ background:var(--queue-orange); color:#fff !important; }
+    .btn-warning:hover{ background:var(--queue-orange-600); color:#fff !important; }
+    .btn-danger{ background:#dc3545; color:#fff !important; }
+    .btn-danger:hover{ background:#b02a37; color:#fff !important; }
 
-    /* ===== 卡片 ===== */
-    .card{ border:1px solid var(--line); box-shadow:0 10px 24px rgba(52,85,139,.10); overflow:hidden; background:var(--card); }
-
-    /* ===== 按鈕（與前臺一致） ===== */
-    .btn{ font-weight:700; border-width:1px; }
-    .btn-main{ background:var(--primary); color:#fff !important; border-color:var(--primary); }
-    .btn-main:hover, .btn-main.active{ background:var(--primary-600); color:#fff !important; border-color:var(--primary-600); }
-    .btn-ghost{ background:#fff; color:#3a3f47 !important; border:1px solid #d7dbe5; }
-    .btn-ghost:hover, .btn-ghost.active{ background:#f2f6ff; color:#1f2b3a !important; border-color:#c8d4ea; }
-    .btn-warning{ background:var(--queue-orange); color:#fff !important; border-color:var(--queue-orange); }
-    .btn-warning:hover{ background:var(--queue-orange-600); border-color:var(--queue-orange-600); }
-    .btn-danger{ background:#dc3545; color:#fff !important; border-color:#dc3545; }
-    .btn-danger:hover{ background:#b02a37; border-color:#b02a37; }
-
-    /* ===== Login 區 ===== */
     .login-card{ display:grid; place-items:center; min-height:calc(100vh - 6rem); padding:3rem 1rem; }
     .login-card .card{ width:100%; max-width:460px; padding:28px 24px; }
     .login-card .header{ display:flex; align-items:center; gap:14px; margin-bottom:10px; }
-    .login-card .logo{
-      width:56px; height:56px; display:grid; place-items:center;
-      background:var(--primary); color:#fff; font-weight:900; font-size:28px;
-    }
+    .login-card .logo{ width:56px; height:56px; border-radius:50%; display:grid; place-items:center; background:var(--primary); color:#fff; font-weight:900; font-size:28px; line-height:1; box-shadow:0 8px 18px rgba(59,105,125,.25); }
     .login-card h1{ font-weight:900; }
-    .login-card .form-control{ padding:.675rem .95rem; border:1px solid #d1d5db; }
-    .login-card .form-control:focus{ border-color:var(--primary); box-shadow:0 0 0 .2rem rgba(52,85,139,.15); outline:none; }
+    .login-card .form-control{ border-radius:16px; padding:.675rem .95rem; border:2px solid #d1d5db; }
+    .login-card .form-control:focus{ border-color:var(--primary); box-shadow:0 0 0 .2rem rgba(59,105,125,.2); outline:none; }
 
-    /* ===== 頁首 ===== */
     .card-head{ display:flex; align-items:center; gap:12px; }
-    .card-head .logo{
-      width:44px; height:44px; display:grid; place-items:center;
-      background:var(--primary); color:#fff; font-weight:900; font-size:24px;
-    }
+    .card-head .logo{ width:44px; height:44px; border-radius:50%; display:grid; place-items:center; background:var(--primary); color:#fff; font-weight:900; font-size:24px; line-height:1; box-shadow:0 6px 14px rgba(59,105,125,.18); }
     .card-head h3{ font-weight:900; }
     .card-head .subtitle{ margin-top:2px; font-size:.95rem; color:#64748b; }
     .card-head .subtitle b{ color:#0f172a; font-weight:900; }
 
-    /* ===== 分頁列 ===== */
     .tabbar{ gap:.5rem; flex-wrap:wrap; }
     .tabbar .btn{ padding:.55rem 1rem; }
-    .tabbar .btn:not(.active){ background:#fff; color:#3a3f47; border:1px solid #d7dbe5; }
-    .tabbar .btn.active{ background:var(--primary-600); color:#fff; border-color:var(--primary-600); box-shadow:0 6px 14px rgba(47,66,111,.28); }
+    .tabbar .btn:not(.active){ background:#6b7a90; color:#fff; }
+    .tabbar .btn.active{ background:var(--primary-600); color:#fff; box-shadow:0 6px 14px rgba(47,85,101,.28); }
 
-    /* 叫號頁 Tab 特色 */
-    .btn-queue{ background:var(--queue-orange) !important; color:#fff !important; border-color:var(--queue-orange) !important; }
-    .btn-queue:hover{ background:var(--queue-orange-600) !important; border-color:var(--queue-orange-600) !important; }
-    .tabbar .btn-queue.active{ background:var(--queue-orange-700) !important; box-shadow:0 6px 14px rgba(245,158,11,.32) !important; }
-
-    /* ===== 日期列 & 統計卡 ===== */
     .date-nav{ display:flex; flex-wrap:wrap; align-items:center; gap:.5rem .5rem; }
-    .date-nav .form-control{ width:160px; }
+    .date-nav .form-control{ width:160px; border-radius:14px; }
     .totals{ font-weight:900; color:#1f3f57; } .totals .muted{ color:#6b7a90; font-weight:800; }
 
-    .stat{ border:2px dashed var(--line); padding:1rem; background:#fff; display:flex; align-items:center; gap:.9rem; box-shadow:0 4px 10px rgba(0,0,0,.04); }
-    .stat .cap{ padding:.35rem .7rem; background:#eef3fb; color:var(--primary); border:1px solid #d7e6ff; font-weight:900; }
+    .stat{ border:2px dashed var(--border); border-radius:20px; padding:.9rem 1rem; background:#fff; display:flex; align-items:center; gap:.9rem; box-shadow:0 4px 10px rgba(0,0,0,.04); overflow:hidden; }
+    .stat .cap{ padding:.35rem .7rem; border-radius:999px; font-weight:900; line-height:1; }
     .stat .kv{font-weight:800}
     .stat .note{color:#6b7280;font-weight:700}
-    .stat-early{ background:var(--early-light); border-color:#b7d9c6; }
-    .stat-noon{  background:var(--noon-light);  border-color:#ffd79a; }
-    .stat-night{ background:var(--night-light); border-color:#c8dcff; }
-    .stat-appt{  background:var(--appt-light);  border-color:#f6b6dc; }
+    .stat-early{ background:var(--early-light); border-color:var(--early-bar); }
+    .stat-early .cap{ background:#dff5ea; color:#065f46; border:1px solid #b8ead4; }
+    .stat-noon{  background:var(--noon-light);  border-color:var(--noon-bar); }
+    .stat-noon  .cap{ background:#ffeccd; color:#7a4d00; border:1px solid #ffd69a; }
+    .stat-night{ background:var(--night-light); border-color:var(--night-bar); }
+    .stat-night .cap{ background:#e1ecff; color:#1d4ed8; border:1px solid #c7dbff; }
+    .stat-appt{  background:var(--appt-light);  border-color:var(--appt-bar); }
+    .stat-appt .cap{ background:#ffe0ef; color:#9d174d; border:1px solid #f9b3d1; }
 
-    /* ===== 表格 ===== */
-    .table{ margin:0; }
+    .table{ border-radius:16px; overflow:hidden; margin:0; }
     .table td{ border-top:2px solid #e5e7eb !important; }
     .table thead th{ border-bottom:2px solid #cbd5e1 !important; font-weight:900; }
 
@@ -115,35 +111,50 @@
     tr[class^="slot-night"] td:first-child{ box-shadow:inset 6px 0 0 0 var(--night-bar); }
     tr[class^="slot-appt"]  td:first-child{ box-shadow:inset 6px 0 0 0 var(--appt-bar); }
 
+    .tag{ display:inline-block; width:.8em; height:.8em; border-radius:50%; margin-right:.4em; vertical-align:middle; }
+    .tag-early{ background:var(--early-bar); } .tag-noon{ background:var(--noon-bar); }
+    .tag-night{ background:var(--night-bar); } .tag-appt{ background:var(--appt-bar); }
     .small-note{ color:#64748b; font-size:.925rem; }
-    .small-note code{ background:#f6f7fb; padding:.1rem .25rem; }
+    .small-note code{ background:#f6f7fb; padding:.1rem .25rem; border-radius:6px; }
 
-    /* ===== 叫號區（方角） ===== */
-    .q-now-input{
-      width: clamp(140px, 42vw, 260px); font-size: clamp(40px, 12vw, 86px);
-      font-weight:900; color:#d90429; text-align:center; letter-spacing:1px;
-      border:1px solid var(--queue-orange); background:#fffaf2;
-    }
+    .btn-queue{ background:var(--queue-orange) !important; color:#fff !important; }
+    .btn-queue:hover{ background:var(--queue-orange-600) !important; color:#fff !important; }
+    .tabbar .btn-queue.active{ background:var(--queue-orange-700) !important; box-shadow:0 6px 14px rgba(245,158,11,.32) !important; }
+
+    #tab-queue .stat{ border-color:var(--queue-orange); }
+    #tab-queue .cap{ background:#fff3e0; color:var(--queue-orange-700); }
+    #tab-queue .btn-ghost{ border-color:var(--queue-orange); color:var(--queue-orange-700); }
+    #tab-queue .btn-ghost:hover{ background:#fff3e0; }
+
+    .q-now-input{ width: clamp(140px, 42vw, 260px); font-size: clamp(40px, 12vw, 86px); font-weight:900; color:#d90429; text-align:center; letter-spacing:1px; border-radius:14px; border:2px solid var(--queue-orange); background:#fffaf2; -moz-appearance: textfield; }
     .q-now-input::-webkit-outer-spin-button, .q-now-input::-webkit-inner-spin-button{ -webkit-appearance: none; margin:0; }
-    .q-step{ width:56px; height:56px; font-size:30px; font-weight:900; line-height:1; padding:0; }
+    @supports (-webkit-touch-callout: none){ .q-now-input{ font-variant-numeric: tabular-nums; } }
+    /* 叫號步進按鈕改直角 */
+    .q-step{ width:56px; height:56px; border-radius:0; font-size:30px; font-weight:900; line-height:1; padding:0; }
+    .q-now-row{ align-items:center; gap:12px; flex-wrap:wrap; }
     .q-actions{ display:flex; align-items:center; gap:12px; margin-left:auto; }
 
-    #tab-queue .cap.cap-pill{ background:var(--queue-orange); color:#fff; padding:.55rem 1.1rem; font-weight:900; }
+    #tab-queue .cap.cap-pill{ background:var(--queue-orange); color:#fff; border-radius:999px; padding:.55rem 1.1rem; font-weight:900; font-size:1.2rem; }
     .qlabel{ font-weight:900; font-size:1.2rem; }
     .qlabel.q-auto{ color:var(--black); } .qlabel.q-stop{ color:var(--coral); } .qlabel.q-closed{ color:var(--stop-red); } .qlabel.q-query{ color:var(--query-green); }
 
-    #tab-queue .form-check-input{ width: 2.8em; height: 1.6em; border-width:2px; border-radius:0; }
+    #tab-queue .form-check-input{ width: 2.8em; height: 1.6em; border-width:2px; }
     #qAuto{ border-color:var(--black) !important; } #qStopped{ border-color:var(--coral) !important; } #qClosed{ border-color:var(--stop-red) !important; } #qQuery{ border-color:var(--query-green) !important; }
     #qAuto:checked{ background-color:var(--black) !important; border-color:var(--black) !important; }
     #qStopped:checked{ background-color:var(--coral) !important; border-color:var(--coral) !important; }
     #qClosed:checked{ background-color:var(--stop-red) !important; border-color:var(--stop-red) !important; }
     #qQuery:checked{ background-color:var(--query-green) !important; border-color:var(--query-green) !important; }
 
-    #qSet, #qReset, #qSaveFlags{ padding:.60rem 1.20rem !important; font-size:1.05rem !important; font-weight:900 !important; line-height:1 !important; min-width:130px !important; }
+    /* 叫號主要/重置/儲存按鈕改直角 */
+    #qSet, #qReset, #qSaveFlags{
+      border-radius:0 !important; padding:.60rem 1.20rem !important; font-size:1.05rem !important; font-weight:900 !important; line-height:1 !important; min-width:130px !important;
+    }
+    #qReset{ background:#b51695 !important; color:#fff !important; border-color:#b51695 !important; }
+    #qReset:hover{ background:#9b127f !important; border-color:#9b127f !important; color:#fff !important; }
 
     @media (max-width: 575.98px){
       .q-step{ width:48px; height:48px; font-size:26px; }
-      .q-now-row{ justify-content:center; gap:10px; flex-wrap:wrap; }
+      .q-now-row{ justify-content:center; }
       .q-actions{ margin-left:0; flex-basis:100%; justify-content:space-between; margin-top:.35rem; }
       #qSet, #qReset{ padding:.48rem .9rem !important; font-size:.98rem !important; min-width:0 !important; }
       #tab-queue .cap.cap-pill{ font-size:1.05rem; padding:.45rem .9rem; }
@@ -288,7 +299,7 @@
             <div class="small-note mb-1">起始天</div>
             <div class="input-group" style="max-width:200px;">
               <button class="btn btn-ghost" id="btnStartMinus">－</button>
-              <input id="winStart" inputmode="numeric" type="number" class="form-control text-center no-spinner" value="2">
+              <input id="winStart" inputmode="numeric" type="number" class="form-control text-center no-spinner" value="2" style="border-radius:14px;">
               <button class="btn btn-ghost" id="btnStartPlus">＋</button>
             </div>
           </div>
@@ -296,7 +307,7 @@
             <div class="small-note mb-1">結束天</div>
             <div class="input-group" style="max-width:200px;">
               <button class="btn btn-ghost" id="btnEndMinus">－</button>
-              <input id="winEnd" inputmode="numeric" type="number" class="form-control text-center no-spinner" value="14">
+              <input id="winEnd" inputmode="numeric" type="number" class="form-control text-center no-spinner" value="14" style="border-radius:14px;">
               <button class="btn btn-ghost" id="btnEndPlus">＋</button>
             </div>
           </div>
@@ -359,8 +370,9 @@
     <section id="tab-special" style="display:none;">
       <div class="card mb-4 p-3">
         <h5 class="mb-3 fw-bold">新增臨時異動</h5>
-        <input type="date" id="newDate" class="form-control mb-3">
+        <input type="date" id="newDate" class="form-control mb-3" style="border-radius:14px;">
 
+        <!-- 停診開關 -->
         <div class="form-check form-switch mb-3">
           <input class="form-check-input" type="checkbox" id="neStop">
           <label class="form-check-label" for="neStop" style="font-weight:800;color:#d32f2f">
@@ -369,42 +381,43 @@
         </div>
 
         <div class="row g-2 align-items-center">
-          <div class="col-12 col-md-3"><strong style="color:var(--early-bar)">早診上限</strong></div>
-          <div class="col-6 col-md-3"><input id="neEarlyLimit" value="10" type="number" class="form-control" placeholder="上限"></div>
-          <div class="col-6 col-md-6"><input id="neEarlyTime"  value=""   class="form-control" placeholder="早診時段，例如 08:30~11:30"></div>
+          <div class="col-12 col-md-3"><span class="tag tag-early"></span><strong>早診上限</strong></div>
+          <div class="col-6 col-md-3"><input id="neEarlyLimit" value="10" type="number" class="form-control" placeholder="上限" style="border-radius:14px;"></div>
+          <div class="col-6 col-md-6"><input id="neEarlyTime"  value=""   class="form-control" placeholder="早診時段，例如 08:30~11:30" style="border-radius:14px;"></div>
         </div>
 
         <div class="row g-2 align-items-center mt-1">
-          <div class="col-12 col-md-3"><strong style="color:var(--noon-bar)">午診上限</strong></div>
-          <div class="col-6 col-md-3"><input id="neNoonLimit"  value="10" type="number" class="form-control" placeholder="上限"></div>
-          <div class="col-6 col-md-6"><input id="neNoonTime"   value=""   class="form-control" placeholder="午診時段，例如 14:00~17:00"></div>
+          <div class="col-12 col-md-3"><span class="tag tag-noon"></span><strong>午診上限</strong></div>
+          <div class="col-6 col-md-3"><input id="neNoonLimit"  value="10" type="number" class="form-control" placeholder="上限" style="border-radius:14px;"></div>
+          <div class="col-6 col-md-6"><input id="neNoonTime"   value=""   class="form-control" placeholder="午診時段，例如 14:00~17:00" style="border-radius:14px;"></div>
         </div>
 
         <div class="row g-2 align-items-center mt-1">
-          <div class="col-12 col-md-3"><strong style="color:var(--night-bar)">晚診上限</strong></div>
-          <div class="col-6 col-md-3"><input id="neNightLimit" value="10" type="number" class="form-control" placeholder="上限"></div>
-          <div class="col-6 col-md-6"><input id="neNightTime"  value=""   class="form-control" placeholder="晚診時段，例如 18:00~20:30"></div>
+          <div class="col-12 col-md-3"><span class="tag tag-night"></span><strong>晚診上限</strong></div>
+          <div class="col-6 col-md-3"><input id="neNightLimit" value="10" type="number" class="form-control" placeholder="上限" style="border-radius:14px;"></div>
+          <div class="col-6 col-md-6"><input id="neNightTime"  value=""   class="form-control" placeholder="晚診時段，例如 18:00~20:30" style="border-radius:14px;"></div>
         </div>
 
+        <!-- 約診 -->
         <div class="row g-2 align-items-center mt-1">
-          <div class="col-12 col-md-3"><strong style="color:var(--appt-bar)">約診上限</strong></div>
-          <div class="col-6 col-md-3"><input id="neApptLimit" value="0" type="number" class="form-control" placeholder="上限"></div>
-          <div class="col-6 col-md-6"><input id="neApptTime"  value=""   class="form-control" placeholder="約診時段，例如 09:00~11:00"></div>
+          <div class="col-12 col-md-3"><span class="tag tag-appt"></span><strong>約診上限</strong></div>
+          <div class="col-6 col-md-3"><input id="neApptLimit" value="0" type="number" class="form-control" placeholder="上限" style="border-radius:14px;"></div>
+          <div class="col-6 col-md-6"><input id="neApptTime"  value=""   class="form-control" placeholder="約診時段，例如 09:00~11:00" style="border-radius:14px;"></div>
         </div>
 
         <div class="row g-2 align-items-end mt-2">
           <div class="col-6 col-md-3">
             <label class="small-note">起始號碼</label>
-            <input id="neStartNo" type="number" class="form-control text-center" value="1" min="1">
+            <input id="neStartNo" type="number" class="form-control text-center" value="1" min="1" style="border-radius:14px;">
           </div>
           <div class="col-6 col-md-3">
             <label class="small-note">間隔位數</label>
-            <input id="neStep" type="number" class="form-control text-center" value="1" min="1">
+            <input id="neStep" type="number" class="form-control text-center" value="1" min="1" style="border-radius:14px;">
           </div>
           <div class="col-12 col-md-6">
             <label class="small-note">備註</label>
             <div class="d-flex gap-2">
-              <input id="neNote" placeholder="備註" class="form-control">
+              <input id="neNote" placeholder="備註" class="form-control" style="border-radius:14px;">
               <button id="addBtn" class="btn btn-main">新增</button>
             </div>
           </div>
@@ -463,7 +476,7 @@
                   <input id="qNow" type="number" class="form-control q-now-input" value="0">
                   <button class="btn btn-queue q-step" id="qPlus1" type="button">＋</button>
                   <div class="q-actions">
-                    <button class="btn btn-ghost" id="qReset" type="button">數字歸零</button>
+                    <button class="btn btn-reset" id="qReset" type="button">數字歸零</button>
                     <button class="btn btn-main" id="qSet" type="button">設定</button>
                   </div>
                 </div>
@@ -605,6 +618,17 @@ function asObj(p){ try{ return typeof p==='string'?JSON.parse(p):(p||{});}catch{
 function asArr(p){ try{ if(typeof p==='string') p=JSON.parse(p);}catch{} if(Array.isArray(p))return p; if(Array.isArray(p?.rows))return p.rows; if(Array.isArray(p?.items))return p.items; if(Array.isArray(p?.data))return p.data; return []; }
 function num(x){ const n=Number(x); return isFinite(n)?n:0; }
 
+/* === 西元日期 -> 民國年的顯示函式（只改顯示，不改資料） === */
+function toRocDate(s){
+  if(!s) return '';
+  const d = new Date(s);
+  if(isNaN(d)) return s;
+  const y = d.getFullYear() - 1911;
+  const m = String(d.getMonth()+1).padStart(2,'0');
+  const da = String(d.getDate()).padStart(2,'0');
+  return `${y}/${m}/${da}`;
+}
+
 /* ===== 統計卡 + 表格渲染 ===== */
 function slotKey(label){
   const s=String(label||'').trim();
@@ -661,7 +685,7 @@ function renderItems(tableId, items, refreshFnName){
       <td>${x.time||''}</td>
       <td>${x.num||''}</td>
       <td>${x.name||''}</td>
-      <td>${x.birthday||''}</td>
+      <td>${toRocDate(x.birthday||'')}</td>
       <td>${x.pid||''}</td>
       <td>${x.phone||''}</td>
       <td>${x.createdAt||''}</td>
@@ -770,14 +794,14 @@ async function loadDaily(){
     const tr=document.createElement('tr');
     tr.innerHTML=`
       <td>星期${x.weekdayZh||''} <div class="small text-muted">${x.weekdayEn||''}</div></td>
-      <td><input class="form-control form-control-sm" id="dEL-${x.row}" type="number" value="${x.limitE||0}"></td>
-      <td><input class="form-control form-control-sm" id="dNL-${x.row}" type="number" value="${x.limitN||0}"></td>
-      <td><input class="form-control form-control-sm" id="dTL-${x.row}" type="number" value="${x.limitL||0}"></td>
-      <td><input class="form-control form-control-sm" id="dTE-${x.row}" value="${x.timeE||''}"></td>
-      <td><input class="form-control form-control-sm" id="dTN-${x.row}" value="${x.timeN||''}"></td>
-      <td><input class="form-control form-control-sm" id="dTLt-${x.row}" value="${x.timeL||''}"></td>
-      <td><input class="form-control form-control-sm text-center" id="dST-${x.row}" type="number" value="${x.startNo||1}" min="1"></td>
-      <td><input class="form-control form-control-sm text-center" id="dSP-${x.row}" type="number" value="${x.step||1}" min="1"></td>
+      <td><input class="form-control form-control-sm" id="dEL-${x.row}" type="number" value="${x.limitE||0}" style="border-radius:12px;"></td>
+      <td><input class="form-control form-control-sm" id="dNL-${x.row}" type="number" value="${x.limitN||0}" style="border-radius:12px;"></td>
+      <td><input class="form-control form-control-sm" id="dTL-${x.row}" type="number" value="${x.limitL||0}" style="border-radius:12px;"></td>
+      <td><input class="form-control form-control-sm" id="dTE-${x.row}" value="${x.timeE||''}" style="border-radius:12px;"></td>
+      <td><input class="form-control form-control-sm" id="dTN-${x.row}" value="${x.timeN||''}" style="border-radius:12px;"></td>
+      <td><input class="form-control form-control-sm" id="dTLt-${x.row}" value="${x.timeL||''}" style="border-radius:12px;"></td>
+      <td><input class="form-control form-control-sm text-center" id="dST-${x.row}" type="number" value="${x.startNo||1}" min="1" style="border-radius:12px;"></td>
+      <td><input class="form-control form-control-sm text-center" id="dSP-${x.row}" type="number" value="${x.step||1}" min="1" style="border-radius:12px;"></td>
       <td><button class="btn btn-sm btn-main" onclick="saveDaily('${x.weekdayEn}','${x.row}')">儲存</button></td>`;
     tb.appendChild(tr);
   });
@@ -885,7 +909,7 @@ async function loadSpecials(){
     const stop = (x["是否停診"]===true || String(x["是否停診"]).toUpperCase()==='TRUE');
     tr.innerHTML=`
       <td>${x.日期}</td>
-      <td>${ stop ? '<span class="badge text-bg-danger">停診</span>' : '<span class="badge text-bg-secondary">—</span>' }</td>
+      <td>${ stop ? '<span class="badge" style="background:#d32f2f">停診</span>' : '<span class="badge bg-secondary">—</span>' }</td>
       <td>${x.早診上限||0}</td><td>${x.午診上限||0}</td><td>${x.晚診上限||0}</td><td>${x.約診上限||0}</td>
       <td>${x.早診時段||''}</td><td>${x.午診時段||''}</td><td>${x.晚診時段||''}</td><td>${x.約診時段||''}</td>
       <td>${x.起始號碼||1}</td><td>${x.間隔位數||1}</td>
@@ -914,19 +938,19 @@ async function editRow(id){
      </div>
 
      <div class="row g-2">
-       <div class="col-6 col-md-3"><label class="form-label">早診上限</label><input id="edEL" class="form-control" type="number" value="${f["早診上限"]||0}"></div>
-       <div class="col-6 col-md-3"><label class="form-label">午診上限</label><input id="edNL" class="form-control" type="number" value="${f["午診上限"]||0}"></div>
-       <div class="col-6 col-md-3"><label class="form-label">晚診上限</label><input id="edTL" class="form-control" type="number" value="${f["晚診上限"]||0}"></div>
-       <div class="col-6 col-md-3"><label class="form-label">約診上限</label><input id="edAL" class="form-control" type="number" value="${f["約診上限"]||0}"></div>
+       <div class="col-6 col-md-3"><label class="form-label">早診上限</label><input id="edEL" class="form-control" type="number" value="${f["早診上限"]||0}" style="border-radius:14px;"></div>
+       <div class="col-6 col-md-3"><label class="form-label">午診上限</label><input id="edNL" class="form-control" type="number" value="${f["午診上限"]||0}" style="border-radius:14px;"></div>
+       <div class="col-6 col-md-3"><label class="form-label">晚診上限</label><input id="edTL" class="form-control" type="number" value="${f["晚診上限"]||0}" style="border-radius:14px;"></div>
+       <div class="col-6 col-md-3"><label class="form-label">約診上限</label><input id="edAL" class="form-control" type="number" value="${f["約診上限"]||0}" style="border-radius:14px;"></div>
 
-       <div class="col-12 col-md-6"><label class="form-label">早診時段</label><input id="edTE" class="form-control" value='${f["早診時段"]||""}'></div>
-       <div class="col-12 col-md-6"><label class="form-label">午診時段</label><input id="edTN" class="form-control" value='${f["午診時段"]||""}'></div>
-       <div class="col-12 col-md-6"><label class="form-label">晚診時段</label><input id="edTLt" class="form-control" value='${f["晚診時段"]||""}'></div>
-       <div class="col-12 col-md-6"><label class="form-label">約診時段</label><input id="edTA" class="form-control" value='${f["約診時段"]||""}'></div>
+       <div class="col-12 col-md-6"><label class="form-label">早診時段</label><input id="edTE" class="form-control" value='${f["早診時段"]||""}' style="border-radius:14px;"></div>
+       <div class="col-12 col-md-6"><label class="form-label">午診時段</label><input id="edTN" class="form-control" value='${f["午診時段"]||""}' style="border-radius:14px;"></div>
+       <div class="col-12 col-md-6"><label class="form-label">晚診時段</label><input id="edTLt" class="form-control" value='${f["晚診時段"]||""}' style="border-radius:14px;"></div>
+       <div class="col-12 col-md-6"><label class="form-label">約診時段</label><input id="edTA" class="form-control" value='${f["約診時段"]||""}' style="border-radius:14px;"></div>
 
-       <div class="col-12 col-md-6"><label class="form-label">備註</label><input id="edNote" class="form-control" value="${f["備註"]||""}"></div>
-       <div class="col-6 col-md-3"><label class="form-label">起始號碼</label><input id="edStartNo" class="form-control text-center" type="number" value="${f["起始號碼"]||1}" min="1"></div>
-       <div class="col-6 col-md-3"><label class="form-label">間隔位數</label><input id="edStep" class="form-control text-center" type="number" value="${f["間隔位數"]||1}" min="1"></div>
+       <div class="col-12 col-md-6"><label class="form-label">備註</label><input id="edNote" class="form-control" value="${f["備註"]||""}" style="border-radius:14px;"></div>
+       <div class="col-6 col-md-3"><label class="form-label">起始號碼</label><input id="edStartNo" class="form-control text-center" type="number" value="${f["起始號碼"]||1}" min="1" style="border-radius:14px;"></div>
+       <div class="col-6 col-md-3"><label class="form-label">間隔位數</label><input id="edStep" class="form-control text-center" type="number" value="${f["間隔位數"]||1}" min="1" style="border-radius:14px;"></div>
      </div>
      <div class="small-note mt-2">此處儲存會以 <code>adminAdd</code> 覆蓋該日期設定。</div>
    </div>
@@ -981,7 +1005,8 @@ async function editRow(id){
       起始號碼: isStop ? 1 : Number(edStartNo.value||1),
       間隔位數: isStop ? 1 : Math.max(1, Number(edStep.value||1))
     });
-    m.hide(); mEl.addEventListener('hidden.bs.modal', ()=> mEl.remove(), {once:true});
+    const bsModal = bootstrap.Modal.getInstance(mEl); bsModal.hide();
+    mEl.addEventListener('hidden.bs.modal', ()=> mEl.remove(), {once:true});
     loadSpecials();
   };
   mEl.addEventListener('hidden.bs.modal', ()=> mEl.remove(), {once:true});
