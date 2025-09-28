@@ -461,7 +461,7 @@ let WINDOW_MIN=null,WINDOW_MAX=null; let curMonth=firstOfMonth(NOW);
 function fmtNowLabel(){
   const d=new Date();
   const w='日一二三四五六'[d.getDay()];
-  return `今天日期：${d.getFullYear()}/${pad2(d.getMonth()+1)}/${pad2(d.getDate())}（週${w}）`;
+  return `請選擇預約日期 今天：${d.getFullYear()}/${pad2(d.getMonth()+1)}/${pad2(d.getDate())}（週${w}）`;
 }
 (function bootNowTime(){
   const el=document.getElementById('nowTime');
