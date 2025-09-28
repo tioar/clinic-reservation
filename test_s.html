@@ -4,101 +4,96 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>預約成功</title>
+
+<!-- 字體：與 index 一致（TW-Kai 優先，無檔案會自動退到備援） -->
+<link href="https://fonts.googleapis.com/css2?family=LXGW+WenKai+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
 <link rel="icon" type="image/png" href="favicon.png">
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
+
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/crypto-js@4.2.0/crypto-js.min.js"></script>
 
-<!-- 與 index 相同的字型備援 -->
-<link href="https://fonts.googleapis.com/css2?family=LXGW+WenKai+TC:wght@400;500;700&display=swap" rel="stylesheet">
-
 <style>
-/* ===================== 主題（與 index 一致） ===================== */
 :root{
+  /* Ponder 藍系主題（和 index 一樣） */
   --classic-blue:#34558b;
   --provence:#678fc9;
   --baby-blue:#bfd2dd;
-  --monument:#7b858a;
-  --stucco:#9b8577;
-
-  --primary:var(--classic-blue);
   --ink:#1c2430;
-  --bg:#f4f6f8;
   --card:#ffffff;
   --line:#e6ebf1;
 
+  /* 轉圈圈（灰藍） */
   --spin-color:#7f93b1;
   --spin-fade:1.2s;
+
+  /* 各診別色 */
+  --early-bg:#e7f2ea; --early-bd:#b7d9c6; --early-tx:#0b523a;
+  --noon-bg:#fff2df;  --noon-bd:#ffd79a; --noon-tx:#7a4d00;
+  --night-bg:#e7f0fb; --night-bd:#c8dcff; --night-tx:#1646a2;
+  --appt-bg:#f9e7ee;  --appt-bd:#f6b6dc; --appt-tx:#9b1f79;
 }
 
-/* ===================== 字型（與 index 相同） ===================== */
+/* 嵌入本地 TW-Kai（有檔才會生效，沒檔就退到備援） */
 @font-face{
   font-family:"TW-Kai";
   src:url("/fonts/TW-Kai.woff2") format("woff2");
-  font-weight:400; font-style:normal; font-display:swap;
-}
-@font-face{
-  font-family:"CwTeXKai";
-  src:url("/fonts/CwTeXKai.woff2") format("woff2");
   font-weight:400; font-style:normal; font-display:swap;
 }
 
 *{box-sizing:border-box}
 html,body{width:100%;max-width:100%}
 body{
-  margin:0;background:var(--bg);color:var(--ink);
-  font-family:
-    "TW-Kai","CwTeXKai","LXGW WenKai TC",
-    "DFKai-SB","KaiTi","Kaiti TC","Kaiti SC","BiauKai",
-    "STFangsong","FangSong",
-    "PingFang TC","Microsoft JhengHei",serif;
-  font-weight:400;
+  margin:0;background:#f4f6f8;color:var(--ink);
+  font-family:"TW-Kai","LXGW WenKai TC","DFKai-SB","KaiTi",
+              "PingFang TC","Microsoft JhengHei",serif;
 }
-/* 全站方角 */
-button, .btn, input, .cardish, .pill, .modal-content { border-radius:0 !important; }
 
-.wrap{max-width:960px;margin:16px auto;padding:12px}
+/* 方角風格（和 index 一致） */
+button, .btn, .cardish, .slot-card, .modal-content{ border-radius:0 !important; }
 
-/* ===================== Header ===================== */
-.page-head{display:flex;align-items:center;justify-content:center;gap:14px;margin:6px 8px 14px}
-.page-head .logo{width:64px;height:64px;display:grid;place-items:center;background:var(--primary);color:#fff;font-weight:700;font-size:34px}
-.page-head h1{margin:0;font-weight:700;font-size:clamp(1.5rem,2.6vw,2.2rem);color:var(--primary)}
-
-/* ===================== 卡片容器 ===================== */
-.cardish{background:var(--card);border:1px solid var(--line)}
-.section{padding:14px}
-
-/* 成功資訊 */
-.success-head{display:flex;align-items:center;gap:10px;margin-bottom:8px}
-.badge-ok{display:inline-block;background:#e7f2ea;border:1px solid #b7d9c6;color:#0b523a;padding:.2rem .5rem;font-weight:700}
-.kv{display:grid;grid-template-columns:100px 1fr;row-gap:8px;column-gap:8px}
-.kv .k{color:#475569;font-weight:700}
-.kv .v{font-weight:700}
-
-/* 診別 pill（沿用 index 視覺） */
-.pill{display:inline-flex;align-items:center;justify-content:center;gap:.3rem;border:1px solid #d7dde6;padding:.18rem .6rem;font-weight:700;font-size:.95rem;line-height:1.1;white-space:nowrap}
-.pill.early{background:#e7f2ea;color:#0b523a;border-color:#b7d9c6}
-.pill.noon {background:#fff2df;color:#7a4d00;border-color:#ffd79a}
-.pill.night{background:#e7f0fb;color:#1646a2;border-color:#c8dcff}
-.pill.appt {background:#f9e7ee;color:#9b1f79;border-color:#f6b6dc}
-
-/* 方形按鈕（與 index 一致） */
-.btn-main,.btn-ghost{font-weight:700;padding:.9rem 1.15rem;font-size:1.05rem}
-.btn-main{background:var(--primary);color:#fff;border:1px solid var(--primary)}
-.btn-main:hover{filter:brightness(0.95)}
-.btn-ghost{background:#fff;border:1px solid #d7dbe5;color:#3a3f47}
-.btn-ghost:hover{background:#f7fafc}
-
-/* 分享提醒條（方角、淡藍底） */
-.share-box{
-  margin-top:14px;padding:12px 14px;
-  background:#f6f9ff;border:1px solid #e3ecff;color:#334155;
-  display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+/* 容器 */
+.wrap{ max-width:min(880px,94vw); margin:40px auto; padding:0 12px; }
+.cardish{
+  background:var(--card); border:1px solid var(--line);
+  box-shadow:0 10px 24px rgba(52,85,139,.10);
+  padding:28px 20px 30px;
 }
-.share-box .hint{font-weight:700}
-.share-box .btn-share{margin-left:auto}
 
-/* ===================== 轉圈圈（與 index 同款） ===================== */
+/* 標頭 */
+.title-row{ display:flex; align-items:center; justify-content:center; gap:12px; margin-bottom:4px; }
+.logo{ width:56px; height:56px; display:grid; place-items:center; background:var(--classic-blue); color:#fff; font-weight:700; font-size:32px; }
+.h1x{ margin:0; color:var(--classic-blue); font-weight:700; font-size:clamp(1.6rem,3vw,2rem); }
+
+/* 診別卡 */
+.slot-card{
+  border:2px dashed; padding:16px 16px; text-align:center;
+  margin:12px auto 16px; max-width:720px; line-height:1.7;
+  border-color:#d7d9e3; background:#f7f7fb; color:#3a3f47;
+}
+.slot-early{ background:var(--early-bg); border-color:var(--early-bd); color:var(--early-tx); }
+.slot-noon { background:var(--noon-bg);  border-color:var(--noon-bd);  color:var(--noon-tx); }
+.slot-night{ background:var(--night-bg); border-color:var(--night-bd); color:var(--night-tx); }
+.slot-appt { background:var(--appt-bg);  border-color:var(--appt-bd);  color:var(--appt-tx); }
+
+.slot-main{ font-weight:700; font-size:1.1rem; }
+.slot-sub { font-weight:700; font-size:1.05rem; }
+.slot-note{ font-size:.95rem; margin-top:2px; }
+
+/* 分享提醒條 */
+.share-tip{
+  background:#eef3fb; border:1px solid #dae5f6; color:#334155;
+  padding:10px 12px; display:flex; gap:10px; align-items:flex-start; margin:10px 0 16px;
+  font-weight:700;
+}
+
+/* 按鈕（方角） */
+.btn-main{ background:var(--classic-blue); color:#fff; border:1px solid var(--classic-blue); font-weight:700; padding:.85rem 1.2rem; }
+.btn-main:hover{ background:#27426f; color:#fff; }
+.btn-ghost{ background:#fff; color:#3a3f47; border:1px solid #d7dbe5; font-weight:700; padding:.85rem 1.2rem; }
+.btn-ghost:hover{ background:#f2f6ff; }
+
+/* 轉圈圈：灰藍放射條狀（和 index 同款） */
 @keyframes bars-fade { 0%{opacity:1} 100%{opacity:0} }
 .spinner-bars{position:relative;display:inline-block;width:56px;height:56px}
 .spinner-bars i{
@@ -121,199 +116,218 @@ button, .btn, input, .cardish, .pill, .modal-content { border-radius:0 !importan
 .spinner-bars i:nth-child(10) { transform:rotate(270deg);  animation-delay:-0.2s }
 .spinner-bars i:nth-child(11) { transform:rotate(300deg);  animation-delay:-0.1s }
 .spinner-bars i:nth-child(12) { transform:rotate(330deg);  animation-delay: 0s  }
-.spinner-sm{width:22px;height:22px}
-.spinner-sm i{transform-origin:11px 11px}
-.spinner-sm i::after{top:1px;left:10px;width:2px;height:6px;border-radius:1px}
 
-/* 全頁遮罩（同款轉圈） */
-#mask{
-  position:fixed; inset:0; display:none;
-  align-items:center; justify-content:center; flex-direction:column; gap:12px;
-  z-index:9999; background:rgba(255,255,255,.94); backdrop-filter:blur(2px);
-  color:#475569; font-size:16px; font-weight:700;
-}
-
-/* Mobile */
-@media (max-width:600px){
-  .wrap{padding:8px}
-  .page-head{margin:4px 4px 12px}
-  .page-head .logo{width:56px;height:56px;font-size:30px}
-  .kv{grid-template-columns:84px 1fr}
-  .share-box{gap:8px}
-  .share-box .btn-share{margin-left:0}
+/* 全頁遮罩 */
+#loading{
+  position:fixed; inset:0; background:rgba(255,255,255,.94);
+  display:flex; align-items:center; justify-content:center; flex-direction:column; gap:12px;
+  z-index:9999; color:#475569; font-weight:700;
 }
 </style>
 </head>
 <body>
-<!-- 轉圈載入中（與 index 同款） -->
-<div id="mask" style="display:flex">
-  <div class="spin-here"></div>
-  <div class="loading-text">讀取中，請稍候…</div>
+<!-- 轉圈圈遮罩 -->
+<div id="loading">
+  <span class="spinner-bars" aria-hidden="true">
+    <i></i><i></i><i></i><i></i><i></i><i></i>
+    <i></i><i></i><i></i><i></i><i></i><i></i>
+  </span>
+  <div class="loading-text">讀取中請稍等</div>
 </div>
 
 <div class="wrap">
-  <div class="page-head"><div class="logo">＋</div><h1>預約成功</h1></div>
+  <div class="cardish text-center">
+    <div class="title-row">
+      <div class="logo">＋</div>
+      <h1 class="h1x">預 約 成 功</h1>
+    </div>
+    <div class="text-secondary mb-2" style="font-weight:700">您的預約資訊：</div>
 
-  <div class="cardish section">
-    <div class="success-head">
-      <span class="badge-ok">已建立預約</span>
-      <span style="color:var(--monument);font-weight:700">以下為您的預約資訊</span>
+    <div id="slotCard" class="slot-card">
+      <div id="slotMain" class="slot-main">—</div>
+      <div id="slotSub"  class="slot-sub">—</div>
+      <div id="slotNote" class="slot-note"></div>
     </div>
 
-    <div class="kv">
-      <div class="k">日期</div><div class="v" id="vDate">—</div>
-      <div class="k">診別</div>
-      <div class="v">
-        <span id="vSlotPill" class="pill">—</span>
-        <span id="vTime" style="margin-left:.5rem"></span>
+    <!-- 分享提醒條 -->
+    <div class="share-tip">
+      <div style="font-size:20px;line-height:1">📤</div>
+      <div class="text-start flex-grow-1">
+        提醒：可以點下方「分享」把門診日期／號碼傳給家人，或複製文字到 Line／Messenger。
       </div>
-      <div class="k">醫師</div><div class="v" id="vDoc">—</div>
-      <div class="k">姓名</div><div class="v" id="vName">—</div>
-      <div class="k">號碼</div><div class="v" id="vNum">—</div>
     </div>
 
-    <!-- 分享提醒條（已加入按鈕） -->
-    <div class="share-box">
-      <span class="hint">📤 將本次預約資訊分享給家人／同行者，方便報到。</span>
-      <button id="shareBtn" class="btn btn-main btn-share">分享</button>
+    <div class="d-flex gap-2 justify-content-center mb-3">
+      <a class="btn btn-main flex-fill" href="index.html">返回預約首頁</a>
+      <a class="btn btn-ghost flex-fill" href="query.html">查詢／取消預約</a>
+      <button id="shareBtn" class="btn btn-ghost">分享</button>
     </div>
 
-    <div class="mt-3" style="color:#475569">
-      ⭐ 最晚報到時間為門診結束前一小時；門診當天僅接受電話取消：<strong>(03) 515-2971</strong>
-    </div>
-
-    <div class="d-grid gap-2 mt-3">
-      <a class="btn btn-main text-center text-decoration-none" href="index.html">返回預約首頁</a>
-      <a class="btn btn-ghost text-center text-decoration-none" href="query.html">查詢／取消預約</a>
-    </div>
+    <div id="filledAt" class="text-secondary small"></div>
   </div>
 </div>
 
 <script>
-/* ====== 與 index / query 一致的設定 ====== */
-const API="https://script.google.com/macros/s/AKfycby37Sxk-a-q9hxqROALi1gmGhWGXWr2xw8WF_pdgMAN_9HvM1PZJfgN6TJnVrGw0x9W/exec";
-const AES_KEY="A2x5fT9qR7nC1vB8mK3pZ6sD4uH0yW2j";
+/* ===== 常數（正式模式會用到） ===== */
+const API = "https://script.google.com/macros/s/AKfycby37Sxk-a-q9hxqROALi1gmGhWGXWr2xw8WF_pdgMAN_9HvM1PZJfgN6TJnVrGw0x9W/exec";
+const AES_KEY = "A2x5fT9qR7nC1vB8mK3pZ6sD4uH0yW2j";
 
-/* 轉圈元件（同款） */
-function createSpinner(size="md"){
-  const root=document.createElement("span");
-  root.className="spinner-bars"+(size==="sm"?" spinner-sm":"");
-  for(let i=0;i<12;i++){ root.appendChild(document.createElement("i")); }
-  return root;
+/* ===== 小工具 ===== */
+const qs = (k)=>new URL(location.href).searchParams.get(k);
+const pad2 = n => String(n).padStart(2,'0');
+function weekdayZh(ymd){ const d=new Date(ymd+'T09:00:00+08:00'); return ['日','一','二','三','四','五','六'][d.getDay()]||''; }
+function ymdNorm(input){
+  if(!input) return '';
+  if(/^\d{4}-\d{2}-\d{2}$/.test(input)) return input;
+  const d=new Date(input); if(isNaN(d)) return '';
+  return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;
 }
-function mountSpinner(target,{size="md",label=""}={}){
-  const el=(typeof target==="string")?document.querySelector(target):target;
-  if(!el) return null; el.innerHTML="";
-  const s=createSpinner(size); el.appendChild(s);
-  if(label){ const t=document.createElement("span"); t.className="ms-2"; t.textContent=label; el.appendChild(t); }
-  return s;
+function guessTime(slot){
+  if(!slot) return '';
+  if(slot.includes('早')) return '08:30~11:30';
+  if(slot.includes('午')) return '14:00~17:00';
+  if(slot.includes('晚')) return '18:00~20:30';
+  if(slot.includes('約')) return '09:00~12:00';
+  return '';
 }
-const $mask=document.getElementById('mask');
-function showMask(txt){ $mask.style.display='flex'; mountSpinner($mask.querySelector('.spin-here'),{size:"md"}); const t=$mask.querySelector('.loading-text'); if(t) t.textContent=txt||'讀取中，請稍候…'; }
-function hideMask(){ $mask.style.display='none'; }
-
-/* 小工具 */
-const pad2=n=>String(n).padStart(2,'0');
-const weekdayZh=d=>['日','一','二','三','四','五','六'][new Date(d+'T09:00:00+08:00').getDay()];
-function normalizeYMD(input){
-  if(!input) return ''; if(/^\d{4}-\d{2}-\d{2}$/.test(input)) return input;
-  const d=new Date(input); if(isNaN(d)) return ''; return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;
+function slotClass(slot){
+  if(!slot) return '';
+  if(slot.includes('早')) return 'slot-early';
+  if(slot.includes('午')) return 'slot-noon';
+  if(slot.includes('晚')) return 'slot-night';
+  if(slot.includes('約')) return 'slot-appt';
+  return '';
 }
-function aesDec(q){
-  const txt=CryptoJS.AES.decrypt(decodeURIComponent(q),AES_KEY).toString(CryptoJS.enc.Utf8);
-  if(!txt) throw new Error('DECRYPT_FAIL');
-  const data=JSON.parse(txt); if(data.exp && Date.now()>data.exp) throw new Error('TOKEN_EXPIRED'); return data;
+function slotCheckinText(slot){
+  if(!slot) return '';
+  if(slot.includes('早')) return '早診請在 10:30 前報到';
+  if(slot.includes('午')) return '午診請在 16:00 前報到';
+  if(slot.includes('晚')) return '晚診請在 20:00 前報到';
+  if(slot.includes('約')) return '約診請於門診結束前一小時前報到';
+  return '';
 }
-
-/* DOM */
-const vDate=document.getElementById('vDate');
-const vTime=document.getElementById('vTime');
-const vDoc =document.getElementById('vDoc');
-const vName=document.getElementById('vName');
-const vNum =document.getElementById('vNum');
-const vSlotPill=document.getElementById('vSlotPill');
-const shareBtn=document.getElementById('shareBtn');
-
-/* slot → pill class/文字 */
-function slotInfo(slot){
-  if(!slot) return {cls:'',txt:'—'};
-  if(slot.includes('早')) return {cls:'early', txt:'早診'};
-  if(slot.includes('午')) return {cls:'noon' , txt:'午診'};
-  if(slot.includes('晚')) return {cls:'night',txt:'晚診'};
-  if(slot.includes('約')) return {cls:'appt', txt:'約診'};
-  return {cls:'',txt:slot};
+function aesDec(v){
+  const txt = CryptoJS.AES.decrypt(decodeURIComponent(v), AES_KEY).toString(CryptoJS.enc.Utf8);
+  if(!txt) throw new Error("DECRYPT_FAIL");
+  const data = JSON.parse(txt);
+  if(data.exp && Date.now() > data.exp) throw new Error("TOKEN_EXPIRED");
+  return data;
 }
 
+/* ===== DOM ===== */
+const $loading  = document.getElementById('loading');
+const slotCard  = document.getElementById('slotCard');
+const slotMain  = document.getElementById('slotMain');
+const slotSub   = document.getElementById('slotSub');
+const slotNote  = document.getElementById('slotNote');
+const filledAt  = document.getElementById('filledAt');
+const shareBtn  = document.getElementById('shareBtn');
+
+/* ===== 主流程 ===== */
 (async function init(){
+  const isDemo = qs('demo') === '1';
+  const stay   = qs('stay') === '1';
+
   try{
-    showMask();
+    let ymd='', slot='', time='', doctor='', name='', num='';
+    if(isDemo){
+      // 1) Demo 模式：全部從網址帶，缺的用預設
+      ymd    = ymdNorm(qs('date')) || ymdNorm(new Date());
+      slot   = qs('slot') || '早診';
+      time   = qs('time') || guessTime(slot);
+      doctor = qs('doctor') || '陳萬龍醫師';
+      name   = qs('name') || '王小明';
+      num    = qs('num') || '12';
+    }else{
+      // 2) 正式模式：從 cipher / sessionStorage 取 id，再 call API
+      let id=null, receipt='';
+      const cipher = qs('cipher');
+      if(cipher){
+        try{
+          const obj = aesDec(cipher);
+          id = obj.id || obj.bookingId || null;
+          receipt = obj.receipt || obj.rcpt || '';
+        }catch(_){}
+        // 移除 query 以免重整重複
+        if(history.replaceState) history.replaceState({}, "", location.pathname);
+      }
+      if(!id) id = sessionStorage.getItem('lastBookingId') || null;
+      if(!receipt && id) receipt = sessionStorage.getItem('rcpt:'+id) || '';
 
-    // 1) 取得 id/receipt（?cipher 或 sessionStorage）
-    const params=new URL(location.href).searchParams;
-    let id=null, receipt='';
-    const cipher=params.get('cipher');
-    if(cipher){
-      try{
-        const obj=aesDec(cipher);
-        id=obj.id||obj.bookingId||null; receipt=obj.receipt||obj.rcpt||'';
-        try{ sessionStorage.setItem('lastBookingId', String(id||'')); }catch(_){}
-        try{ if(receipt) sessionStorage.setItem('rcpt:'+String(id||''), String(receipt)); }catch(_){}
-      }catch(_){}
-      history.replaceState({}, "", location.pathname);
+      if(!id){
+        if(stay){
+          // 停留觀察樣式
+          throw new Error('NO_ID_BUT_STAY');
+        }else{
+          alert('連結無效或已過期，請回首頁重新操作。');
+          location.href = 'index.html';
+          return;
+        }
+      }
+
+      const r = await axios.get(API, { params:{ action:'detail', id, receipt } });
+      const d = r.data || {};
+      if(d.error){ throw new Error('DETAIL_FAIL'); }
+
+      ymd    = ymdNorm(d.date);
+      slot   = d.slot || '';
+      time   = d.time || '';
+      doctor = d.doctor || '';
+      name   = d.name || '';
+      num    = d.num || '';
+      if(!time){
+        // 補抓當日 slots 以拿時間區間
+        try{
+          const s2 = await axios.get(API, { params:{ action:'getSlots', date: ymd } });
+          const arr = Array.isArray(s2.data) ? s2.data : (Array.isArray(s2.data?.slots) ? s2.data.slots : []);
+          const hit = arr.find(x => String(x.label) === String(slot));
+          time = hit?.time || '';
+          if(!doctor && hit?.doctor) doctor = String(hit.doctor);
+        }catch(_){}
+      }
+      if(!time) time = guessTime(slot);
     }
-    if(!id) id=sessionStorage.getItem('lastBookingId')||null;
-    if(!receipt && id) receipt=sessionStorage.getItem('rcpt:'+id)||'';
-    if(!id){ alert('連結無效或已過期，請回首頁重新操作。'); location.href='index.html'; return; }
 
-    // 2) 詳細資料
-    const r=await axios.get(API,{params:{action:'detail',id,receipt}});
-    const d=r.data||{};
-    if(d.error){ alert('無法取得預約資料，請回首頁。'); location.href='index.html'; return; }
+    // 寫畫面
+    const wk = weekdayZh(ymd);
+    slotCard.classList.add(slotClass(slot));
+    const docTxt = doctor ? `【${doctor}】` : '';
+    slotMain.textContent = `${ymd} 星期${wk}（${slot}） ${time} ${docTxt}`;
+    slotSub.textContent  = `姓名：${name}，號碼：${num} 號。`;
+    const note = slotCheckinText(slot);
+    slotNote.innerHTML = note ? `⭐ ${note}` : '';
 
-    const ymd=normalizeYMD(d.date);
-    const wk =weekdayZh(ymd)||'';
-    const slot = String(d.slot||'');
-    const {cls,txt}=slotInfo(slot);
-
-    // 3) 補齊時段/醫師
-    let timeRange='', doctor=(d.doctor||'').trim();
-    try{
-      const q=await axios.get(API,{params:{action:'getSlots',date:ymd}});
-      const data=q.data; const slots=Array.isArray(data)?data:(Array.isArray(data?.slots)?data.slots:[]);
-      const hit=slots.find(x=>String(x.label)===slot);
-      timeRange=hit?.time||''; if(!doctor && hit?.doctor) doctor=String(hit.doctor);
-    }catch(_){}
-
-    // 4) 寫畫面
-    vDate.textContent = `${ymd}（週${wk}）`;
-    vSlotPill.className = `pill ${cls||''}`;
-    vSlotPill.textContent = txt;
-    vTime.textContent = timeRange ? timeRange : '';
-    vDoc.textContent  = doctor || '—';
-    vName.textContent = d.name || '—';
-    vNum.textContent  = (d.num!=null && d.num!=='') ? String(d.num) : '—';
-
-    // 5) 分享
+    // 分享
     const shareText =
-`✔️ 陳萬龍診所門診預約成功
-日期：${ymd}（週${wk}）
-診別：${txt} ${timeRange||''} ${doctor?`【${doctor}】`:''}
-姓名：${d.name||''}
-號碼：${(d.num!=null && d.num!=='')?d.num:'—'} 號
-※ 最晚報到時間為門診結束前一小時。`;
+`✔️陳萬龍診所門診預約成功
+
+${ymd} 星期${wk}（${slot}） ${time} ${docTxt}
+姓名：${name}，號碼：${num} 號
+
+🔺請於門診結束前一小時前完成報到。`;
     shareBtn.onclick = async ()=>{
       try{
-        if(navigator.share){ await navigator.share({text:shareText}); }
+        if(navigator.share) await navigator.share({ text: shareText });
         else{ await navigator.clipboard.writeText(shareText); alert('已複製分享內容！'); }
       }catch(_){}
     };
 
-  }catch(e){
-    console.error(e);
-    alert('系統忙碌或網路不穩，請回首頁再試一次。');
-    location.href='index.html';
+    // 示意填單時間（demo 就不顯示）
+    if(!isDemo && typeof d!=='undefined' && d?.submittedAt){
+      const t=new Date(d.submittedAt);
+      filledAt.textContent = `${t.getFullYear()}/${pad2(t.getMonth()+1)}/${pad2(t.getDate())} ${pad2(t.getHours())}:${pad2(t.getMinutes())}:${pad2(t.getSeconds())}`;
+    }
+
+  }catch(err){
+    // stay=1 時就留在畫面上給你看樣式
+    if(qs('stay')!=='1'){
+      console.error(err);
+      alert('系統忙碌或連線不穩，請回首頁再試一次。');
+      location.href='index.html';
+      return;
+    }
   }finally{
-    hideMask();
+    document.getElementById('loading').style.display='none';
   }
 })();
 </script>
