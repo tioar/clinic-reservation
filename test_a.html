@@ -766,7 +766,7 @@ const winStart=document.getElementById('winStart'), winEnd=document.getElementBy
       btnEndMinus=document.getElementById('btnEndMinus'), btnEndPlus=document.getElementById('btnEndPlus'),
       btnWinSet=document.getElementById('btnWinSet'), winInfo=document.getElementById('winInfo'),
       customWindowSwitch=document.getElementById('customWindowSwitch'),
-      flagWeekSwitch=document.getElementById('flagWeekSwitch']);
+      flagWeekSwitch=document.getElementById('flagWeekSwitch');
 
 btnStartMinus.onclick=()=>{ winStart.value=Math.max(0, Number(winStart.value||0)-1); };
 btnStartPlus.onclick =()=>{ winStart.value=Number(winStart.value||0)+1; };
