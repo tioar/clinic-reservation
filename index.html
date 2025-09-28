@@ -232,7 +232,7 @@ input[type="date"]::-webkit-calendar-picker-indicator{padding:0 8px 0 0}
 <!-- 全頁遮罩 -->
 <div id="mask" style="display:none">
   <div class="spin-here"></div>
-  <div class="loading-text">處理中，請稍候…</div>
+  <div class="loading-text">處理中，請稍候</div>
 </div>
 
 <div class="wrap">
@@ -491,7 +491,7 @@ function showMask(txt){
   $mask.style.display='flex';
   mountSpinner($mask.querySelector('.spin-here'),{size:"md"});
   const t=$mask.querySelector('.loading-text');
-  if(t) t.textContent = txt || '處理中，請稍候…';
+  if(t) t.textContent = txt || '處理中，請稍候';
 }
 function hideMask(){ $mask.style.display='none'; }
 
@@ -739,7 +739,7 @@ $('submitBtn').addEventListener('click',async(e)=>{
   if(!/^\d{10}$/.test(ph)){ alert('聯絡電話字數錯誤，請檢查後重試'); return; }
 
   try{
-    submitting=true; $('submitBtn').disabled=true; showMask('預約中，請稍候…');
+    submitting=true; $('submitBtn').disabled=true; showMask('預約中，請稍候');
     const recaptchaToken=await getRecaptchaToken(); $('g-recaptcha-response').value=recaptchaToken;
 
     const params={action:'submit',date:d,slot:s,name:n,birthday:b,id:id,phone:ph,recaptchaToken,t:Date.now()};
@@ -788,4 +788,5 @@ async function bootMonth(m){
 </script>
 </body>
 </html>
+
 
