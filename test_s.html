@@ -160,7 +160,7 @@ button, .btn, .cardish, .slot-card, .modal-content{ border-radius:0 !important; 
 
     <!-- 分享提醒條 -->
     <div class="share-tip">
-      <div style="font-size:20px;line-height:1">▲</div>
+      <div style="font-size:20px;line-height:1">🔸</div>
       <div class="text-start flex-grow-1">
         提醒：可以點下方「分享」傳送已經預約的門診日期與號碼，或複製文字到 Line 或 Messenger。
       </div>
@@ -301,7 +301,7 @@ const shareBtn  = document.getElementById('shareBtn');
     slotMain.textContent = `${ymd} 星期${wk}（${slot}） ${time} ${docTxt}`;
     slotSub.textContent  = `姓名：${name}，號碼：${num} 號。`;
     const note = slotCheckinText(slot);
-    slotNote.innerHTML = note ? `✦ ${note}` : '';
+    slotNote.innerHTML = note ? `✨ ${note}` : '';
 
     // 分享
     const shareText =
