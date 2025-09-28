@@ -87,7 +87,8 @@
     .date-nav .form-control{ width:160px; }
     .totals{ font-weight:900; color:#1f3f57; } .totals .muted{ color:#6b7a90; font-weight:800; }
 
-    .stat .cap{ padding:.35rem .7rem; border-radius:999px; font-weight:900; line-height:1; } /* 小圓標保留圓形 */
+    /* 讓「早診／午診／晚診／約診」的膠囊變直角 */
+    .stat .cap{padding:.35rem .7rem;border-radius:0 !important;font-weight:900;line-height:1;}
     .stat .kv{font-weight:800}
     .stat .note{color:#6b7280;font-weight:700}
     .stat-early{ background:var(--early-light); border-color:var(--early-bar); }
