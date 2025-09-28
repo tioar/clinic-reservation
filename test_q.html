@@ -59,7 +59,14 @@ body{
 .btn, .form-control, .cardish, .chip, .modal-content, .btn-main, .btn-outline-gray, .btn-cancel { border-radius:0 !important; }
 
 .cardish{max-width:780px;margin:32px auto;background:var(--card);border:1px solid var(--line);padding:28px 22px 32px}
-.header{display:flex;align-items:center;gap:14px;margin-bottom:10px}
+.header{
+  display:flex;
+  align-items:center;
+  gap:14px;
+  margin-bottom:10px;
+  justify-content:center; /* ← 讓「＋」與標題一起置中 */
+}
+
 .header .logo{width:56px;height:56px;display:grid;place-items:center;background:var(--primary);color:#fff;font-weight:700;font-size:30px}
 .header h1{margin:0;font-weight:700;font-size:clamp(1.4rem,2.4vw,2rem);color:var(--primary)}
 
