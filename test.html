@@ -585,8 +585,8 @@ function hydrateMonth(monthDate, dayMap){
 
     const slotsAll  =(meta.slots||[]);
     const openSlots = slotsAll.filter(s=>Number(s.cap)>0);  // 真正可預約
-    const schedSlots= slotsAll.filter(s=>['early','noon','night','appt'].includes(s.slot)); // 只看有無排班
-
+   // 只把「真的有排班」(cap>0) 的診別當成可顯示的灰色 pill
+    const schedSlots = slotsAll.filter(s =>['early','noon','night','appt'].includes(s.slot) && Number(s.cap) > 0 );
     let cls='day';
     let inner=`<div class="d">${d}</div>`;
 
