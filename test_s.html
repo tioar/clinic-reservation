@@ -13,13 +13,13 @@
 <link href="https://fonts.googleapis.com/css2?family=LXGW+WenKai+TC:wght@400;500;700&display=swap" rel="stylesheet">
 
 <style>
-/* ===================== 主題變數（與 index 完全一致） ===================== */
+/* ===================== 主題（與 index 一致） ===================== */
 :root{
-  --classic-blue:#34558b;  /* Classic Blue */
-  --provence:#678fc9;      /* Provence */
-  --baby-blue:#bfd2dd;     /* Baby Blue */
-  --monument:#7b858a;      /* Monument */
-  --stucco:#9b8577;        /* Stucco */
+  --classic-blue:#34558b;
+  --provence:#678fc9;
+  --baby-blue:#bfd2dd;
+  --monument:#7b858a;
+  --stucco:#9b8577;
 
   --primary:var(--classic-blue);
   --ink:#1c2430;
@@ -59,7 +59,7 @@ button, .btn, input, .cardish, .pill, .modal-content { border-radius:0 !importan
 
 .wrap{max-width:960px;margin:16px auto;padding:12px}
 
-/* ===================== Header（同版型） ===================== */
+/* ===================== Header ===================== */
 .page-head{display:flex;align-items:center;justify-content:center;gap:14px;margin:6px 8px 14px}
 .page-head .logo{width:64px;height:64px;display:grid;place-items:center;background:var(--primary);color:#fff;font-weight:700;font-size:34px}
 .page-head h1{margin:0;font-weight:700;font-size:clamp(1.5rem,2.6vw,2.2rem);color:var(--primary)}
@@ -68,28 +68,37 @@ button, .btn, input, .cardish, .pill, .modal-content { border-radius:0 !importan
 .cardish{background:var(--card);border:1px solid var(--line)}
 .section{padding:14px}
 
-/* ===================== 成功資訊塊 ===================== */
+/* 成功資訊 */
 .success-head{display:flex;align-items:center;gap:10px;margin-bottom:8px}
 .badge-ok{display:inline-block;background:#e7f2ea;border:1px solid #b7d9c6;color:#0b523a;padding:.2rem .5rem;font-weight:700}
 .kv{display:grid;grid-template-columns:100px 1fr;row-gap:8px;column-gap:8px}
 .kv .k{color:#475569;font-weight:700}
 .kv .v{font-weight:700}
 
-/* pill（沿用日曆樣式用於顯示診別） */
+/* 診別 pill（沿用 index 視覺） */
 .pill{display:inline-flex;align-items:center;justify-content:center;gap:.3rem;border:1px solid #d7dde6;padding:.18rem .6rem;font-weight:700;font-size:.95rem;line-height:1.1;white-space:nowrap}
 .pill.early{background:#e7f2ea;color:#0b523a;border-color:#b7d9c6}
 .pill.noon {background:#fff2df;color:#7a4d00;border-color:#ffd79a}
 .pill.night{background:#e7f0fb;color:#1646a2;border-color:#c8dcff}
 .pill.appt {background:#f9e7ee;color:#9b1f79;border-color:#f6b6dc}
 
-/* 按鈕（方形，與 index 一致） */
+/* 方形按鈕（與 index 一致） */
 .btn-main,.btn-ghost{font-weight:700;padding:.9rem 1.15rem;font-size:1.05rem}
 .btn-main{background:var(--primary);color:#fff;border:1px solid var(--primary)}
 .btn-main:hover{filter:brightness(0.95)}
 .btn-ghost{background:#fff;border:1px solid #d7dbe5;color:#3a3f47}
 .btn-ghost:hover{background:#f7fafc}
 
-/* ===================== 轉圈圈（與 index 相同） ===================== */
+/* 分享提醒條（方角、淡藍底） */
+.share-box{
+  margin-top:14px;padding:12px 14px;
+  background:#f6f9ff;border:1px solid #e3ecff;color:#334155;
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+}
+.share-box .hint{font-weight:700}
+.share-box .btn-share{margin-left:auto}
+
+/* ===================== 轉圈圈（與 index 同款） ===================== */
 @keyframes bars-fade { 0%{opacity:1} 100%{opacity:0} }
 .spinner-bars{position:relative;display:inline-block;width:56px;height:56px}
 .spinner-bars i{
@@ -130,6 +139,8 @@ button, .btn, input, .cardish, .pill, .modal-content { border-radius:0 !importan
   .page-head{margin:4px 4px 12px}
   .page-head .logo{width:56px;height:56px;font-size:30px}
   .kv{grid-template-columns:84px 1fr}
+  .share-box{gap:8px}
+  .share-box .btn-share{margin-left:0}
 }
 </style>
 </head>
@@ -149,7 +160,7 @@ button, .btn, input, .cardish, .pill, .modal-content { border-radius:0 !importan
       <span style="color:var(--monument);font-weight:700">以下為您的預約資訊</span>
     </div>
 
-    <div class="kv" id="kv">
+    <div class="kv">
       <div class="k">日期</div><div class="v" id="vDate">—</div>
       <div class="k">診別</div>
       <div class="v">
@@ -159,6 +170,12 @@ button, .btn, input, .cardish, .pill, .modal-content { border-radius:0 !importan
       <div class="k">醫師</div><div class="v" id="vDoc">—</div>
       <div class="k">姓名</div><div class="v" id="vName">—</div>
       <div class="k">號碼</div><div class="v" id="vNum">—</div>
+    </div>
+
+    <!-- 分享提醒條（已加入按鈕） -->
+    <div class="share-box">
+      <span class="hint">📤 將本次預約資訊分享給家人／同行者，方便報到。</span>
+      <button id="shareBtn" class="btn btn-main btn-share">分享</button>
     </div>
 
     <div class="mt-3" style="color:#475569">
@@ -215,6 +232,7 @@ const vDoc =document.getElementById('vDoc');
 const vName=document.getElementById('vName');
 const vNum =document.getElementById('vNum');
 const vSlotPill=document.getElementById('vSlotPill');
+const shareBtn=document.getElementById('shareBtn');
 
 /* slot → pill class/文字 */
 function slotInfo(slot){
@@ -230,7 +248,7 @@ function slotInfo(slot){
   try{
     showMask();
 
-    // 1) 取得 id / receipt：from ?cipher 或 sessionStorage
+    // 1) 取得 id/receipt（?cipher 或 sessionStorage）
     const params=new URL(location.href).searchParams;
     let id=null, receipt='';
     const cipher=params.get('cipher');
@@ -247,7 +265,7 @@ function slotInfo(slot){
     if(!receipt && id) receipt=sessionStorage.getItem('rcpt:'+id)||'';
     if(!id){ alert('連結無效或已過期，請回首頁重新操作。'); location.href='index.html'; return; }
 
-    // 2) 叫 API 拿詳細資料
+    // 2) 詳細資料
     const r=await axios.get(API,{params:{action:'detail',id,receipt}});
     const d=r.data||{};
     if(d.error){ alert('無法取得預約資料，請回首頁。'); location.href='index.html'; return; }
@@ -257,7 +275,7 @@ function slotInfo(slot){
     const slot = String(d.slot||'');
     const {cls,txt}=slotInfo(slot);
 
-    // 3) 補齊時段/醫師（同 index 的 getSlots）
+    // 3) 補齊時段/醫師
     let timeRange='', doctor=(d.doctor||'').trim();
     try{
       const q=await axios.get(API,{params:{action:'getSlots',date:ymd}});
@@ -266,7 +284,7 @@ function slotInfo(slot){
       timeRange=hit?.time||''; if(!doctor && hit?.doctor) doctor=String(hit.doctor);
     }catch(_){}
 
-    // 4) 寫入畫面（用相同視覺語彙）
+    // 4) 寫畫面
     vDate.textContent = `${ymd}（週${wk}）`;
     vSlotPill.className = `pill ${cls||''}`;
     vSlotPill.textContent = txt;
@@ -274,6 +292,21 @@ function slotInfo(slot){
     vDoc.textContent  = doctor || '—';
     vName.textContent = d.name || '—';
     vNum.textContent  = (d.num!=null && d.num!=='') ? String(d.num) : '—';
+
+    // 5) 分享
+    const shareText =
+`✔️ 陳萬龍診所門診預約成功
+日期：${ymd}（週${wk}）
+診別：${txt} ${timeRange||''} ${doctor?`【${doctor}】`:''}
+姓名：${d.name||''}
+號碼：${(d.num!=null && d.num!=='')?d.num:'—'} 號
+※ 最晚報到時間為門診結束前一小時。`;
+    shareBtn.onclick = async ()=>{
+      try{
+        if(navigator.share){ await navigator.share({text:shareText}); }
+        else{ await navigator.clipboard.writeText(shareText); alert('已複製分享內容！'); }
+      }catch(_){}
+    };
 
   }catch(e){
     console.error(e);
