@@ -44,7 +44,6 @@
   font-weight:400; font-style:normal; font-display:swap;
 }
 
-
 *{box-sizing:border-box}
 html,body{width:100%;max-width:100%}
 body{
@@ -157,6 +156,12 @@ input[type="date"]::-webkit-calendar-picker-indicator{padding:0 8px 0 0}
 .chip{display:inline-flex;align-items:center;gap:6px;padding:.25rem .6rem;border:1px solid #e0e5eb;background:#fff}
 .chip-strong{background:#eaf1ff;color:var(--primary);border-color:#d7e6ff}
 .chip-range{background:#f8fafc;color:#334155}
+
+/* ===================== 灰色提示文字（過期／未開放） ===================== */
+.meta-text{
+  color: var(--monument);
+  font-weight: 700;
+}
 
 /* ===================== 亮面掃過骨架（Shimmer） ===================== */
 @keyframes shimmer { 0%{background-position:-200% 0} 100%{background-position:200% 0} }
@@ -312,7 +317,7 @@ input[type="date"]::-webkit-calendar-picker-indicator{padding:0 8px 0 0}
           <div class="rule-line"><span class="chip chip-strong">週二</span><span>可預約 →</span><span class="chip chip-range">［ 週五 ~ 下下週二 ］</span></div>
           <div class="rule-line"><span class="chip chip-strong">週三</span><span>可預約 →</span><span class="chip chip-range">［ 週六 ~ 下下週三 ］</span></div>
           <div class="rule-line"><span class="chip chip-strong">週四</span><span>可預約 →</span><span class="chip chip-range">［ 下週一 ~ 下下週四 ］</span></div>
-          <div class="rule-line"><span class="chip chip-strong">週五</span><span>可預約 →</span><span class="chip chip-range">［ 下週二 ~ 下下週五 ］</span></div>
+          <div class="rule-line"><span class="chip chip-強">週五</span><span>可預約 →</span><span class="chip chip-range">［ 下週二 ~ 下下週五 ］</span></div>
           <div class="rule-line"><span class="chip chip-strong">週六</span><span>可預約 →</span><span class="chip chip-range">［ 下週二 ~ 下下週六 ］</span></div>
           <div class="rule-line"><span class="chip chip-strong">週日</span><span>可預約 →</span><span class="chip chip-range">［ 下週三 ~ 下下週日 ］</span></div>
         </div>
@@ -363,7 +368,7 @@ const nonceStore = {}; // { 'YYYY-MM-DD': {nonce, sig, exp} }
 /* ====== 小工具 ====== */
 function onlyDigits(s){ return String(s||'').replace(/\D/g,''); }
 
-/* ★ 重點修正：ID 正規化（處理全形、空白、大小寫） */
+/* ★ 身分證：正規化（處理全形、空白、大小寫） */
 function normalizeTaiwanId(raw){
   if(raw==null) return "";
   let s = String(raw).trim().normalize('NFKC'); // 全形→半形
@@ -372,7 +377,7 @@ function normalizeTaiwanId(raw){
   return s;
 }
 
-/* 台灣身分證驗證（本體公式） */
+/* 台灣身分證驗證（公式） */
 function validateTaiwanIdCore(id){
   if(!/^[A-Z][12]\d{8}$/.test(id)) return false;
   const codeMap = {A:10,B:11,C:12,D:13,E:14,F:15,G:16,H:17,I:34,J:18,K:19,L:20,M:21,N:22,O:35,P:23,Q:24,R:25,S:26,T:27,U:28,V:29,W:32,X:30,Y:31,Z:33};
@@ -552,27 +557,40 @@ async function fetchMonthDays(monthDate){
   const arr=await Promise.all(jobs); const map={}; arr.forEach(d=>map[d.date]=d); return map;
 }
 
-/* 寫入真實月曆 */
+/* 寫入真實月曆（含：過期／未開放／停診 規則；今天依未來規則判斷） */
 function hydrateMonth(monthDate, dayMap){
   const first=firstOfMonth(monthDate), last=endOfMonth(monthDate);
+
+  const TODAY_START = new Date(NOW.getFullYear(), NOW.getMonth(), NOW.getDate());
+
   let html=''; const pad=first.getDay();
   for(let i=0;i<pad;i++) html+=`<div></div>`;
+
   for(let d=1; d<=last.getDate(); d++){
     const cur=new Date(first.getFullYear(),first.getMonth(),d);
-    const key=ymd(cur); const meta=dayMap[key];
+    const key=ymd(cur);
+    const meta=dayMap[key];
     const isToday=(key===TODAY_KEY);
-    let cls='day';
-    let inner=`<div class="d">${d}</div>`;
-    const inWindow=cur>=WINDOW_MIN && cur<=WINDOW_MAX;
+    const inWindow=(cur>=WINDOW_MIN && cur<=WINDOW_MAX);
+    const isPast=(cur < TODAY_START);
     const visibleSlots=(meta?.slots||[]).filter(s=>Number(s.cap)>0);
 
-    if (meta?.stop===true){
-      cls += ' disabled';
+    let cls='day';
+    let inner=`<div class="d">${d}</div>`;
+
+    if(isPast){
+      cls+=' disabled';
+      inner+=`<div class="meta"><span class="meta-text">過期</span></div>`;
+    }else if(meta?.stop===true){
+      cls+=' disabled';
       inner+=`<div class="meta"><span class="pill stop">停診</span></div>`;
-    } else if(!inWindow || visibleSlots.length===0){
-      if(!inWindow) cls+=' disabled';
-      inner+=`<div class="meta">—</div>`;
-    } else{
+    }else if(!inWindow){
+      cls+=' disabled';
+      inner+=`<div class="meta"><span class="meta-text">未開放</span></div>`;
+    }else if(visibleSlots.length===0){
+      cls+=' disabled';
+      inner+=`<div class="meta"><span class="meta-text">未開放</span></div>`;
+    }else{
       cls+=' clickable';
       const pills=visibleSlots.map(s=>{
         const tag=s.slot==='early'?'early':s.slot==='noon'?'noon':s.slot==='night'?'night':'appt';
@@ -584,8 +602,10 @@ function hydrateMonth(monthDate, dayMap){
       }).join('');
       inner+=`<div class="meta">${pills}</div>`;
     }
+
     html+=`<div class="${cls}${isToday?' today':''}" data-ymd="${key}">${inner}</div>`;
   }
+
   $days.innerHTML=html;
 
   $days.querySelectorAll('.day.clickable').forEach(el=>{
@@ -662,17 +682,17 @@ $('submitBtn').addEventListener('click',async(e)=>{
   const d=($('date').value||'').trim(), s=($('slot').value||'').trim(),
         n=($('name').value||'').trim(), b=($('birthday').value||'').trim(),
         rawId=($('idnum').value||''),
-        id = normalizeTaiwanId(rawId),               // ★ 正規化
+        id = normalizeTaiwanId(rawId),
         phRaw=($('phone').value||'').trim(),
         ag=$('agree').checked;
 
-  $('idnum').value = id;                              // ★ 也把正規化後的值回填顯示
+  $('idnum').value = id;
 
   if(!d||!s||!n||!b||!id||!phRaw||!ag){alert('資料未填寫完整，請檢查後重試');return;}
   const age=Math.floor((Date.now()-new Date(b))/31536000000);
   if(age<0||age>150){alert('出生年月日不合理，請檢查後重試');return;}
 
-  if(!validateTaiwanIdCore(id)){                      // ★ 真正驗證
+  if(!validateTaiwanIdCore(id)){
     alert('身份證字號驗證錯誤，請檢查是否有全形數字或多餘空白'); 
     return; 
   }
