@@ -147,7 +147,7 @@ body{
   <span class="spinner-bars" aria-hidden="true">
     <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
   </span>
-  <div id="ingText" class="loading-text">處理中，請稍候…</div>
+  <div id="ingText" class="loading-text">處理中，請稍候</div>
 </div>
 
 <div class="cardish">
@@ -203,7 +203,7 @@ function normalizeTaiwanId(raw){
 /* ====== 轉圈控制 ====== */
 const $ing = document.getElementById('ing');
 const $ingText = document.getElementById('ingText');
-function showing(txt){ $ing.style.display='flex'; $ingText.textContent = txt || '處理中，請稍候…'; }
+function showing(txt){ $ing.style.display='flex'; $ingText.textContent = txt || '處理中，請稍候'; }
 function hideing(){ $ing.style.display='none'; }
 
 /* ====== reCAPTCHA ====== */
@@ -284,7 +284,7 @@ function appendRow(item,pid){
 async function queryByPid(){
   const pid = normalizeTaiwanId($pid.value);
   if(!/^[A-Z][12]\d{8}$/.test(pid)){ alert('請輸入正確的身分證字號'); return; }
-  showing('查詢中，請稍候…');
+  showing('查詢中，請稍候');
   try{
     const token = await recaptchaToken('queryByPid');
     const r = await axios.get(API,{ params:{ action:'queryByPid', idnum: pid, recaptchaToken: token, t: Date.now() }});
@@ -302,7 +302,7 @@ async function queryByPid(){
 
 async function cancelBooking(rowId, pid){
   if(!confirm(`確認取消這筆預約？`)) return;
-  showing('取消中，請稍候…');
+  showing('取消中，請稍候');
   try{
     const token = await recaptchaToken('cancel');
     const resp = await axios.get(API,{
@@ -329,3 +329,4 @@ $pid.addEventListener('keydown',e=>{ if(e.key==='Enter') queryByPid(); });
 </script>
 </body>
 </html>
+
