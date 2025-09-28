@@ -581,7 +581,7 @@ async function fetchMonthDays(monthDate){
   const arr=await Promise.all(jobs); const map={}; arr.forEach(d=>map[d.date]=d); return map;
 }
 
-/* 寫入真實月曆（含：過期／未開放／停診／今天~開放日前顯示灰掉診別） */
+/* 寫入真實月曆（含：過期／未開／停診／今天~開放日前顯示灰掉診別） */
 function hydrateMonth(monthDate, dayMap){
   const first=firstOfMonth(monthDate), last=endOfMonth(monthDate);
   let html=''; const pad=first.getDay();
@@ -618,14 +618,14 @@ function hydrateMonth(monthDate, dayMap){
         }).join('');
         inner+=`<div class="meta">${pills}</div>`;
       }else{
-        inner+=`<div class="meta"><span class="state">未開放</span></div>`;
+        inner+=`<div class="meta"><span class="state">未開</span></div>`;
       }
     } else if(!inWindow){
       cls+=' disabled';
-      inner+=`<div class="meta"><span class="state">未開放</span></div>`;
+      inner+=`<div class="meta"><span class="state">未開</span></div>`;
     } else if(openSlots.length===0){
       cls+=' disabled';
-      inner+=`<div class="meta"><span class="state">未開放</span></div>`;
+      inner+=`<div class="meta"><span class="state">未開</span></div>`;
     } else {
       cls+=' clickable';
       const pills=openSlots.map(s=>{
@@ -788,3 +788,4 @@ async function bootMonth(m){
 </script>
 </body>
 </html>
+
