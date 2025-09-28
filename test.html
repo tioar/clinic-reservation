@@ -74,7 +74,7 @@ button, input, .cardish, .tile, .pill, .modal-content, .form-input, .rule-btn { 
 .cal-title .title-text{font-size:clamp(1.2rem,2.4vw,1.6rem);font-weight:700}
 .loader{color:var(--monument);font-size:.95rem;white-space:nowrap;min-width:6.5em}
 
-/* nav arrows（方角） */
+/* nav arrows（方角；不禁用，避免游標變禁止符號） */
 .nav{display:flex;gap:8px}
 .nav-btn{
   width:40px;height:36px;border:1px solid var(--primary);
@@ -114,6 +114,9 @@ button, input, .cardish, .tile, .pill, .modal-content, .form-input, .rule-btn { 
 .pill.appt {background:#f9e7ee;color:#9b1f79;border-color:#f6b6dc}
 .pill.stop{background:#f5e6e5;color:#b91c1c;border-color:#efc7c4}
 .pill.full{background:#eef1f5;color:#6b7280;border-color:#e5e7eb}
+
+/* 給「今天~開放日前（不可預約但要顯示診別）」的灰掉視覺 */
+.pill.dim{opacity:.55;filter:saturate(70%);}
 
 /* 當日面板（下方診別清單） */
 #dayPanel{display:none}
@@ -170,7 +173,7 @@ input[type="date"]::-webkit-calendar-picker-indicator{padding:0 8px 0 0}
   animation:shimmer 1.1s linear infinite;
 }
 
-/* ===================== 轉圈圈 ===================== */
+/* ===================== 轉圈圈（12 根） ===================== */
 @keyframes bars-fade { 0%{opacity:1} 100%{opacity:0} }
 .spinner-bars{position:relative;display:inline-block;width:56px;height:56px}
 .spinner-bars i{
@@ -181,6 +184,18 @@ input[type="date"]::-webkit-calendar-picker-indicator{padding:0 8px 0 0}
   content:""; position:absolute; top:3px; left:26px;
   width:4px; height:14px; border-radius:2px; background:var(--spin-color);
 }
+.spinner-bars i:nth-child(1)  { transform:rotate(0deg);    animation-delay:-1.1s }
+.spinner-bars i:nth-child(2)  { transform:rotate(30deg);   animation-delay:-1.0s }
+.spinner-bars i:nth-child(3)  { transform:rotate(60deg);   animation-delay:-0.9s }
+.spinner-bars i:nth-child(4)  { transform:rotate(90deg);   animation-delay:-0.8s }
+.spinner-bars i:nth-child(5)  { transform:rotate(120deg);  animation-delay:-0.7s }
+.spinner-bars i:nth-child(6)  { transform:rotate(150deg);  animation-delay:-0.6s }
+.spinner-bars i:nth-child(7)  { transform:rotate(180deg);  animation-delay:-0.5s }
+.spinner-bars i:nth-child(8)  { transform:rotate(210deg);  animation-delay:-0.4s }
+.spinner-bars i:nth-child(9)  { transform:rotate(240deg);  animation-delay:-0.3s }
+.spinner-bars i:nth-child(10) { transform:rotate(270deg);  animation-delay:-0.2s }
+.spinner-bars i:nth-child(11) { transform:rotate(300deg);  animation-delay:-0.1s }
+.spinner-bars i:nth-child(12) { transform:rotate(330deg);  animation-delay: 0s  }
 .spinner-sm{width:22px;height:22px}
 .spinner-sm i{transform-origin:11px 11px}
 .spinner-sm i::after{top:1px;left:10px;width:2px;height:6px;border-radius:1px}
@@ -300,7 +315,7 @@ input[type="date"]::-webkit-calendar-picker-indicator{padding:0 8px 0 0}
         <div class="p-2" style="background:#f6f9ff;border:1px solid #e3ecff">
           <div class="rule-line"><span class="chip chip-strong">週一</span><span>可預約 →</span><span class="chip chip-range">［ 週四 ~ 下下週一 ］</span></div>
           <div class="rule-line"><span class="chip chip-strong">週二</span><span>可預約 →</span><span class="chip chip-range">［ 週五 ~ 下下週二 ］</span></div>
-          <div class="rule-line"><span class="chip chip-strong">週三</span><span>可預約 →</span><span class="chip chip-range">［ 週六 ~ 下下週三 ］</span></div>
+          <div class="rule-line"><span class="chip chip-強">週三</span><span>可預約 →</span><span class="chip chip-range">［ 週六 ~ 下下週三 ］</span></div>
           <div class="rule-line"><span class="chip chip-strong">週四</span><span>可預約 →</span><span class="chip chip-range">［ 下週一 ~ 下下週四 ］</span></div>
           <div class="rule-line"><span class="chip chip-strong">週五</span><span>可預約 →</span><span class="chip chip-range">［ 下週二 ~ 下下週五 ］</span></div>
           <div class="rule-line"><span class="chip chip-strong">週六</span><span>可預約 →</span><span class="chip chip-range">［ 下週二 ~ 下下週六 ］</span></div>
@@ -442,6 +457,16 @@ const fmtTitle=d=>`${d.getFullYear()}年${d.getMonth()+1}月份`;
 const NOW=new Date(); 
 const TODAY_KEY=ymd(NOW);
 const TODAY_START=new Date(NOW.getFullYear(),NOW.getMonth(),NOW.getDate());
+
+/* 僅允許「本月 ~ 下月」 */
+const MIN_MONTH = firstOfMonth(NOW);
+const MAX_MONTH = firstOfMonth(addMonths(NOW,1));
+function clampMonth(m){
+  const f=firstOfMonth(m);
+  if(f.getTime()<MIN_MONTH.getTime()) return MIN_MONTH;
+  if(f.getTime()>MAX_MONTH.getTime()) return MAX_MONTH;
+  return f;
+}
 let WINDOW_MIN=null,WINDOW_MAX=null; 
 let curMonth=firstOfMonth(NOW);
 
@@ -499,27 +524,30 @@ async function getWindow(){
   }
 }
 
-/* 標頭：允許自由切月（不再停用按鈕） */
+/* 標頭（不禁用按鈕） */
 function renderSkeletonHeader(monthDate){
   const first=firstOfMonth(monthDate);
   $title.textContent=fmtTitle(first);
-  const btnPrev=$('btnPrev'), btnNext=$('btnNext');
-  if(btnPrev) btnPrev.disabled=false;
-  if(btnNext) btnNext.disabled=false;
+  // 12 根正常轉動的載入中
+  $loader.innerHTML='';
+  mountSpinner($loader,{size:'sm',label:'載入中'});
 }
 
-/* 逐日 slots（含停診） */
+/* 逐日 slots（含：今天~開放日前也抓資料，用來顯示灰掉診別） */
 async function fetchMonthDays(monthDate){
   const first=firstOfMonth(monthDate), last=endOfMonth(monthDate);
   const jobs=[];
   for(let d=1; d<=last.getDate(); d++){
     const cur=new Date(first.getFullYear(),first.getMonth(),d);
     const key=ymd(cur);
-    // 超出開放視窗仍建立節點（回傳空）
+
+    const needSlots =
+      (cur>=WINDOW_MIN && cur<=WINDOW_MAX) ||
+      (cur>=TODAY_START && cur < WINDOW_MIN); // 今天~開放日前：也抓
+
     jobs.push((async()=>{
       try{
-        // 僅在可視窗內才打 getSlots，可省流量
-        if(cur<WINDOW_MIN || cur>WINDOW_MAX){ return {date:key,slots:[],stop:false}; }
+        if(!needSlots) return {date:key,slots:[],stop:false};
         const r=await axios.get(API,{params:{action:'getSlots',date:key,t:Date.now()}});
         const data=r.data||{};
         if (!Array.isArray(data) && data && data.nonce && data.sig && data.exp) {
@@ -543,7 +571,7 @@ async function fetchMonthDays(monthDate){
   const arr=await Promise.all(jobs); const map={}; arr.forEach(d=>map[d.date]=d); return map;
 }
 
-/* 寫入真實月曆（含：過期／未開放／停診） */
+/* 寫入真實月曆（含：過期／未開放／停診／今天~開放日前顯示「灰掉診別」） */
 function hydrateMonth(monthDate, dayMap){
   const first=firstOfMonth(monthDate), last=endOfMonth(monthDate);
   let html=''; const pad=first.getDay();
@@ -552,20 +580,35 @@ function hydrateMonth(monthDate, dayMap){
     const cur=new Date(first.getFullYear(),first.getMonth(),d);
     const key=ymd(cur); const meta=dayMap[key]||{};
     const isToday=(key===TODAY_KEY);
+
     const inWindow = cur>=WINDOW_MIN && cur<=WINDOW_MAX;
-    const isPast = cur < TODAY_START;
+    const isPast   = cur < TODAY_START;
+    const preWindow= (cur>=TODAY_START && cur<WINDOW_MIN);
+
     const visibleSlots=(meta.slots||[]).filter(s=>Number(s.cap)>0);
 
     let cls='day';
     let inner=`<div class="d">${d}</div>`;
 
     if (meta.stop===true){
-      // 停診優先顯示
       cls+=' disabled';
       inner+=`<div class="meta"><span class="pill stop">停診</span></div>`;
     } else if(isPast){
       cls+=' disabled';
       inner+=`<div class="meta"><span class="state">過期</span></div>`;
+    } else if(preWindow){
+      // 今天~開放日前：若有診別就以同色系「灰掉」呈現，不可點
+      cls+=' disabled';
+      if(visibleSlots.length){
+        const pills=visibleSlots.map(s=>{
+          const tag=s.slot==='early'?'early':s.slot==='noon'?'noon':s.slot==='night'?'night':'appt';
+          const label=tag==='early'?'早診':tag==='noon'?'午診':tag==='night'?'晚診':'約診';
+          return `<span class="pill ${tag} dim"><span class="lbl">${label}</span></span>`;
+        }).join('');
+        inner+=`<div class="meta">${pills}</div>`;
+      }else{
+        inner+=`<div class="meta"><span class="state">未開放</span></div>`;
+      }
     } else if(!inWindow){
       cls+=' disabled';
       inner+=`<div class="meta"><span class="state">未開放</span></div>`;
@@ -639,9 +682,15 @@ function selectRow(row){
   $('submitBtn').scrollIntoView({behavior:'smooth',block:'center'});
 }
 
-/* 切月 */
-$('btnPrev').addEventListener('click',async()=>{curMonth=addMonths(curMonth,-1);await bootMonth(curMonth)});
-$('btnNext').addEventListener('click',async()=>{curMonth=addMonths(curMonth, 1);await bootMonth(curMonth)});
+/* 切月（只在本月與下月之間來回；按再多也不會超出） */
+$('btnPrev').addEventListener('click',async()=>{
+  curMonth = clampMonth(addMonths(curMonth,-1));
+  await bootMonth(curMonth);
+});
+$('btnNext').addEventListener('click',async()=>{
+  curMonth = clampMonth(addMonths(curMonth, 1));
+  await bootMonth(curMonth);
+});
 
 /* 身分證：輸入時自動大寫；送出前再做一次正規化 */
 $('idnum').addEventListener('input',e=>{
@@ -723,6 +772,7 @@ async function bootMonth(m){
   await getWindow();
   mountSpinner($loader,{size:"sm",label:"載入中"});
   $('whead').innerHTML=['日','一','二','三','四','五','六'].map(w=>`<div class="wday">${w}</div>`).join('');
+  curMonth = clampMonth(curMonth);           // 只保留本月/下月
   await bootMonth(curMonth);
 })();
 </script>
