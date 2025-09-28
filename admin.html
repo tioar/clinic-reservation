@@ -2,1082 +2,139 @@
 <html lang="zh-Hant">
 <head>
   <meta charset="UTF-8">
-  <title>陳萬龍診所預約後台管理</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="icon" type="image/png" href="favicon.png" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;800;900&display=swap" rel="stylesheet">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-
+  <title>陳萬龍診所｜後台管理</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
   <style>
-    :root{
-      --primary:#3b697d; --primary-600:#2f5565; --border:#d9dee7;
-      --early-light:#e7f7ee; --early-dark:#cfeedd; --early-bar:#16a34a;
-      --noon-light:#fff3df;  --noon-dark:#ffe4b3;  --noon-bar:#f59e0b;
-      --night-light:#e8f2ff; --night-dark:#cfe2ff; --night-bar:#3b82f6;
-      --appt-light:#f9e0f5;  --appt-dark:#f3b3e6;  --appt-bar:#b51695;
-      --queue-orange:#f59e0b; --queue-orange-600:#d97706; --queue-orange-700:#b45309;
-      --coral:#ff7f50; --stop-red:#d32f2f; --query-green:#148f3f; --black:#000;
-    }
-    body{font-family:'Noto Sans TC','Microsoft JhengHei',system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:linear-gradient(160deg,#ecf1f6,#e6edf6);min-height:100vh;color:#334155;-webkit-tap-highlight-color: transparent;}
-    .card{ border-radius:28px; border:2px solid var(--border); box-shadow:0 6px 14px rgba(0,0,0,.06); overflow:hidden; }
-    .btn{ border-radius:999px; font-weight:700; border:0; }
-    .btn-main{ background:var(--primary); color:#fff !important; }
-    .btn-main:hover, .btn-main.active{ background:var(--primary-600); color:#fff !important; }
-    .btn-ghost{ background:#94a3b8; color:#fff !important; }
-    .btn-ghost:hover, .btn-ghost.active{ background:#64748b; color:#fff !important; }
-    .btn-warning{ background:var(--queue-orange); color:#fff !important; }
-    .btn-warning:hover{ background:var(--queue-orange-600); color:#fff !important; }
-    .btn-danger{ background:#dc3545; color:#fff !important; }
-    .btn-danger:hover{ background:#b02a37; color:#fff !important; }
-
-    .login-card{ display:grid; place-items:center; min-height:calc(100vh - 6rem); padding:3rem 1rem; }
-    .login-card .card{ width:100%; max-width:460px; padding:28px 24px; }
-    .login-card .header{ display:flex; align-items:center; gap:14px; margin-bottom:10px; }
-    .login-card .logo{ width:56px; height:56px; border-radius:50%; display:grid; place-items:center; background:var(--primary); color:#fff; font-weight:900; font-size:28px; line-height:1; box-shadow:0 8px 18px rgba(59,105,125,.25); }
-    .login-card h1{ font-weight:900; }
-    .login-card .form-control{ border-radius:16px; padding:.675rem .95rem; border:2px solid #d1d5db; }
-    .login-card .form-control:focus{ border-color:var(--primary); box-shadow:0 0 0 .2rem rgba(59,105,125,.2); outline:none; }
-
-    .card-head{ display:flex; align-items:center; gap:12px; }
-    .card-head .logo{ width:44px; height:44px; border-radius:50%; display:grid; place-items:center; background:var(--primary); color:#fff; font-weight:900; font-size:24px; line-height:1; box-shadow:0 6px 14px rgba(59,105,125,.18); }
-    .card-head h3{ font-weight:900; }
-    .card-head .subtitle{ margin-top:2px; font-size:.95rem; color:#64748b; }
-    .card-head .subtitle b{ color:#0f172a; font-weight:900; }
-
-    .tabbar{ gap:.5rem; flex-wrap:wrap; }
-    .tabbar .btn{ padding:.55rem 1rem; }
-    .tabbar .btn:not(.active){ background:#6b7a90; color:#fff; }
-    .tabbar .btn.active{ background:var(--primary-600); color:#fff; box-shadow:0 6px 14px rgba(47,85,101,.28); }
-
-    .date-nav{ display:flex; flex-wrap:wrap; align-items:center; gap:.5rem .5rem; }
-    .date-nav .form-control{ width:160px; border-radius:14px; }
-    .totals{ font-weight:900; color:#1f3f57; } .totals .muted{ color:#6b7a90; font-weight:800; }
-
-    .stat{ border:2px dashed var(--border); border-radius:20px; padding:.9rem 1rem; background:#fff; display:flex; align-items:center; gap:.9rem; box-shadow:0 4px 10px rgba(0,0,0,.04); overflow:hidden; }
-    .stat .cap{ padding:.35rem .7rem; border-radius:999px; font-weight:900; line-height:1; }
-    .stat .kv{font-weight:800}
-    .stat .note{color:#6b7280;font-weight:700}
-    .stat-early{ background:var(--early-light); border-color:var(--early-bar); }
-    .stat-early .cap{ background:#dff5ea; color:#065f46; border:1px solid #b8ead4; }
-    .stat-noon{  background:var(--noon-light);  border-color:var(--noon-bar); }
-    .stat-noon  .cap{ background:#ffeccd; color:#7a4d00; border:1px solid #ffd69a; }
-    .stat-night{ background:var(--night-light); border-color:var(--night-bar); }
-    .stat-night .cap{ background:#e1ecff; color:#1d4ed8; border:1px solid #c7dbff; }
-    .stat-appt{  background:var(--appt-light);  border-color:var(--appt-bar); }
-    .stat-appt .cap{ background:#ffe0ef; color:#9d174d; border:1px solid #f9b3d1; }
-
-    .table{ border-radius:16px; overflow:hidden; margin:0; }
-    .table td{ border-top:2px solid #e5e7eb !important; }
-    .table thead th{ border-bottom:2px solid #cbd5e1 !important; font-weight:900; }
-
-    tr.slot-early-light  > *{ background:var(--early-light) !important; }
-    tr.slot-early-dark   > *{ background:var(--early-dark)  !important; }
-    tr.slot-noon-light   > *{ background:var(--noon-light)  !important; }
-    tr.slot-noon-dark    > *{ background:var(--noon-dark)   !important; }
-    tr.slot-night-light  > *{ background:var(--night-light) !important; }
-    tr.slot-night-dark   > *{ background:var(--night-dark)  !important; }
-    tr.slot-appt-light   > *{ background:var(--appt-light)  !important; }
-    tr.slot-appt-dark    > *{ background:var(--appt-dark)   !important; }
-
-    tr[class^="slot-early"] td:first-child{ box-shadow:inset 6px 0 0 0 var(--early-bar); }
-    tr[class^="slot-noon"]  td:first-child{ box-shadow:inset 6px 0 0 0 var(--noon-bar); }
-    tr[class^="slot-night"] td:first-child{ box-shadow:inset 6px 0 0 0 var(--night-bar); }
-    tr[class^="slot-appt"]  td:first-child{ box-shadow:inset 6px 0 0 0 var(--appt-bar); }
-
-    .tag{ display:inline-block; width:.8em; height:.8em; border-radius:50%; margin-right:.4em; vertical-align:middle; }
-    .tag-early{ background:var(--early-bar); } .tag-noon{ background:var(--noon-bar); }
-    .tag-night{ background:var(--night-bar); } .tag-appt{ background:var(--appt-bar); }
-    .small-note{ color:#64748b; font-size:.925rem; }
-    .small-note code{ background:#f6f7fb; padding:.1rem .25rem; border-radius:6px; }
-
-    .btn-queue{ background:var(--queue-orange) !important; color:#fff !important; }
-    .btn-queue:hover{ background:var(--queue-orange-600) !important; color:#fff !important; }
-    .tabbar .btn-queue.active{ background:var(--queue-orange-700) !important; box-shadow:0 6px 14px rgba(245,158,11,.32) !important; }
-
-    #tab-queue .stat{ border-color:var(--queue-orange); }
-    #tab-queue .cap{ background:#fff3e0; color:var(--queue-orange-700); }
-    #tab-queue .btn-ghost{ border-color:var(--queue-orange); color:var(--queue-orange-700); }
-    #tab-queue .btn-ghost:hover{ background:#fff3e0; }
-
-    .q-now-input{ width: clamp(140px, 42vw, 260px); font-size: clamp(40px, 12vw, 86px); font-weight:900; color:#d90429; text-align:center; letter-spacing:1px; border-radius:14px; border:2px solid var(--queue-orange); background:#fffaf2; -moz-appearance: textfield; }
-    .q-now-input::-webkit-outer-spin-button, .q-now-input::-webkit-inner-spin-button{ -webkit-appearance: none; margin:0; }
-    @supports (-webkit-touch-callout: none){ .q-now-input{ font-variant-numeric: tabular-nums; } }
-    .q-step{ width:56px; height:56px; border-radius:999px; font-size:30px; font-weight:900; line-height:1; padding:0; }
-    .q-now-row{ align-items:center; gap:12px; flex-wrap:wrap; }
-    .q-actions{ display:flex; align-items:center; gap:12px; margin-left:auto; }
-
-    #tab-queue .cap.cap-pill{ background:var(--queue-orange); color:#fff; border-radius:999px; padding:.55rem 1.1rem; font-weight:900; font-size:1.2rem; }
-    .qlabel{ font-weight:900; font-size:1.2rem; }
-    .qlabel.q-auto{ color:var(--black); } .qlabel.q-stop{ color:var(--coral); } .qlabel.q-closed{ color:var(--stop-red); } .qlabel.q-query{ color:var(--query-green); }
-
-    #tab-queue .form-check-input{ width: 2.8em; height: 1.6em; border-width:2px; }
-    #qAuto{ border-color:var(--black) !important; } #qStopped{ border-color:var(--coral) !important; } #qClosed{ border-color:var(--stop-red) !important; } #qQuery{ border-color:var(--query-green) !important; }
-    #qAuto:checked{ background-color:var(--black) !important; border-color:var(--black) !important; }
-    #qStopped:checked{ background-color:var(--coral) !important; border-color:var(--coral) !important; }
-    #qClosed:checked{ background-color:var(--stop-red) !important; border-color:var(--stop-red) !important; }
-    #qQuery:checked{ background-color:var(--query-green) !important; border-color:var(--query-green) !important; }
-
-    #qSet, #qReset, #qSaveFlags{
-      border-radius:999px !important; padding:.60rem 1.20rem !important; font-size:1.05rem !important; font-weight:900 !important; line-height:1 !important; min-width:130px !important;
-    }
-    #qReset{ background:#b51695 !important; color:#fff !important; border-color:#b51695 !important; }
-    #qReset:hover{ background:#9b127f !important; border-color:#9b127f !important; color:#fff !important; }
-
-    @media (max-width: 575.98px){
-      .q-step{ width:48px; height:48px; font-size:26px; }
-      .q-now-row{ justify-content:center; }
-      .q-actions{ margin-left:0; flex-basis:100%; justify-content:space-between; margin-top:.35rem; }
-      #qSet, #qReset{ padding:.48rem .9rem !important; font-size:.98rem !important; min-width:0 !important; }
-      #tab-queue .cap.cap-pill{ font-size:1.05rem; padding:.45rem .9rem; }
-      .qlabel{ font-size:1.1rem; }
-      .stat{ padding:.8rem .85rem; }
-    }
+    body{ font-family:"標楷體", "Noto Serif TC", serif; background:#f4f6f8; }
+    .container{ max-width:1200px; margin-top:20px; }
+    table{ font-size:14px; }
+    th,td{ vertical-align:middle; }
   </style>
 </head>
 <body>
-<!-- Login -->
-<div id="login" class="container login-card">
-  <div class="card">
-    <div class="header">
-      <div class="logo">＋</div>
-      <div>
-        <h1 class="h4 m-0">後台登入</h1>
-        <div class="small-note mt-1">請輸入管理帳號與密碼</div>
-      </div>
+<div class="container">
+  <h2 class="mb-3">後台管理</h2>
+
+  <div id="loginBox">
+    <div class="mb-2"><input type="text" id="acc" class="form-control" placeholder="帳號"></div>
+    <div class="mb-2"><input type="password" id="pw" class="form-control" placeholder="密碼"></div>
+    <button class="btn btn-primary" onclick="login()">登入</button>
+    <div id="loginMsg" class="text-danger mt-2"></div>
+  </div>
+
+  <div id="mainBox" style="display:none;">
+    <h4 class="mt-4">今天預約名單</h4>
+    <table class="table table-bordered table-sm">
+      <thead class="table-light">
+        <tr>
+          <th>診別</th><th>時間</th><th>號碼</th>
+          <th>姓名</th><th>生日</th><th>身分證</th>
+          <th>電話</th><th>建立時間</th><th>動作</th>
+        </tr>
+      </thead>
+      <tbody id="todayTbody"></tbody>
+    </table>
+
+    <h4 class="mt-4">指定日期查詢</h4>
+    <div class="d-flex mb-2">
+      <input type="date" id="dateInput" class="form-control me-2" style="max-width:200px;">
+      <button class="btn btn-secondary" onclick="loadDay()">查詢</button>
     </div>
-    <label for="acc" class="form-label small-note mb-1">帳號</label>
-    <input id="acc" class="form-control mb-3" placeholder="輸入帳號" autocomplete="username">
-    <label for="pw" class="form-label small-note mb-1">管理密碼</label>
-    <input id="pw" type="password" class="form-control mb-3" placeholder="輸入密碼" autocomplete="current-password">
-    <button id="btnLoginPW" class="btn btn-main w-100 mb-2">登入</button>
-    <div class="form-check mb-3">
-      <input class="form-check-input" type="checkbox" id="rememberMe">
-      <label class="form-check-label small-note" for="rememberMe">在此裝置記住帳密（僅此分頁、關閉即清除）</label>
-    </div>
-    <div class="small-note mt-1">忘記密碼？請聯絡管理者</div>
+    <table class="table table-bordered table-sm">
+      <thead class="table-light">
+        <tr>
+          <th>診別</th><th>時間</th><th>號碼</th>
+          <th>姓名</th><th>生日</th><th>身分證</th>
+          <th>電話</th><th>建立時間</th><th>動作</th>
+        </tr>
+      </thead>
+      <tbody id="dayTbody"></tbody>
+    </table>
   </div>
 </div>
 
-<!-- App -->
-<div id="app" style="display:none;">
-  <div class="container py-3" style="max-width:1180px;">
-    <div class="card-head mb-3">
-      <div class="logo">＋</div>
-      <div>
-        <h3 class="m-0">後台管理</h3>
-        <div class="subtitle"><b>今天名單、明天名單、預約設定、臨時異動、叫號控制</b></div>
-      </div>
-      <div class="ms-auto d-flex align-items-center gap-2">
-        <button id="exportBtn" class="btn btn-ghost btn-sm">匯出今日起預約名單</button>
-        <button id="logoutBtn"  class="btn btn-main btn-sm">登出</button>
-      </div>
-    </div>
-
-    <!-- Tabs -->
-    <div class="tabbar mb-3 d-flex">
-      <button class="btn btn-queue" id="tabBtnQueue" data-tab="tab-queue">叫號控制</button>
-      <button class="btn btn-main active" id="tabBtnToday" data-tab="tab-today">今天名單</button>
-      <button class="btn btn-main" id="tabBtnTomorrow" data-tab="tab-tomorrow">明天名單</button>
-      <button class="btn btn-main" id="tabBtnSettings" data-tab="tab-settings">預約設定</button>
-      <button class="btn btn-main" id="tabBtnSpecial" data-tab="tab-special">臨時異動</button>
-    </div>
-
-    <!-- 今天名單 -->
-    <section id="tab-today">
-      <div class="card mb-3 p-3">
-        <div class="d-flex align-items-center justify-content-between">
-          <div>
-            <h5 class="m-0 fw-bold">今天名單</h5>
-            <div id="todayInfo" class="small-note mt-1"></div>
-          </div>
-          <div><button id="btnTodayReload" class="btn btn-ghost btn-sm">重新整理</button></div>
-        </div>
-        <div class="date-nav mt-2">
-          <button id="tPrev" class="btn btn-ghost btn-sm">◄ 前一天</button>
-          <input id="tDate" type="date" class="form-control form-control-sm">
-          <button id="tNext" class="btn btn-ghost btn-sm">後一天 ►</button>
-          <button id="tToday" class="btn btn-ghost btn-sm">今天</button>
-          <button id="tTomorrow" class="btn btn-ghost btn-sm">明天</button>
-          <div class="ms-2 totals"><span class="muted">總計：</span><span id="tTotals">—</span></div>
-        </div>
-        <div id="todayStats" class="row g-3 mt-2"></div>
-      </div>
-
-      <div class="card p-3">
-        <div class="table-responsive">
-          <table class="table align-middle" id="tblToday">
-            <thead>
-              <tr>
-                <th>診別</th><th>時段</th><th>號碼</th><th>姓名</th><th>生日</th>
-                <th>身分證</th><th>電話</th><th>建立時間</th><th style="width:90px;">操作</th>
-              </tr>
-            </thead>
-            <tbody></tbody>
-          </table>
-        </div>
-        <div class="small-note">註：取消會直接在試算表 I 欄標記 TRUE。</div>
-      </div>
-    </section>
-
-    <!-- 明天名單 -->
-    <section id="tab-tomorrow" style="display:none;">
-      <div class="card mb-3 p-3">
-        <div class="d-flex align-items-center justify-content-between">
-          <div>
-            <h5 class="m-0 fw-bold">明天名單</h5>
-            <div id="tomorrowInfo" class="small-note mt-1"></div>
-          </div>
-          <div><button id="btnTomorrowReload" class="btn btn-ghost btn-sm">重新整理</button></div>
-        </div>
-        <div class="date-nav mt-2">
-          <button id="mPrev" class="btn btn-ghost btn-sm">◄ 前一天</button>
-          <input id="mDate" type="date" class="form-control form-control-sm">
-          <button id="mNext" class="btn btn-ghost btn-sm">後一天 ►</button>
-          <button id="mToday" class="btn btn-ghost btn-sm">今天</button>
-          <button id="mTomorrow" class="btn btn-ghost btn-sm">明天</button>
-          <div class="ms-2 totals"><span class="muted">總計：</span><span id="mTotals">—</span></div>
-        </div>
-        <div id="tomorrowStats" class="row g-3 mt-2"></div>
-      </div>
-
-      <div class="card p-3">
-        <div class="table-responsive">
-          <table class="table align-middle" id="tblTomorrow">
-            <thead>
-              <tr>
-                <th>診別</th><th>時段</th><th>號碼</th><th>姓名</th><th>生日</th>
-                <th>身分證</th><th>電話</th><th>建立時間</th><th style="width:90px;">操作</th>
-              </tr>
-            </thead>
-            <tbody></tbody>
-          </table>
-        </div>
-        <div class="small-note">註：取消會直接在試算表 I 欄標記 TRUE。</div>
-      </div>
-    </section>
-
-    <!-- 預約設定 -->
-    <section id="tab-settings" style="display:none;">
-      <div class="card mb-4 p-3">
-        <div class="d-flex align-items-center justify-content-between">
-          <h5 class="m-0 fw-bold">預約期限</h5>
-          <div class="small-note">顯示區間 = 今天 + 起始天 ～ 今天 + 結束天</div>
-        </div>
-        <div id="winInfo" class="small-note my-2"></div>
-
-        <div class="d-flex flex-wrap align-items-center gap-4">
-          <div>
-            <div class="small-note mb-1">起始天</div>
-            <div class="input-group" style="max-width:200px;">
-              <button class="btn btn-ghost" id="btnStartMinus">－</button>
-              <input id="winStart" inputmode="numeric" type="number" class="form-control text-center no-spinner" value="2" style="border-radius:14px;">
-              <button class="btn btn-ghost" id="btnStartPlus">＋</button>
-            </div>
-          </div>
-          <div>
-            <div class="small-note mb-1">結束天</div>
-            <div class="input-group" style="max-width:200px;">
-              <button class="btn btn-ghost" id="btnEndMinus">－</button>
-              <input id="winEnd" inputmode="numeric" type="number" class="form-control text-center no-spinner" value="14" style="border-radius:14px;">
-              <button class="btn btn-ghost" id="btnEndPlus">＋</button>
-            </div>
-          </div>
-          <div class="d-flex align-items-end">
-            <button id="btnWinSet" class="btn btn-main">套用</button>
-          </div>
-        </div>
-
-        <div class="form-check form-switch mt-3">
-          <input class="form-check-input" type="checkbox" role="switch" id="customWindowSwitch">
-          <label class="form-check-label small-note" for="customWindowSwitch">
-            使用自訂日期區間（上方 D+起始～D+結束）。關閉時使用系統預設規則。
-          </label>
-        </div>
-
-        <div class="form-check form-switch mt-2">
-          <input class="form-check-input" type="checkbox" role="switch" id="flagWeekSwitch">
-          <label class="form-check-label small-note" for="flagWeekSwitch">
-            啟用「預設星期規律」提示旗標（供前端面板使用）。
-          </label>
-        </div>
-
-        <div class="small-note mt-2">
-          若要「奇數／偶數」：在下方每天規則設定 <code>起始號碼</code>（1=奇，2=偶）與 <code>間隔位數</code>（設 2）。
-        </div>
-      </div>
-
-      <div class="card mb-4 p-3">
-        <h5 class="mb-2 fw-bold">每週規則（daily_limit）</h5>
-        <div class="table-responsive">
-          <table class="table align-middle" id="tblDaily">
-            <colgroup>
-              <col style="width:120px;">
-              <col style="width:80px;"><col style="width:80px;"><col style="width:80px;">
-              <col style="width:200px;"><col style="width:200px;"><col style="width:200px;">
-              <col style="width:96px;"><col style="width:96px;"><col style="width:96px;">
-            </colgroup>
-            <thead>
-              <tr>
-                <th>星期</th>
-                <th>早診上限</th><th>午診上限</th><th>晚診上限</th>
-                <th>早診時間</th><th>午診時間</th><th>晚診時間</th>
-                <th>起始號碼</th><th>間隔位數</th><th>操作</th>
-              </tr>
-            </thead>
-            <tbody></tbody>
-          </table>
-        </div>
-        <div class="small-note">時間格式：08:30~11:30 ｜ 奇數：起始=1、間隔=2；偶數：起始=2、間隔=2；連號：起始=1、間隔=1。</div>
-      </div>
-
-      <div class="card p-3" id="sheetsCard" style="display:none;">
-        <h5 class="mb-2 fw-bold">試算表捷徑</h5>
-        <div id="sheetBtns" class="d-flex flex-wrap gap-2"></div>
-        <div class="text-muted small mt-2">（需有該試算表權限；會在新分頁開啟）</div>
-      </div>
-    </section>
-
-    <!-- 臨時異動 -->
-    <section id="tab-special" style="display:none;">
-      <div class="card mb-4 p-3">
-        <h5 class="mb-3 fw-bold">新增臨時異動</h5>
-        <input type="date" id="newDate" class="form-control mb-3" style="border-radius:14px;">
-
-        <!-- 停診開關 -->
-        <div class="form-check form-switch mb-3">
-          <input class="form-check-input" type="checkbox" id="neStop">
-          <label class="form-check-label" for="neStop" style="font-weight:800;color:#d32f2f">
-            是否停診（勾選後僅寫入停診旗標，其他上限/時段忽略）
-          </label>
-        </div>
-
-        <div class="row g-2 align-items-center">
-          <div class="col-12 col-md-3"><span class="tag tag-early"></span><strong>早診上限</strong></div>
-          <div class="col-6 col-md-3"><input id="neEarlyLimit" value="10" type="number" class="form-control" placeholder="上限" style="border-radius:14px;"></div>
-          <div class="col-6 col-md-6"><input id="neEarlyTime"  value=""   class="form-control" placeholder="早診時段，例如 08:30~11:30" style="border-radius:14px;"></div>
-        </div>
-
-        <div class="row g-2 align-items-center mt-1">
-          <div class="col-12 col-md-3"><span class="tag tag-noon"></span><strong>午診上限</strong></div>
-          <div class="col-6 col-md-3"><input id="neNoonLimit"  value="10" type="number" class="form-control" placeholder="上限" style="border-radius:14px;"></div>
-          <div class="col-6 col-md-6"><input id="neNoonTime"   value=""   class="form-control" placeholder="午診時段，例如 14:00~17:00" style="border-radius:14px;"></div>
-        </div>
-
-        <div class="row g-2 align-items-center mt-1">
-          <div class="col-12 col-md-3"><span class="tag tag-night"></span><strong>晚診上限</strong></div>
-          <div class="col-6 col-md-3"><input id="neNightLimit" value="10" type="number" class="form-control" placeholder="上限" style="border-radius:14px;"></div>
-          <div class="col-6 col-md-6"><input id="neNightTime"  value=""   class="form-control" placeholder="晚診時段，例如 18:00~20:30" style="border-radius:14px;"></div>
-        </div>
-
-        <!-- 約診 -->
-        <div class="row g-2 align-items-center mt-1">
-          <div class="col-12 col-md-3"><span class="tag tag-appt"></span><strong>約診上限</strong></div>
-          <div class="col-6 col-md-3"><input id="neApptLimit" value="0" type="number" class="form-control" placeholder="上限" style="border-radius:14px;"></div>
-          <div class="col-6 col-md-6"><input id="neApptTime"  value=""   class="form-control" placeholder="約診時段，例如 09:00~11:00" style="border-radius:14px;"></div>
-        </div>
-
-        <div class="row g-2 align-items-end mt-2">
-          <div class="col-6 col-md-3">
-            <label class="small-note">起始號碼</label>
-            <input id="neStartNo" type="number" class="form-control text-center" value="1" min="1" style="border-radius:14px;">
-          </div>
-          <div class="col-6 col-md-3">
-            <label class="small-note">間隔位數</label>
-            <input id="neStep" type="number" class="form-control text-center" value="1" min="1" style="border-radius:14px;">
-          </div>
-          <div class="col-12 col-md-6">
-            <label class="small-note">備註</label>
-            <div class="d-flex gap-2">
-              <input id="neNote" placeholder="備註" class="form-control" style="border-radius:14px;">
-              <button id="addBtn" class="btn btn-main">新增</button>
-            </div>
-          </div>
-        </div>
-        <div class="small-note mt-2">時間格式：08:30~11:30 ｜ 奇數／偶數：起始=1／2、間隔=2。</div>
-      </div>
-
-      <div class="card p-3">
-        <h5 class="mb-2 fw-bold">目前異動（未過期）</h5>
-        <div class="table-responsive">
-          <table class="table align-middle" id="tbl">
-            <colgroup>
-              <col style="width:110px;">
-              <col style="width:70px;">
-              <col style="width:80px;"><col style="width:80px;"><col style="width:80px;"><col style="width:80px;">
-              <col style="width:150px;"><col style="width:150px;"><col style="width:150px;"><col style="width:150px;">
-              <col style="width:90px;"><col style="width:90px;">
-              <col style="width:200px;">
-              <col style="width:220px;">
-            </colgroup>
-            <thead>
-              <tr>
-                <th>日期</th>
-                <th>停診</th>
-                <th>早診上限</th><th>午診上限</th><th>晚診上限</th><th>約診上限</th>
-                <th>早診時段</th><th>午診時段</th><th>晚診時段</th><th>約診時段</th>
-                <th>起始號碼</th><th>間隔位數</th>
-                <th>備註</th>
-                <th>操作</th>
-              </tr>
-            </thead>
-            <tbody></tbody>
-          </table>
-        </div>
-      </div>
-    </section>
-
-    <!-- 叫號控制 -->
-    <section id="tab-queue" style="display:none;">
-      <div class="card mb-3 p-3">
-        <div class="d-flex align-items-center justify-content-between">
-          <div>
-            <h5 class="m-0 fw-bold">叫號控制（叫號試算表）</h5>
-            <div id="qInfo" class="small-note mt-1">讀取中…</div>
-          </div>
-          <div><button id="qReload" class="btn btn-ghost btn-sm">重新整理</button></div>
-        </div>
-
-        <div class="row g-3 mt-2">
-          <div class="col-12 col-md-6">
-            <div class="stat">
-              <div class="cap cap-pill">目前號碼</div>
-              <div class="flex-grow-1 w-100">
-                <div class="d-flex q-now-row">
-                  <button class="btn btn-queue q-step" id="qMinus1" type="button">－</button>
-                  <input id="qNow" type="number" class="form-control q-now-input" value="0">
-                  <button class="btn btn-queue q-step" id="qPlus1" type="button">＋</button>
-                  <div class="q-actions">
-                    <button class="btn btn-reset" id="qReset" type="button">數字歸零</button>
-                    <button class="btn btn-main" id="qSet" type="button">設定</button>
-                  </div>
-                </div>
-                <div class="small-note mt-2">此處會直接寫入叫號試算表「工作表1 / 目前號碼」。</div>
-              </div>
-            </div>
-          </div>
-
-          <div class="col-12 col-md-6">
-            <div class="stat">
-              <div class="cap cap-pill">開關</div>
-              <div class="flex-grow-1">
-                <div class="form-check form-switch mb-2">
-                  <input class="form-check-input" type="checkbox" id="qAuto">
-                  <label class="form-check-label"><span class="qlabel q-auto">自動模式（ESP32覆寫）</span></label>
-                </div>
-                <div class="form-check form-switch mb-2">
-                  <input class="form-check-input" type="checkbox" id="qStopped">
-                  <label class="form-check-label"><span class="qlabel q-stop">停止掛號</span></label>
-                </div>
-                <div class="form-check form-switch mb-2">
-                  <input class="form-check-input" type="checkbox" id="qClosed">
-                  <label class="form-check-label"><span class="qlabel q-closed">休診沒有看</span></label>
-                </div>
-                <div class="form-check form-switch">
-                  <input class="form-check-input" type="checkbox" id="qQuery">
-                  <label class="form-check-label"><span class="qlabel q-query">Line回覆開關</span></label>
-                </div>
-                <div class="mt-3">
-                  <button class="btn btn-main btn-sm" id="qSaveFlags">儲存開關</button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-  </div>
-</div>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 <script>
-/* ===== API 與共用 ===== */
-const API = "https://script.google.com/macros/s/AKfycby37Sxk-a-q9hxqROALi1gmGhWGXWr2xw8WF_pdgMAN_9HvM1PZJfgN6TJnVrGw0x9W/exec";
-let ADMIN_TOKEN = sessionStorage.getItem('ADMIN_TOKEN')||"";
+let TOKEN = '';
 
-// 第二支 GAS（叫號控制）
-const QUEUE_API = "https://script.google.com/macros/s/AKfycbzdtqy4EU7MVDWqPGzNEGoP06PzAvsCRuRgh08YBui1mkFlGfiFcZu5vFpW7JNIkBrO/exec";
-const QUEUE_KEY = ""; // 若你的叫號 GAS 有 Admin Key，就填在這裡
-
-/* ========= Token 自動續期 ========= */
-function tokenExpSec(t){ try{ return Number(String(t).split('.')[0])||0; }catch(_){ return 0; } }
-function tokenExpired(t, preSec=60){
-  const exp = tokenExpSec(t); if(!exp) return true;
-  return (Math.floor(Date.now()/1000) - exp) >= -preSec;
+function api(act, params={}){
+  const url = 'YOUR_DEPLOY_URL'; // ★ 這裡換成你部署的 GAS 網址
+  const body = new URLSearchParams({ action: act, token:TOKEN, ...params });
+  return fetch(url+'?'+body.toString()).then(r=>r.json());
 }
-function saveCred(acc, pw){
-  try{
-    if(document.getElementById('rememberMe')?.checked){
-      sessionStorage.setItem('ADMIN_ACC', acc||'');
-      sessionStorage.setItem('ADMIN_PW',  pw||'');
+
+// ★ 民國生日格式化
+function fmtRocBirthday(str){
+  if(!str) return '';
+  const d = new Date(str);
+  if(isNaN(d)) return str;
+  const y = d.getFullYear() - 1911;
+  const m = String(d.getMonth()+1).padStart(2,'0');
+  const dd = String(d.getDate()).padStart(2,'0');
+  return y + '/' + m + '/' + dd;
+}
+
+function login(){
+  const acc=document.getElementById('acc').value.trim();
+  const pw =document.getElementById('pw').value.trim();
+  api('adminLogin',{acc,pw}).then(d=>{
+    if(d.ok){
+      TOKEN=d.token;
+      document.getElementById('loginBox').style.display='none';
+      document.getElementById('mainBox').style.display='block';
+      loadToday();
     }else{
-      sessionStorage.removeItem('ADMIN_ACC');
-      sessionStorage.removeItem('ADMIN_PW');
-    }
-  }catch(_){}
-}
-function loadCred(){ return { acc: sessionStorage.getItem('ADMIN_ACC')||'', pw: sessionStorage.getItem('ADMIN_PW')||'' }; }
-async function reloginWithSaved(){
-  const {acc, pw} = loadCred(); if(!acc || !pw) return false;
-  try{
-    const r = await axios.get(API,{params:{action:'adminLogin',acc,pw}});
-    if(r.data?.ok){ ADMIN_TOKEN = r.data.token; sessionStorage.setItem('ADMIN_TOKEN', ADMIN_TOKEN); return true; }
-  }catch(_){}
-  return false;
-}
-async function adminCall(action, params={}){
-  if(!ADMIN_TOKEN || tokenExpired(ADMIN_TOKEN, 60)){ await reloginWithSaved(); }
-  let r = await axios.get(API,{params:{action, token:ADMIN_TOKEN, ...params}});
-  if(r?.data && r.data.ok===false && r.data.error==='unauthorized'){
-    const ok = await reloginWithSaved();
-    if(ok){ r = await axios.get(API,{params:{action, token:ADMIN_TOKEN, ...params}}); }
-    else{
-      sessionStorage.removeItem('ADMIN_TOKEN'); ADMIN_TOKEN=""; alert('登入已失效，請重新登入'); showLogin(); throw new Error('unauthorized');
-    }
-  }
-  return r.data;
-}
-
-/* ===== 小工具 ===== */
-const loginBox=document.getElementById('login'), appBox=document.getElementById('app');
-const acc=document.getElementById('acc'), pw=document.getElementById('pw'), btnLoginPW=document.getElementById('btnLoginPW');
-const logoutBtn=document.getElementById('logoutBtn'), exportBtn=document.getElementById('exportBtn');
-
-const tabBtnToday=document.getElementById('tabBtnToday'),
-      tabBtnTomorrow=document.getElementById('tabBtnTomorrow'),
-      tabBtnSettings=document.getElementById('tabBtnSettings'),
-      tabBtnSpecial=document.getElementById('tabBtnSpecial'),
-      tabBtnQueue=document.getElementById('tabBtnQueue');
-
-const views={
-  'tab-today':document.getElementById('tab-today'),
-  'tab-tomorrow':document.getElementById('tab-tomorrow'),
-  'tab-settings':document.getElementById('tab-settings'),
-  'tab-special':document.getElementById('tab-special'),
-  'tab-queue':document.getElementById('tab-queue')
-};
-
-function switchTab(id){
-  [tabBtnToday,tabBtnTomorrow,tabBtnSettings,tabBtnSpecial,tabBtnQueue].forEach(b=>{
-    const a=(b.dataset.tab||b.id.replace('tabBtn','tab-'))===id;
-    b.classList.toggle('active',a);
-  });
-  Object.entries(views).forEach(([k,el])=>el.style.display=(k===id?'block':'none'));
-  if(id==='tab-today'){ initTodayTab(); }
-  if(id==='tab-tomorrow'){ initTomorrowTab(); }
-  if(id==='tab-settings'){ loadWindow(); loadFlags(); loadDaily(); loadSheetLinks(); }
-  if(id==='tab-special'){ loadSpecials(); }
-  if(id==='tab-queue'){ initQueueTab(); }
-}
-document.querySelector('.tabbar').addEventListener('click', (e)=>{
-  const btn = e.target.closest('button[data-tab]'); if(!btn) return; switchTab(btn.dataset.tab);
-});
-
-function showApp(){ loginBox.style.display="none"; appBox.style.display="block"; switchTab('tab-today'); }
-function showLogin(){
-  appBox.style.display="none"; loginBox.style.display="block";
-  const c = loadCred(); if(c.acc) document.getElementById('rememberMe').checked = true;
-  acc.value = c.acc || ''; pw.value  = c.pw  || '';
-}
-function assertAuthed(){ if(!ADMIN_TOKEN){ showLogin(); throw new Error('no token'); } }
-
-function ymdLocal(d){ const y=d.getFullYear(),m=('0'+(d.getMonth()+1)).slice(-2),da=('0'+d.getDate()).slice(-2); return `${y}-${m}-${da}`; }
-function addDays(ymd,delta){ const d=new Date(ymd); d.setDate(d.getDate()+delta); return ymdLocal(d); }
-function todayYmd(){ return ymdLocal(new Date()); }
-function asObj(p){ try{ return typeof p==='string'?JSON.parse(p):(p||{});}catch{ return {}; } }
-function asArr(p){ try{ if(typeof p==='string') p=JSON.parse(p);}catch{} if(Array.isArray(p))return p; if(Array.isArray(p?.rows))return p.rows; if(Array.isArray(p?.items))return p.items; if(Array.isArray(p?.data))return p.data; return []; }
-function num(x){ const n=Number(x); return isFinite(n)?n:0; }
-
-/* ===== 統計卡 + 表格渲染 ===== */
-function slotKey(label){
-  const s=String(label||'').trim();
-  if(s.includes('約')) return 'appt';
-  if(s.includes('早')) return 'early';
-  if(s.includes('午')) return 'noon';
-  if(s.includes('晚')) return 'night';
-  return 'early';
-}
-function renderStats(containerId, slots){
-  const order = {'早診':1,'午診':2,'晚診':3,'約診':4};
-  const list = Array.isArray(slots) ? [...slots] : [];
-  list.sort((a,b)=>(order[a?.label]||99)-(order[b?.label]||99));
-
-  const box=document.getElementById(containerId);
-  box.innerHTML='';
-  box.classList.add('row','g-3','mt-2');
-
-  const frag=document.createDocumentFragment();
-  list.forEach(s=>{
-    const label = s.label || '';
-    const key   = slotKey(label);
-    const isAppt= (key==='appt');
-
-    const col=document.createElement('div');
-    col.className='col-6 col-lg-3';
-
-    col.innerHTML = `
-      <div class="stat stat-${key} ${isAppt?'stat-compact':''}">
-        <div class="cap">${label}</div>
-        <div class="flex-grow-1">
-          <div class="small-note mb-1">${s.time||''}</div>
-          <div class="kv">
-            <b>${num(s.used)}</b> / ${num(s.limit)}
-            <span class="note">（起始 ${num(s.startNo)}，間隔 ${num(s.step)}）</span>
-          </div>
-        </div>
-      </div>`;
-    frag.appendChild(col);
-  });
-  box.appendChild(frag);
-}
-function renderItems(tableId, items, refreshFnName){
-  const tb=document.querySelector(`#${tableId} tbody`); tb.innerHTML='';
-  const counters={ early:0, noon:0, night:0, appt:0 };
-  items.forEach(x=>{
-    const tr=document.createElement('tr');
-    const key=slotKey(x.slot||'');
-    const idx=(counters[key]++);
-    const shade=(idx % 2===0 ? 'light' : 'dark');
-    tr.className=`slot-${key}-${shade}`;
-    tr.innerHTML=`
-      <td>${x.slot||''}</td>
-      <td>${x.time||''}</td>
-      <td>${x.num||''}</td>
-      <td>${x.name||''}</td>
-      <td>${x.birthday||''}</td>
-      <td>${x.pid||''}</td>
-      <td>${x.phone||''}</td>
-      <td>${x.createdAt||''}</td>
-      <td><button class="btn btn-danger btn-sm" onclick="cancelRow(${x.id}, '${refreshFnName}')">取消</button></td>`;
-    tb.appendChild(tr);
-  });
-}
-
-/* ===== 今天 / 明天 ===== */
-const tDate=document.getElementById('tDate'), tPrev=document.getElementById('tPrev'), tNext=document.getElementById('tNext'),
-      tToday=document.getElementById('tToday'), tTomorrow=document.getElementById('tTomorrow'),
-      todayInfo=document.getElementById('todayInfo'), tTotals=document.getElementById('tTotals');
-
-const mDate=document.getElementById('mDate'), mPrev=document.getElementById('mPrev'), mNext=document.getElementById('mNext'),
-      mToday=document.getElementById('mToday'), mTomorrow=document.getElementById('mTomorrow'),
-      tomorrowInfo=document.getElementById('tomorrowInfo'), mTotals=document.getElementById('mTotals');
-
-document.getElementById('btnTodayReload').onclick=()=>initTodayTab();
-document.getElementById('btnTomorrowReload').onclick=()=>initTomorrowTab();
-
-tPrev.onclick=()=>{ tDate.value=addDays(tDate.value||todayYmd(), -1); initTodayTab(); };
-tNext.onclick=()=>{ tDate.value=addDays(tDate.value||todayYmd(), +1); initTodayTab(); };
-tToday.onclick=()=>{ tDate.value=todayYmd(); initTodayTab(); };
-tTomorrow.onclick=()=>{ tDate.value=addDays(todayYmd(), +1); initTodayTab(); };
-
-mPrev.onclick=()=>{ mDate.value=addDays(mDate.value||addDays(todayYmd(),1), -1); initTomorrowTab(); };
-mNext.onclick=()=>{ mDate.value=addDays(mDate.value||addDays(todayYmd(),1), +1); initTomorrowTab(); };
-mToday.onclick=()=>{ mDate.value=todayYmd(); initTomorrowTab(); };
-mTomorrow.onclick=()=>{ mDate.value=addDays(todayYmd(), +1); initTomorrowTab(); };
-
-async function loadDay(dateStr, infoEl, totalsEl, statsContainerId, tableId){
-  const d=await adminCall('adminDay',{date:dateStr});
-  infoEl.textContent = `${d.date||''}（${d.weekday||''}）`;
-  totalsEl.textContent = Array.isArray(d.items)? d.items.length : 0;
-  renderStats(statsContainerId, d.slots||[]);
-  renderItems(tableId, d.items||[], tableId==='tblToday'?'initTodayTab':'initTomorrowTab');
-}
-async function initTodayTab(){
-  if(!tDate.value) tDate.value=todayYmd();
-  await loadDay(tDate.value, todayInfo, tTotals, 'todayStats', 'tblToday');
-}
-async function initTomorrowTab(){
-  if(!mDate.value) mDate.value=addDays(todayYmd(),1);
-  await loadDay(mDate.value, tomorrowInfo, mTotals, 'tomorrowStats', 'tblTomorrow');
-}
-
-/* ===== 取消（管理端） ===== */
-async function cancelRow(id, refreshFnName){
-  if(!confirm('確定取消？')) return;
-  try{
-    await adminCall('adminCancel',{id});
-    if (typeof window[refreshFnName] === 'function') window[refreshFnName]();
-  }catch(e){ console.error(e); alert('取消失敗或尚未登入'); }
-}
-window.cancelRow=cancelRow;
-
-/* ===== 預約期限 / 旗標 / 試算表 ===== */
-const winStart=document.getElementById('winStart'), winEnd=document.getElementById('winEnd'),
-      btnStartMinus=document.getElementById('btnStartMinus'), btnStartPlus=document.getElementById('btnStartPlus'),
-      btnEndMinus=document.getElementById('btnEndMinus'), btnEndPlus=document.getElementById('btnEndPlus'),
-      btnWinSet=document.getElementById('btnWinSet'), winInfo=document.getElementById('winInfo'),
-      customWindowSwitch=document.getElementById('customWindowSwitch'),
-      flagWeekSwitch=document.getElementById('flagWeekSwitch');
-
-btnStartMinus.onclick=()=>{ winStart.value=Math.max(0, Number(winStart.value||0)-1); };
-btnStartPlus.onclick =()=>{ winStart.value=Number(winStart.value||0)+1; };
-btnEndMinus.onclick  =()=>{ winEnd.value  =Math.max(Number(winStart.value||0), Number(winEnd.value||0)-1); };
-btnEndPlus.onclick   =()=>{ winEnd.value  =Number(winEnd.value||0)+1; };
-
-btnWinSet.onclick=async ()=>{
-  try{
-    const params={ start:Number(winStart.value||0), end:Number(winEnd.value||0),
-                   enableCustom: customWindowSwitch.checked?'YES':'NO' };
-    const r=await adminCall('adminWindowSet', params);
-    applyWindowInfo(r);
-  }catch(e){ console.error(e); alert('設定失敗'); }
-};
-customWindowSwitch.onchange=()=>btnWinSet.click();
-
-async function loadWindow(){
-  const r=await adminCall('adminWindow');
-  applyWindowInfo(r);
-}
-function applyWindowInfo(o){
-  o = asObj(o);
-  winStart.value=o.start!=null?o.start:2;
-  winEnd.value=o.end!=null?o.end:14;
-  customWindowSwitch.checked=!!o.custom;
-  winInfo.textContent = `目前視窗：D+${o.start}（${o.startDate}） ～ D+${o.end}（${o.endDate}）${o.custom?'｜自訂啟用':''}`;
-}
-
-async function loadFlags(){
-  const o=asObj(await adminCall('adminFlags'));
-  flagWeekSwitch.checked=!!o.USE_WEEKDAY_SHIFT;
-}
-flagWeekSwitch.onchange=async()=>{
-  try{ await adminCall('adminFlagsSet',{ USE_WEEKDAY_SHIFT: flagWeekSwitch.checked?'1':'0' }); }
-  catch(e){ console.error(e); alert('旗標設定失敗'); }
-};
-
-/* ===== daily_limit（每週規則） ===== */
-async function loadDaily(){
-  const arr=asArr(await adminCall('dailyGet'));
-  const tb=document.querySelector('#tblDaily tbody'); tb.innerHTML='';
-  arr.forEach(x=>{
-    const tr=document.createElement('tr');
-    tr.innerHTML=`
-      <td>星期${x.weekdayZh||''} <div class="small text-muted">${x.weekdayEn||''}</div></td>
-      <td><input class="form-control form-control-sm" id="dEL-${x.row}" type="number" value="${x.limitE||0}" style="border-radius:12px;"></td>
-      <td><input class="form-control form-control-sm" id="dNL-${x.row}" type="number" value="${x.limitN||0}" style="border-radius:12px;"></td>
-      <td><input class="form-control form-control-sm" id="dTL-${x.row}" type="number" value="${x.limitL||0}" style="border-radius:12px;"></td>
-      <td><input class="form-control form-control-sm" id="dTE-${x.row}" value="${x.timeE||''}" style="border-radius:12px;"></td>
-      <td><input class="form-control form-control-sm" id="dTN-${x.row}" value="${x.timeN||''}" style="border-radius:12px;"></td>
-      <td><input class="form-control form-control-sm" id="dTLt-${x.row}" value="${x.timeL||''}" style="border-radius:12px;"></td>
-      <td><input class="form-control form-control-sm text-center" id="dST-${x.row}" type="number" value="${x.startNo||1}" min="1" style="border-radius:12px;"></td>
-      <td><input class="form-control form-control-sm text-center" id="dSP-${x.row}" type="number" value="${x.step||1}" min="1" style="border-radius:12px;"></td>
-      <td><button class="btn btn-sm btn-main" onclick="saveDaily('${x.weekdayEn}','${x.row}')">儲存</button></td>`;
-    tb.appendChild(tr);
-  });
-}
-async function saveDaily(wdEn,row){
-  try{
-    const q={
-      wd:wdEn,
-      limitE:document.getElementById(`dEL-${row}`).value,
-      limitN:document.getElementById(`dNL-${row}`).value,
-      limitL:document.getElementById(`dTL-${row}`).value,
-      timeE: document.getElementById(`dTE-${row}`).value,
-      timeN: document.getElementById(`dTN-${row}`).value,
-      timeL: document.getElementById(`dTLt-${row}`).value,
-      startNo:document.getElementById(`dST-${row}`).value,
-      step:   document.getElementById(`dSP-${row}`).value
-    };
-    await adminCall('dailySet', q);
-    alert('已儲存');
-  }catch(e){ console.error(e); alert('儲存失敗'); }
-}
-window.saveDaily=saveDaily;
-
-/* ===== 試算表捷徑 ===== */
-async function loadSheetLinks(){
-  const o=asObj(await adminCall('sheetLinks'));
-  const card=document.getElementById('sheetsCard');
-  const box=document.getElementById('sheetBtns'); box.innerHTML='';
-  if(!o?.id || !Array.isArray(o.sheets)) { card.style.display='none'; return; }
-  o.sheets.forEach(s=>{
-    const url=`https://docs.google.com/spreadsheets/d/${o.id}/edit#gid=${s.gid}`;
-    const a=document.createElement('a');
-    a.className='btn btn-ghost btn-sm';
-    a.href=url; a.target='_blank'; a.rel='noopener';
-    a.textContent=s.name||('GID '+s.gid);
-    box.appendChild(a);
-  });
-  card.style.display='block';
-}
-
-/* ===== special_limit：新增／讀取／刪除／編輯 ===== */
-const newDate=document.getElementById('newDate');
-const neEarlyLimit=document.getElementById('neEarlyLimit');
-const neNoonLimit=document.getElementById('neNoonLimit');
-const neNightLimit=document.getElementById('neNightLimit');
-const neEarlyTime=document.getElementById('neEarlyTime');
-const neNoonTime=document.getElementById('neNoonTime');
-const neNightTime=document.getElementById('neNightTime');
-const neApptLimit=document.getElementById('neApptLimit');
-const neApptTime=document.getElementById('neApptTime');
-const neNote=document.getElementById('neNote');
-const neStartNo=document.getElementById('neStartNo');
-const neStep=document.getElementById('neStep');
-const neStop=document.getElementById('neStop');
-const addBtn=document.getElementById('addBtn');
-const tbl=document.getElementById('tbl');
-
-function toggleNewStopLock() {
-  const lock = neStop.checked;
-  [
-    neEarlyLimit, neNoonLimit, neNightLimit, neApptLimit,
-    neEarlyTime, neNoonTime, neNightTime, neApptTime,
-    neStartNo, neStep
-  ].forEach(el => {
-    el.disabled = lock;
-    if (lock) {
-      if (el.type === 'number') el.value = 0;
-      else el.value = '';
+      document.getElementById('loginMsg').innerText='登入失敗';
     }
   });
 }
-neStop.addEventListener('change', toggleNewStopLock);
 
-addBtn.onclick = async ()=>{
-  try{
-    if(!newDate.value) return alert("請選日期");
-    const isStop = !!neStop.checked;
-
-    const q={
-      日期:newDate.value,
-      是否停診: isStop ? true : false,
-      早診上限: isStop ? 0 : Number(neEarlyLimit.value||0),
-      午診上限: isStop ? 0 : Number(neNoonLimit.value||0),
-      晚診上限: isStop ? 0 : Number(neNightLimit.value||0),
-      約診上限: isStop ? 0 : Number(neApptLimit.value||0),
-      早診時段: isStop ? '' : (neEarlyTime.value||''),
-      午診時段: isStop ? '' : (neNoonTime.value||''),
-      晚診時段: isStop ? '' : (neNightTime.value||''),
-      約診時段: isStop ? '' : (neApptTime.value||''),
-      起始號碼: isStop ? 1 : Number(neStartNo.value||1),
-      間隔位數: isStop ? 1 : Math.max(1,Number(neStep.value||1)),
-      備註: neNote.value||''
-    };
-    await adminCall('adminAdd', q);
-    alert("新增完成"); loadSpecials();
-    neStop.checked=false; toggleNewStopLock();
-  }catch(e){ console.error(e); alert('新增失敗或尚未登入'); }
-};
-
-async function loadSpecials(){
-  const arr=asArr(await adminCall('adminGet',{t:Date.now()}));
-  const tbody=tbl.querySelector('tbody'); tbody.innerHTML="";
-  arr.forEach(x=>{
-    const tr=document.createElement('tr');
-    const stop = (x["是否停診"]===true || String(x["是否停診"]).toUpperCase()==='TRUE');
-    tr.innerHTML=`
-      <td>${x.日期}</td>
-      <td>${ stop ? '<span class="badge" style="background:#d32f2f">停診</span>' : '<span class="badge bg-secondary">—</span>' }</td>
-      <td>${x.早診上限||0}</td><td>${x.午診上限||0}</td><td>${x.晚診上限||0}</td><td>${x.約診上限||0}</td>
-      <td>${x.早診時段||''}</td><td>${x.午診時段||''}</td><td>${x.晚診時段||''}</td><td>${x.約診時段||''}</td>
-      <td>${x.起始號碼||1}</td><td>${x.間隔位數||1}</td>
-      <td>${x.備註||""}</td>
-      <td class="d-flex gap-2">
-        <button class="btn btn-warning btn-sm" onclick="editRow('${x.id}')">編輯</button>
-        <button class="btn btn-danger btn-sm" onclick="delRow('${x.id}')">刪除</button>
-      </td>`;
-    tbody.appendChild(tr);
+function loadToday(){
+  api('adminToday').then(d=>{
+    const tb=document.getElementById('todayTbody');
+    tb.innerHTML=d.items.map(x=>`
+      <tr>
+        <td>${x.slot}</td>
+        <td>${x.time}</td>
+        <td>${x.num}</td>
+        <td>${x.name}</td>
+        <td>${fmtRocBirthday(x.birthday)}</td>
+        <td>${x.pid}</td>
+        <td>${x.phone}</td>
+        <td>${x.createdAt}</td>
+        <td><button class="btn btn-sm btn-danger" onclick="cancel(${x.id})">取消</button></td>
+      </tr>`).join('');
   });
 }
 
-async function delRow(id){
-  if(!confirm("確定刪除？")) return;
-  try{ await adminCall('adminDel',{id}); loadSpecials(); }
-  catch(e){ console.error(e); alert('刪除失敗或尚未登入'); }
-}
-async function editRow(id){
-  const f=asObj(await adminCall('adminOne',{id}));
-  const html=`<div class="modal fade" id="editM"><div class="modal-dialog modal-lg"><div class="modal-content">
-   <div class="modal-header"><h5 class="modal-title">編輯 ${f.日期}</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
-   <div class="modal-body">
-     <div class="form-check form-switch mb-3">
-       <input class="form-check-input" type="checkbox" id="edStop" ${ (f["是否停診"]===true || String(f["是否停診"]).toUpperCase()==='TRUE') ? 'checked' : '' }>
-       <label class="form-check-label" for="edStop" style="font-weight:800;color:#d32f2f">是否停診</label>
-     </div>
-
-     <div class="row g-2">
-       <div class="col-6 col-md-3"><label class="form-label">早診上限</label><input id="edEL" class="form-control" type="number" value="${f["早診上限"]||0}" style="border-radius:14px;"></div>
-       <div class="col-6 col-md-3"><label class="form-label">午診上限</label><input id="edNL" class="form-control" type="number" value="${f["午診上限"]||0}" style="border-radius:14px;"></div>
-       <div class="col-6 col-md-3"><label class="form-label">晚診上限</label><input id="edTL" class="form-control" type="number" value="${f["晚診上限"]||0}" style="border-radius:14px;"></div>
-       <div class="col-6 col-md-3"><label class="form-label">約診上限</label><input id="edAL" class="form-control" type="number" value="${f["約診上限"]||0}" style="border-radius:14px;"></div>
-
-       <div class="col-12 col-md-6"><label class="form-label">早診時段</label><input id="edTE" class="form-control" value='${f["早診時段"]||""}' style="border-radius:14px;"></div>
-       <div class="col-12 col-md-6"><label class="form-label">午診時段</label><input id="edTN" class="form-control" value='${f["午診時段"]||""}' style="border-radius:14px;"></div>
-       <div class="col-12 col-md-6"><label class="form-label">晚診時段</label><input id="edTLt" class="form-control" value='${f["晚診時段"]||""}' style="border-radius:14px;"></div>
-       <div class="col-12 col-md-6"><label class="form-label">約診時段</label><input id="edTA" class="form-control" value='${f["約診時段"]||""}' style="border-radius:14px;"></div>
-
-       <div class="col-12 col-md-6"><label class="form-label">備註</label><input id="edNote" class="form-control" value="${f["備註"]||""}" style="border-radius:14px;"></div>
-       <div class="col-6 col-md-3"><label class="form-label">起始號碼</label><input id="edStartNo" class="form-control text-center" type="number" value="${f["起始號碼"]||1}" min="1" style="border-radius:14px;"></div>
-       <div class="col-6 col-md-3"><label class="form-label">間隔位數</label><input id="edStep" class="form-control text-center" type="number" value="${f["間隔位數"]||1}" min="1" style="border-radius:14px;"></div>
-     </div>
-     <div class="small-note mt-2">此處儲存會以 <code>adminAdd</code> 覆蓋該日期設定。</div>
-   </div>
-   <div class="modal-footer">
-     <button class="btn btn-ghost" data-bs-dismiss="modal">取消</button>
-     <button id="saveBtn" class="btn btn-main">儲存</button>
-   </div>
-  </div></div></div>`;
-  document.body.insertAdjacentHTML('beforeend', html);
-  const mEl=document.getElementById("editM"); const m=new bootstrap.Modal(mEl); m.show();
-
-  const edStop = document.getElementById('edStop');
-  const edEL   = document.getElementById('edEL');
-  const edNL   = document.getElementById('edNL');
-  const edTL   = document.getElementById('edTL');
-  const edAL   = document.getElementById('edAL');
-  const edTE   = document.getElementById('edTE');
-  const edTN   = document.getElementById('edTN');
-  const edTLt  = document.getElementById('edTLt');
-  const edTA   = document.getElementById('edTA');
-  const edStartNo = document.getElementById('edStartNo');
-  const edStep = document.getElementById('edStep');
-
-  function toggleEditStopLock(){
-    const lock = edStop.checked;
-    [edEL,edNL,edTL,edAL,edTE,edTN,edTLt,edTA,edStartNo,edStep].forEach(el=>{
-      el.disabled = lock;
-      if(lock){
-        if(el.type==='number') el.value = 0;
-        else el.value = '';
-      }
-    });
-  }
-  edStop.addEventListener('change', toggleEditStopLock);
-  toggleEditStopLock();
-
-  document.getElementById("saveBtn").onclick=async()=>{
-    if(!confirm("確定儲存？")) return;
-    const isStop = !!edStop.checked;
-    await adminCall('adminAdd',{
-      日期:f.日期,
-      是否停診: isStop ? true : false,
-      早診上限: isStop ? 0 : Number(edEL.value||0),
-      午診上限: isStop ? 0 : Number(edNL.value||0),
-      晚診上限: isStop ? 0 : Number(edTL.value||0),
-      約診上限: isStop ? 0 : Number(edAL.value||0),
-      早診時段: isStop ? '' : edTE.value,
-      午診時段: isStop ? '' : edTN.value,
-      晚診時段: isStop ? '' : edTLt.value,
-      約診時段: isStop ? '' : edTA.value,
-      備註: document.getElementById('edNote').value,
-      起始號碼: isStop ? 1 : Number(edStartNo.value||1),
-      間隔位數: isStop ? 1 : Math.max(1, Number(edStep.value||1))
-    });
-    m.hide(); mEl.addEventListener('hidden.bs.modal', ()=> mEl.remove(), {once:true});
-    loadSpecials();
-  };
-  mEl.addEventListener('hidden.bs.modal', ()=> mEl.remove(), {once:true});
-}
-window.editRow=editRow; window.delRow=delRow;
-
-/* ===== 匯出、登入、登出 ===== */
-exportBtn.onclick=()=>{ try{
-  assertAuthed();
-  const url = `${API}?action=export&token=${encodeURIComponent(ADMIN_TOKEN)}&t=${Date.now()}`;
-  window.open(url, '_blank', 'noopener');
-}catch(e){} };
-
-logoutBtn.onclick=()=>{
-  sessionStorage.removeItem('ADMIN_TOKEN');
-  ADMIN_TOKEN="";
-  showLogin();
-};
-
-btnLoginPW.onclick=async()=>{
-  try{
-    const a=acc.value.trim(), p=pw.value.trim();
-    const r=await axios.get(API,{params:{action:'adminLogin',acc:a,pw:p}});
-    if(r.data?.ok){
-      ADMIN_TOKEN=r.data.token;
-      sessionStorage.setItem('ADMIN_TOKEN',ADMIN_TOKEN);
-      saveCred(a,p);
-      showApp();
-    }else{ alert('帳號或密碼錯誤'); }
-  }catch(e){ console.error(e); alert('登入失敗'); }
-};
-[acc,pw].forEach(el=>el.addEventListener('keydown',e=>{ if(e.key==='Enter') btnLoginPW.click(); }));
-
-/* ===== 叫號控制：API 包裝 ===== */
-async function qGet(){
-  if(!QUEUE_API || QUEUE_API.includes("YOUR_QUEUE")){
-    document.getElementById('qInfo').textContent = "未設定叫號 GAS API";
-    return { ok:false };
-  }
-  const r = await axios.get(QUEUE_API, { params: { action:'adminGet', key:QUEUE_KEY }});
-  return r.data;
-}
-async function qSetFlags(flags){
-  const r = await axios.get(QUEUE_API, { params: { action:'adminSetFlags', key:QUEUE_KEY, ...flags }});
-  return r.data;
-}
-async function qSetNumber(n){
-  const r = await axios.get(QUEUE_API, { params: { action:'adminSetNumber', number:n, key:QUEUE_KEY }});
-  return r.data;
-}
-async function qStep(delta){
-  const r = await axios.get(QUEUE_API, { params: { action:'adminStep', delta, key:QUEUE_KEY }});
-  return r.data;
-}
-
-/* ===== 叫號控制：UI 綁定與初始化 ===== */
-const qInfo   = document.getElementById('qInfo');
-const qNow    = document.getElementById('qNow');
-const qAuto   = document.getElementById('qAuto');
-const qStopped= document.getElementById('qStopped');
-const qClosed = document.getElementById('qClosed');
-const qQuery  = document.getElementById('qQuery');
-
-async function initQueueTab(){
-  try{
-    const d = await qGet();
-    if(!d || !d.ok){ return; }
-    qInfo.textContent = `目前：${d.now ?? '—'} ｜ 自動:${d.auto?'ON':'OFF'} ｜ 止掛:${d.stopped?'ON':'OFF'} ｜ 休診:${d.closed?'ON':'OFF'} ｜ 查詢:${d.query?'ON':'OFF'}`;
-    qNow.value = (d.now ?? 0);
-    qAuto.checked    = !!d.auto;
-    qStopped.checked = !!d.stopped;
-    qClosed.checked  = !!d.closed;
-    qQuery.checked   = !!d.query;
-  }catch(e){
-    console.error(e);
-    qInfo.textContent = '讀取失敗';
-  }
-}
-
-document.getElementById('qReload').onclick = initQueueTab;
-document.getElementById('qSet').onclick = async ()=>{
-  const n = Number(qNow.value||0);
-  const r = await qSetNumber(n);
-  if(!r?.ok){ alert('設定失敗'); return; }
-  initQueueTab();
-};
-document.getElementById('qMinus1').onclick = async ()=>{ await qStep(-1); initQueueTab(); };
-document.getElementById('qPlus1').onclick  = async ()=>{ await qStep(+1); initQueueTab(); };
-document.getElementById('qReset').onclick  = async ()=>{ await qSetNumber(0); initQueueTab(); };
-document.getElementById('qSaveFlags').onclick = async ()=>{
-  const r = await qSetFlags({
-    auto: qAuto.checked,
-    stopped: qStopped.checked,
-    closed: qClosed.checked,
-    query: qQuery.checked
-  });
-  if(!r?.ok){ alert('儲存失敗'); return; }
-  initQueueTab();
-};
-
-if (qNow) {
-  qNow.addEventListener('change', async () => {
-    const n = Number(qNow.value || 0);
-    await qSetNumber(n);
-    initQueueTab();
+function loadDay(){
+  const date=document.getElementById('dateInput').value;
+  if(!date) return;
+  api('adminDay',{date}).then(d=>{
+    const tb=document.getElementById('dayTbody');
+    tb.innerHTML=d.items.map(x=>`
+      <tr>
+        <td>${x.slot}</td>
+        <td>${x.time}</td>
+        <td>${x.num}</td>
+        <td>${x.name}</td>
+        <td>${fmtRocBirthday(x.birthday)}</td>
+        <td>${x.pid}</td>
+        <td>${x.phone}</td>
+        <td>${x.createdAt}</td>
+        <td><button class="btn btn-sm btn-danger" onclick="cancel(${x.id})">取消</button></td>
+      </tr>`).join('');
   });
 }
 
-/* ===== 進入頁 ===== */
-if(ADMIN_TOKEN){ showApp(); } else { showLogin(); }
+function cancel(id){
+  if(!confirm('確定取消?')) return;
+  api('adminCancel',{id}).then(d=>{
+    alert(d.message||'已取消');
+    loadToday();
+    if(document.getElementById('dateInput').value) loadDay();
+  });
+}
 </script>
 </body>
 </html>
