@@ -37,7 +37,6 @@
   src:url("fonts/TW-Kai.woff2") format("woff2");
   font-weight:400; font-style:normal; font-display:swap;
 }
-/* 可選：CwTeX-Kai 備援（有檔才會生效） */
 @font-face{
   font-family:"CwTeXKai";
   src:url("fonts/CwTeXKai.woff2") format("woff2");
@@ -57,7 +56,7 @@ body{
 }
 
 /* 全站»方角（不要圓角） */
-.btn, .form-control, .cardish, .chip, .modal-content, .btn-main, .btn-outline-gray { border-radius:0 !important; }
+.btn, .form-control, .cardish, .chip, .modal-content, .btn-main, .btn-outline-gray, .btn-cancel { border-radius:0 !important; }
 
 .cardish{max-width:780px;margin:32px auto;background:var(--card);border:1px solid var(--line);padding:28px 22px 32px}
 .header{display:flex;align-items:center;gap:14px;margin-bottom:10px}
@@ -77,6 +76,18 @@ body{
 .btn-main:hover{background:#2f4b79;color:#fff}
 .btn-outline-gray{background:#fff;border:1px solid #cfd6df;color:#3a3f47;font-weight:700;padding:.9rem 1.15rem}
 .btn-outline-gray:hover{background:#f7f8fb}
+
+/* 取消按鈕：紅底白字；disabled 整顆變灰 */
+.btn-cancel{
+  background:#b91c1c; color:#fff; border:1px solid #b91c1c;
+  font-weight:700; padding:.45rem .9rem;
+}
+.btn-cancel:hover{ background:#991b1b; border-color:#991b1b; color:#fff; }
+.btn-cancel:focus{ outline:2px solid #fca5a5; outline-offset:0; }
+.btn-cancel:disabled{
+  background:#e5e7eb !important; color:#6b7280 !important; border-color:#d1d5db !important;
+  cursor:not-allowed; filter:grayscale(1);
+}
 
 /* 結果列表 */
 .list-head{display:grid;grid-template-columns:1.1fr .7fr .7fr .9fr 1fr .6fr .8fr;gap:8px;align-items:center;padding:8px 10px;border-bottom:1px solid #e6ebf1;color:#2f3b4a}
@@ -146,7 +157,6 @@ body{
   <div id="normalBox">
     <div class="mb-3">
       <label class="form-label">身分證字號</label>
-      <!-- ① 視覺大寫 ② iOS 建議用英文字母大寫 -->
       <input type="text" id="pid" class="form-control"
              placeholder="例如：A123456789" maxlength="10" autocomplete="off"
              autocapitalize="characters" style="text-transform:uppercase">
@@ -171,7 +181,7 @@ body{
 <script src="https://www.google.com/recaptcha/api.js?render=6LdqprArAAAAACpuAXemZUH3KNER1t1iw07YjGHu"></script>
 
 <script>
-/* ====== 基本設定（與原檔一致） ====== */
+/* ====== 基本設定 ====== */
 const API="https://script.google.com/macros/s/AKfycby37Sxk-a-q9hxqROALi1gmGhWGXWr2xw8WF_pdgMAN_9HvM1PZJfgN6TJnVrGw0x9W/exec";
 const RECAPTCHA_SITE_KEY="6LdqprArAAAAACpuAXemZUH3KNER1t1iw07YjGHu";
 
@@ -218,12 +228,10 @@ function slotKey(label){
   if(label.includes('未開放')) return 'closed';
   return '';
 }
-
 function weekday(ymd){
   const d = new Date(ymd+'T09:00:00+08:00');
   return ['日','一','二','三','四','五','六'][d.getDay()];
 }
-
 function guessTime(slot){
   if(!slot) return '';
   if(slot.includes('早')) return '08:30~11:30';
@@ -248,7 +256,7 @@ function appendRow(item,pid){
     <div>${item.name||'-'}</div>
     <div>${item.number!=null? item.number : '-'}</div>
     <div>
-      <button class="btn btn-outline-gray btn-sm btn-cancel" ${disableCancel?'disabled':''}>取消</button>
+      <button class="btn btn-cancel btn-sm" ${disableCancel?'disabled':''}>取消</button>
     </div>`;
   row.querySelector('.btn-cancel').onclick = () => { if(!disableCancel) cancelBooking(item.id, pid); };
   $list.appendChild(row);
