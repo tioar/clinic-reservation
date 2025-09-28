@@ -3,179 +3,121 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>陳萬龍診所門診查詢/取消預約</title>
+<title>陳萬龍診所門診查詢／取消預約</title>
 
+<!-- Google Fonts：與 index 一致（400/600/800/900） -->
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;600;800;900&display=swap" rel="stylesheet">
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
 <link rel="icon" type="image/png" href="favicon.png">
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 
-<!-- 備援：近似楷體（讓沒裝 woff2 也較一致） -->
-<link href="https://fonts.googleapis.com/css2?family=LXGW+WenKai+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<script>
+  /* ↓ 這兩個保持你的既有設定即可（如需換，改這裡） */
+  const API = "https://script.google.com/macros/s/AKfycbwexa8A6Qf8nTJFg9kPZA_k1K8uK0cD_cXg-UYFOcKESuets_H6wLKZJwGH5GTqjF19/exec";
+  const RECAPTCHA_SITE_KEY = "6LdqprArAAAAACpuAXemZUH3KNER1t1iw07YjGHu";
+</script>
+
+<!-- reCAPTCHA v3 -->
+<script src="https://www.google.com/recaptcha/api.js?render=6LdqprArAAAAACpuAXemZUH3KNER1t1iw07YjGHu"></script>
 
 <style>
-/* ===================== 主題（PANTONE：Ponder 沉思） ===================== */
-:root{
-  --classic-blue:#34558b;  /* 主色 */
-  --provence:#678fc9;
-  --baby-blue:#bfd2dd;
-  --monument:#7b858a;
-  --stucco:#9b8577;
+  :root{
+    --purple:#6236a7;
+    --purple-600:#4b2c86;
+    --ink:#2a2341;
+    --line:#ebe6fb;
+    --outline:#cfd3de;
+    --outline-text:#5c6170;
+  }
+  body{
+    background:#f4eefc;
+    /* 與 index 一致的字體順序 */
+    font-family:"Noto Sans TC","Microsoft JhengHei",system-ui,sans-serif;
+  }
+  .card{
+    max-width:780px; margin:32px auto; padding:28px 22px 32px;
+    border-radius:24px; border:1px solid var(--line); background:#fff;
+    box-shadow:0 12px 28px rgba(98,54,167,.10);
+  }
 
-  --primary:var(--classic-blue);
-  --ink:#1c2430;
-  --bg:#f4f6f8;
-  --card:#ffffff;
-  --line:#e6ebf1;
+  /* 標題 */
+  .header{ display:flex; align-items:center; justify-content:center; gap:14px; margin-bottom:14px; text-align:center; }
+  .logo{ width:60px;height:60px;border-radius:50%;display:grid;place-items:center;background:var(--purple);color:#fff;font-weight:900;font-size:32px;box-shadow:0 6px 14px rgba(98,54,167,.20);}
+  .header h1{ margin:0; font-size:2rem; font-weight:900; color:var(--ink); }
 
-  --spin-color:#7f93b1;   /* 灰藍 spinner 色 */
-  --spin-fade:1.2s;
-}
+  .note-bubble{ margin:10px 0 14px 0; padding:12px 14px; background:#f4f0ff; border:1px solid var(--line); border-radius:12px; color:#6b5f92; font-weight:700; font-size:.95rem; }
+  .form-label{ font-weight:800; color:#2f2750; }
+  .list-head div{ font-weight:800; color:#2f2750; }
 
-/* ===================== 字體（TW-Kai 為主；請把 fonts/TW-Kai.woff2 放好） ===================== */
-@font-face{
-  font-family:"TW-Kai";
-  src:url("fonts/TW-Kai.woff2") format("woff2");
-  font-weight:400; font-style:normal; font-display:swap;
-}
-@font-face{
-  font-family:"CwTeXKai";
-  src:url("fonts/CwTeXKai.woff2") format("woff2");
-  font-weight:400; font-style:normal; font-display:swap;
-}
+  /* 膠囊按鈕 */
+  .btn-pill{ border-radius:50rem; font-weight:800; padding:1rem 1.25rem; }
+  .btn-main{ background:var(--purple); color:#fff; border:none; }
+  .btn-main:hover{ background:var(--purple-600); color:#fff; }
+  .btn-outline-gray{ background:#fff; color:#5c6170; border:2px solid var(--outline); }
+  .btn-outline-gray:hover{ background:#f7f8fb; color:#3a3f47; border-color:#bfc6d2; }
 
-*{box-sizing:border-box}
-html,body{width:100%;max-width:100%}
-body{
-  margin:0;background:var(--bg);color:var(--ink);
-  font-family:
-    "TW-Kai","CwTeXKai","LXGW WenKai TC",
-    "DFKai-SB","KaiTi","Kaiti TC","Kaiti SC","BiauKai",
-    "STFangsong","FangSong",
-    "PingFang TC","Microsoft JhengHei",serif;
-  font-weight:400;
-}
+  /* 結果列表 */
+  .list-row{display:grid;grid-template-columns:1.1fr .9fr .7fr 1fr 1fr .6fr .8fr;gap:.5rem;align-items:center; padding:6px 10px; border-radius:12px; font-weight:600;}
+  .row-early { background:#e7f7ee; color:#0f5132; }
+  .row-noon  { background:#fff3df; color:#7a4d00; }
+  .row-night { background:#e8f2ff; color:#1d4ed8; }
+  .row-appt  { background:#fde7ef; color:#b51695; } /* 約診：洋紅 */
+  .row-closed{ background:#ffe6e6; color:#b02a37; }
 
-/* 全站方角（不要圓角） */
-.btn, .form-control, .cardish, .chip, .modal-content, .btn-main, .btn-outline-gray, .btn-cancel { border-radius:0 !important; }
+  .btn-cancel{background:#dc3545;border:none;color:#fff;font-weight:700;border-radius:50rem;padding:0.25rem 0.75rem;}
+  .btn-cancel:hover{background:#b02a37}
 
-.cardish{max-width:780px;margin:32px auto;background:var(--card);border:1px solid var(--line);padding:28px 22px 32px}
-.header{
-  display:flex;
-  align-items:center;
-  gap:14px;
-  margin-bottom:10px;
-  justify-content:center; /* ← 讓「＋」與標題一起置中 */
-}
+  /* 禁用狀態（灰色、不可點） */
+  .btn-cancel:disabled{
+    background:#adb5bd !important;
+    color:#fff !important;
+    cursor:not-allowed !important;
+    opacity:1 !important;
+  }
 
-.header .logo{width:56px;height:56px;display:grid;place-items:center;background:var(--primary);color:#fff;font-weight:700;font-size:30px}
-.header h1{margin:0;font-weight:700;font-size:clamp(1.4rem,2.4vw,2rem);color:var(--primary)}
-
-.note-bubble{
-  background:#f6f9ff;border:1px solid #e3ecff;color:#314863;
-  padding:10px 12px;margin:8px 0 18px; font-weight:700;
-}
-
-.form-label{font-weight:700;color:#1f2b3a}
-.form-control{border:1px solid #cfd6df;height:46px}
-
-/* 主要按鈕（方形） */
-.btn-main{background:var(--primary);color:#fff;border:1px solid var(--primary);font-weight:700;padding:.9rem 1.15rem}
-.btn-main:hover{background:#2f4b79;color:#fff}
-.btn-outline-gray{background:#fff;border:1px solid #cfd6df;color:#3a3f47;font-weight:700;padding:.9rem 1.15rem}
-.btn-outline-gray:hover{background:#f7f8fb}
-
-/* 取消按鈕：紅底白字；disabled 整顆變灰 */
-.btn-cancel{
-  background:#b91c1c; color:#fff; border:1px solid #b91c1c;
-  font-weight:700; padding:.45rem .9rem;
-}
-.btn-cancel:hover{ background:#991b1b; border-color:#991b1b; color:#fff; }
-.btn-cancel:focus{ outline:2px solid #fca5a5; outline-offset:0; }
-.btn-cancel:disabled{
-  background:#e5e7eb !important; color:#6b7280 !important; border-color:#d1d5db !important;
-  cursor:not-allowed; filter:grayscale(1);
-}
-
-/* 結果列表 */
-.list-head{display:grid;grid-template-columns:1.1fr .7fr .7fr .9fr 1fr .6fr .8fr;gap:8px;align-items:center;padding:8px 10px;border-bottom:1px solid #e6ebf1;color:#2f3b4a}
-.list-row {display:grid;grid-template-columns:1.1fr .7fr .7fr .9fr 1fr .6fr .8fr;gap:8px;align-items:center;padding:8px 10px;border:1px solid #e6ebf1;background:#fff;margin-top:8px}
-
-.row-early { background:#e7f2ea; color:#0b523a; }
-.row-noon  { background:#fff2df; color:#7a4d00; }
-.row-night { background:#e7f0fb; color:#1646a2; }
-.row-appt  { background:#f9e7ee; color:#9b1f79; }
-
-/* ===================== 放射條狀轉圈圈（灰藍） ===================== */
-@keyframes bars-fade { 0%{opacity:1} 100%{opacity:0} }
-.spinner-bars{position:relative;display:inline-block;width:56px;height:56px}
-.spinner-bars i{position:absolute;left:0;top:0;transform-origin:28px 28px;animation:bars-fade var(--spin-fade) linear infinite}
-.spinner-bars i::after{content:"";position:absolute;top:3px;left:26px;width:4px;height:14px;border-radius:2px;background:var(--spin-color)}
-.spinner-bars i:nth-child(1)  { transform:rotate(0deg);    animation-delay:-1.1s }
-.spinner-bars i:nth-child(2)  { transform:rotate(30deg);   animation-delay:-1.0s }
-.spinner-bars i:nth-child(3)  { transform:rotate(60deg);   animation-delay:-0.9s }
-.spinner-bars i:nth-child(4)  { transform:rotate(90deg);   animation-delay:-0.8s }
-.spinner-bars i:nth-child(5)  { transform:rotate(120deg);  animation-delay:-0.7s }
-.spinner-bars i:nth-child(6)  { transform:rotate(150deg);  animation-delay:-0.6s }
-.spinner-bars i:nth-child(7)  { transform:rotate(180deg);  animation-delay:-0.5s }
-.spinner-bars i:nth-child(8)  { transform:rotate(210deg);  animation-delay:-0.4s }
-.spinner-bars i:nth-child(9)  { transform:rotate(240deg);  animation-delay:-0.3s }
-.spinner-bars i:nth-child(10) { transform:rotate(270deg);  animation-delay:-0.2s }
-.spinner-bars i:nth-child(11) { transform:rotate(300deg);  animation-delay:-0.1s }
-.spinner-bars i:nth-child(12) { transform:rotate(330deg);  animation-delay: 0s  }
-.spinner-sm{width:22px;height:22px}
-.spinner-sm i{transform-origin:11px 11px}
-.spinner-sm i::after{top:1px;left:10px;width:2px;height:6px;border-radius:1px}
-
-/* ===================== 全頁遮罩（轉圈） ===================== */
-.loading-overlay{
-  position:fixed; inset:0; display:none;
-  align-items:center; justify-content:center; flex-direction:column; gap:10px;
-  z-index:9999; background:rgba(255,255,255,.94); backdrop-filter:blur(2px);
-  color:#475569; font-size:16px; font-weight:700;
-}
-
-/* RWD */
-@media (max-width:576px){
-  .list-head, .list-row{grid-template-columns:1.2fr .7fr .7fr .9fr 1fr .6fr .8fr;font-size:14px}
-  .cardish{margin:16px auto;padding:20px 14px}
-}
+  /* 遮罩 */
+  #ing{position:fixed;inset:0;background:rgba(255,255,255,.9);display:none;align-items:center;justify-content:center;z-index:9999;font-size:18px;color:var(--purple-600);backdrop-filter:blur(2px)}
+  #dots{display:inline-block;width:2ch;text-align:left}
+  @media (max-width:576px){
+    .list-row{grid-template-columns:1.2fr .7fr .7fr .9fr 1fr .6fr .8fr;font-size:14px;}
+  }
 </style>
 </head>
 <body>
-<!-- 等待遮罩（轉圈圈） -->
-<div id="ing" class="loading-overlay">
-  <span class="spinner-bars" aria-hidden="true">
-    <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
-  </span>
-  <div id="ingText" class="loading-text">處理中，請稍候…</div>
+<div id="ing" class="loading-overlay" style="display:none">
+  <div class="spinner-border" role="status" aria-hidden="true"></div>
+  <div id="ingText" class="loading-text">請稍候</div>
 </div>
 
-<div class="cardish">
+
+<div class="card">
   <div class="header">
     <div class="logo">＋</div>
-    <h1>查詢/取消預約</h1>
+    <h1>查詢／取消預約</h1>
   </div>
 
   <div class="note-bubble">
-    🔸 線上取消預約的截止時間為門診前一天；門診當天請改以電話取消，診所電話 (03) 515-2971。 
+    🔶線上取消預約的截止時間為門診前一天；門診當天請改以電話取消。診所電話(03)5152971🔶
   </div>
 
   <div id="normalBox">
     <div class="mb-3">
-      <label class="form-label">身分證字號 *</label>
+      <label class="form-label">身分證字號</label>
+      <!-- ① 視覺大寫 ② iOS 建議用英文字母大寫 -->
       <input type="text" id="pid" class="form-control"
              placeholder="例如：A123456789" maxlength="10" autocomplete="off"
              autocapitalize="characters" style="text-transform:uppercase">
     </div>
     <div class="d-grid gap-3">
-      <button id="btnQuery" class="btn btn-main">查詢</button>
-      <a href="index.html" class="btn btn-outline-gray text-decoration-none text-center">返回預約首頁</a>
+      <button id="btnQuery" class="btn btn-pill btn-main">查詢</button>
+      <a href="index.html" class="btn btn-pill btn-outline-gray text-decoration-none text-center">返回預約首頁</a>
     </div>
     <hr class="my-4">
   </div>
 
   <div id="result" style="display:none;">
-    <div class="list-head">
+    <div class="list-row list-head" style="background:none; font-weight:800;">
       <div>日期</div><div>星期</div><div>診別</div><div>時間</div><div>姓名</div><div>號碼</div><div>操作</div>
     </div>
     <div id="list"></div>
@@ -183,108 +125,65 @@ body{
   </div>
 </div>
 
-<!-- reCAPTCHA v3（保持你的 SITE KEY） -->
-<script src="https://www.google.com/recaptcha/api.js?render=6LdqprArAAAAACpuAXemZUH3KNER1t1iw07YjGHu"></script>
-
 <script>
-/* ====== 基本設定 ====== */
-const API="https://script.google.com/macros/s/AKfycbwexa8A6Qf8nTJFg9kPZA_k1K8uK0cD_cXg-UYFOcKESuets_H6wLKZJwGH5GTqjF19/exec";
-const RECAPTCHA_SITE_KEY="6LdqprArAAAAACpuAXemZUH3KNER1t1iw07YjGHu";
-
-/* ====== 小工具 ====== */
-function normalizeTaiwanId(raw){
-  if(raw==null) return "";
-  let s = String(raw).trim().normalize('NFKC'); // 全形→半形
-  s = s.replace(/\s+/g,'');                      // 去空白
-  s = s.toUpperCase();
-  return s;
+function slotKey(label){
+  if(!label) return '';
+  if(label.includes('早')) return 'early';
+  if(label.includes('午')) return 'noon';
+  iflabel = label.includes('晚'); if(label.includes('晚')) return 'night';
+  if(label.includes('約診')) return 'appt';
+  if(label.includes('未開放')) return 'closed';
+  return '';
 }
 
-/* ====== 轉圈控制 ====== */
-const $ing = document.getElementById('ing');
-const $ingText = document.getElementById('ingText');
-function showing(txt){ $ing.style.display='flex'; $ingText.textContent = txt || '處理中，請稍候…'; }
-function hideing(){ $ing.style.display='none'; }
-
-/* ====== reCAPTCHA ====== */
-function recaptchaToken(action){
-  return new Promise((resolve)=>{
-    if(!RECAPTCHA_SITE_KEY){ resolve(''); return; }
-    grecaptcha.ready(()=>{
-      grecaptcha.execute(RECAPTCHA_SITE_KEY,{action:action||'query'})
-        .then(resolve).catch(()=>resolve(''));
-    });
-  });
-}
-
-/* ====== DOM ====== */
 const $pid  = document.getElementById('pid');
 const $btn  = document.getElementById('btnQuery');
 const $res  = document.getElementById('result');
 const $list = document.getElementById('list');
 const $hint = document.getElementById('hint');
+const $ing  = document.getElementById('ing');
+const $dots = document.getElementById('dots');
 
-/* 讓輸入即時轉大寫（不影響游標位置） */
-$pid.addEventListener('input', e=>{
-  const el=e.target, s=el.selectionStart, epos=el.selectionEnd;
-  const up=el.value.toUpperCase();
-  if(el.value!==up){ el.value=up; try{el.setSelectionRange(s,epos);}catch(_){ } }
+/* ③ 實際值即時轉大寫（不影響游標位置） */
+$pid.addEventListener('input', (e)=>{
+  const el = e.target;
+  const start = el.selectionStart, end = el.selectionEnd;
+  const up = el.value.toUpperCase();
+  if(el.value !== up){
+    el.value = up;
+    try{ el.setSelectionRange(start, end); }catch(_){}
+  }
 });
 
-/* ====== 對應欄位與顯示 ====== */
-function slotKey(label){
-  if(!label) return '';
-  if(label.includes('早')) return 'early';
-  if(label.includes('午')) return 'noon';
-  if(label.includes('晚')) return 'night';
-  if(label.includes('約診')) return 'appt';
-  return '';
+/* 遮罩動畫 */
+let dotTimer=null;
+function showing(txt){
+  $ing.childNodes[0].nodeValue = (txt||'處理中請稍等');
+  $ing.style.display='flex';
+  if(dotTimer) clearInterval(dotTimer);
+  dotTimer = setInterval(()=>{
+    $dots.textContent = $dots.textContent==='...' ? '.' : $dots.textContent+'.';
+    if($dots.textContent.length>3) $dots.textContent='.';
+  }, 340);
 }
-function weekday(ymd){
-  const d = new Date(ymd+'T09:00:00+08:00');
-  return ['日','一','二','三','四','五','六'][d.getDay()];
-}
-function guessTime(slot){
-  if(!slot) return '';
-  if(slot.includes('早')) return '08:30~11:30';
-  if(slot.includes('午')) return '14:00~17:00';
-  if(slot.includes('晚')) return '18:00~20:30';
-  if(slot.includes('約診')) return '09:00~12:00';
-  return '';
-}
+function hideing(){ if(dotTimer) clearInterval(dotTimer); $ing.style.display='none'; }
 
-function appendRow(item,pid){
-  const ymd=item.date||'', w=weekday(ymd), t=item.time||guessTime(item.slot)||'';
-
-  /* ✅ 重點：兼容多種欄位名稱 */
-  const seatNo = item.num ?? item.number ?? item.no ?? item.No ?? '-';
-
-  /* 是否可取消：兼容 canCancel / cancelable */
-  const disableCancel = !(item.canCancel ?? item.cancelable ?? false);
-
-  const key = slotKey(item.slot||'');
-  const row=document.createElement('div');
-  row.className='list-row '+(key?('row-'+key):'');
-
-  row.innerHTML = `
-    <div>${ymd||'-'}</div>
-    <div>週${w||'-'}</div>
-    <div>${item.slot||'-'}</div>
-    <div>${t||'-'}</div>
-    <div>${item.name||'-'}</div>
-    <div>${seatNo}</div>
-    <div>
-      <button class="btn btn-cancel btn-sm" ${disableCancel?'disabled':''}>取消</button>
-    </div>`;
-  row.querySelector('.btn-cancel').onclick = () => { if(!disableCancel) cancelBooking(item.id, pid); };
-  $list.appendChild(row);
+/* 取得 reCAPTCHA token（若載不到也回空字串，避免卡流程） */
+function recaptchaToken(action){
+  return new Promise((resolve)=>{
+    if(!window.grecaptcha){ resolve(''); return; }
+    grecaptcha.ready(()=>{
+      grecaptcha.execute(RECAPTCHA_SITE_KEY, {action: action||'query'})
+        .then(resolve)
+        .catch(()=>resolve(''));
+    });
+  });
 }
 
-/* ====== 行為：查詢＆取消 ====== */
 async function queryByPid(){
-  const pid = normalizeTaiwanId($pid.value);
+  const pid = $pid.value.trim().toUpperCase();
   if(!/^[A-Z][12]\d{8}$/.test(pid)){ alert('請輸入正確的身分證字號'); return; }
-  showing('查詢中，請稍候…');
+  showing('查詢中');
   try{
     const token = await recaptchaToken('queryByPid');
     const r = await axios.get(API,{ params:{ action:'queryByPid', idnum: pid, recaptchaToken: token, t: Date.now() }});
@@ -300,17 +199,60 @@ async function queryByPid(){
   finally{ hideing(); }
 }
 
+function weekday(ymd){
+  const d = new Date(ymd+'T09:00:00+08:00');
+  return ['日','一','二','三','四','五','六'][d.getDay()];
+}
+function guessTime(slot){
+  if(!slot) return '';
+  if(slot.includes('早')) return '08:30~11:30';
+  if(slot.includes('午')) return '14:00~17:00';
+  ifslot = slot.includes('晚'); if(slot.includes('晚')) return '18:00~20:30';
+  if(slot.includes('約診')) return '09:00~12:00';
+  return '';
+}
+
+function appendRow(item,pid){
+  const ymd=item.date||'', w=weekday(ymd), t=item.time||guessTime(item.slot)||'';
+  const disableCancel = !item.canCancel;
+  const key = slotKey(item.slot||'');
+  const row=document.createElement('div');
+  row.className='list-row row-'+key+' mb-2';
+  row.innerHTML=`
+    <div>${ymd}</div><div>星期${w}</div><div>${item.slot||''}</div>
+    <div>${t}</div><div>${item.name||''}</div><div>${item.num||''}</div>
+    <div>
+      <button class="btn btn-cancel btn-sm"
+              ${disableCancel ? 'disabled title="當天或已過期，請改電話取消"' : ''}>
+        取消
+      </button>
+    </div>`;
+
+  row.querySelector('.btn-cancel').onclick = () => {
+    if (!disableCancel) cancelBooking(item.id, pid);
+  };
+
+  $list.appendChild(row);
+}
+
 async function cancelBooking(rowId, pid){
   if(!confirm(`確認取消這筆預約？`)) return;
-  showing('取消中，請稍候…');
+  showing('取消中');
   try{
     const token = await recaptchaToken('cancel');
-    const resp = await axios.get(API,{
-      params:{ action:'cancel', id:rowId, idnum:pid, recaptchaToken:token, t:Date.now() }
+    const resp = await axios.get(API, {
+      params:{
+        action:'cancel',
+        id: rowId,
+        idnum: pid,
+        recaptchaToken: token,
+        t: Date.now()
+      }
     });
-
-    if(resp.data && resp.data.error === 'robot'){ alert('驗證未通過，請重試。'); return; }
-
+    if(resp.data && resp.data.error === 'robot'){
+      alert('驗證未通過，請重試。');
+      return;
+    }
     if(resp.data && (resp.data.ok||resp.data.success)){
       alert(resp.data.message||'已取消該筆預約。');
       await queryByPid();
@@ -320,12 +262,20 @@ async function cancelBooking(rowId, pid){
   }catch(e){
     console.error(e);
     alert('取消失敗，請稍後再試');
-  }finally{ hideing(); }
+  }finally{
+    hideing();
+  }
 }
 
-/* 綁定 */
-document.getElementById('btnQuery').onclick=queryByPid;
+$btn.onclick=queryByPid;
 $pid.addEventListener('keydown',e=>{ if(e.key==='Enter') queryByPid(); });
 </script>
 </body>
 </html>
+
+
+
+
+
+
+
