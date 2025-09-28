@@ -47,7 +47,10 @@
       min-height:100vh;color:#334155;-webkit-tap-highlight-color: transparent;
     }
 
-    .card{ border-radius:28px; border:2px solid var(--border); box-shadow:0 6px 14px rgba(0,0,0,.06); overflow:hidden; }
+    /* ★ 卡片/統計卡/表格容器全改直角 */
+    .card{ border-radius:0; border:2px solid var(--border); box-shadow:0 6px 14px rgba(0,0,0,.06); overflow:hidden; }
+    .stat{ border:2px dashed var(--border); border-radius:0; padding:.9rem 1rem; background:#fff; display:flex; align-items:center; gap:.9rem; box-shadow:0 4px 10px rgba(0,0,0,.04); overflow:hidden; }
+    .table{ border-radius:0; overflow:hidden; margin:0; }
 
     /* ====== 全站方形按鈕 ====== */
     .btn{ border-radius:0 !important; font-weight:700; border:0; }
@@ -84,8 +87,7 @@
     .date-nav .form-control{ width:160px; }
     .totals{ font-weight:900; color:#1f3f57; } .totals .muted{ color:#6b7a90; font-weight:800; }
 
-    .stat{ border:2px dashed var(--border); border-radius:20px; padding:.9rem 1rem; background:#fff; display:flex; align-items:center; gap:.9rem; box-shadow:0 4px 10px rgba(0,0,0,.04); overflow:hidden; }
-    .stat .cap{ padding:.35rem .7rem; border-radius:999px; font-weight:900; line-height:1; }
+    .stat .cap{ padding:.35rem .7rem; border-radius:999px; font-weight:900; line-height:1; } /* 小圓標保留圓形 */
     .stat .kv{font-weight:800}
     .stat .note{color:#6b7280;font-weight:700}
     .stat-early{ background:var(--early-light); border-color:var(--early-bar); }
@@ -97,7 +99,6 @@
     .stat-appt{  background:var(--appt-light);  border-color:var(--appt-bar); }
     .stat-appt .cap{ background:#ffe0ef; color:#9d174d; border:1px solid #f9b3d1; }
 
-    .table{ border-radius:16px; overflow:hidden; margin:0; }
     .table td{ border-top:2px solid #e5e7eb !important; }
     .table thead th{ border-bottom:2px solid #cbd5e1 !important; font-weight:900; }
 
@@ -127,20 +128,20 @@
 
     #tab-queue .stat{ border-color:var(--queue-orange); }
 
-    /* ====== 你指定：目前號碼+開關 → 方形 ====== */
+    /* 叫號區塊：目前號碼的標籤也維持直角 */
     #tab-queue .cap.cap-pill{ border-radius:0 !important; }
 
     .q-now-input{
       width: clamp(140px, 42vw, 260px);
       font-size: clamp(40px, 12vw, 86px);
       font-weight:900; color:#d90429; text-align:center; letter-spacing:1px;
-      border-radius:0 !important;              /* ← 直角 */
+      border-radius:0 !important;
       border:2px solid var(--queue-orange); background:#fffaf2; -moz-appearance:textfield;
     }
     .q-now-input::-webkit-outer-spin-button, .q-now-input::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0; }
     @supports (-webkit-touch-callout: none){ .q-now-input{ font-variant-numeric: tabular-nums; } }
 
-    /* 叫號步進按鈕改直角 */
+    /* 叫號步進按鈕直角 */
     .q-step{ width:56px; height:56px; border-radius:0; font-size:30px; font-weight:900; line-height:1; padding:0; }
     .q-now-row{ align-items:center; gap:12px; flex-wrap:wrap; }
     .q-actions{ display:flex; align-items:center; gap:12px; margin-left:auto; }
@@ -150,14 +151,12 @@
       border-radius:0 !important; padding:.60rem 1.20rem !important; font-size:1.05rem !important; font-weight:900 !important; line-height:1 !important; min-width:130px !important;
     }
     #qReset{ background:#b51695 !important; color:#fff !important; border-color:#b51695 !important; }
-    #qReset:hover{ background:#9b127f !important; border-color:#9b127f !重要; color:#fff !important; }
+    #qReset:hover{ background:#9b127f !important; border-color:#9b127f !重要; color:#fff !重要; }
 
     /* ====== 全站輸入框一律直角 ====== */
-    input, select, textarea, .form-control, .form-select{
-      border-radius:0 !important;
-    }
+    input, select, textarea, .form-control, .form-select{ border-radius:0 !important; }
 
-    /* ====== Switch 改成方形checkbox風格（不動功能）====== */
+    /* Switch 改成方形checkbox風格 */
     .form-switch .form-check-input{
       width:1.4em; height:1.4em;
       border-radius:0 !important;
@@ -169,7 +168,7 @@
       border-color:var(--primary);
     }
 
-    /* ====== 停診徽章改直角 ====== */
+    /* 停診徽章直角（已是直角，保留） */
     .badge{ border-radius:0 !important; }
 
     @media (max-width: 575.98px){
@@ -767,7 +766,7 @@ const winStart=document.getElementById('winStart'), winEnd=document.getElementBy
       btnEndMinus=document.getElementById('btnEndMinus'), btnEndPlus=document.getElementById('btnEndPlus'),
       btnWinSet=document.getElementById('btnWinSet'), winInfo=document.getElementById('winInfo'),
       customWindowSwitch=document.getElementById('customWindowSwitch'),
-      flagWeekSwitch=document.getElementById('flagWeekSwitch');
+      flagWeekSwitch=document.getElementById('flagWeekSwitch']);
 
 btnStartMinus.onclick=()=>{ winStart.value=Math.max(0, Number(winStart.value||0)-1); };
 btnStartPlus.onclick =()=>{ winStart.value=Number(winStart.value||0)+1; };
