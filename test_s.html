@@ -89,11 +89,12 @@ button, .btn, .cardish, .slot-card, .modal-content{ border-radius:0 !important; 
 .slot-sub { font-weight:700; font-size:1.05rem; }
 .slot-note{ font-size:.95rem; margin-top:2px; }
 
-/* 分享提醒條 */
+/* 分享提醒條（置中） */
 .share-tip{
   background:#eef3fb; border:1px solid #dae5f6; color:#334155;
-  padding:10px 12px; display:flex; gap:10px; align-items:flex-start; margin:10px 0 16px;
-  font-weight:700;
+  padding:10px 12px; display:flex; gap:10px;
+  align-items:center; justify-content:center; text-align:center;
+  margin:10px 0 16px; font-weight:700;
 }
 
 /* 按鈕（方角） */
@@ -158,12 +159,10 @@ button, .btn, .cardish, .slot-card, .modal-content{ border-radius:0 !important; 
       <div id="slotNote" class="slot-note"></div>
     </div>
 
-    <!-- 分享提醒條 -->
+    <!-- 分享提醒條（已置中） -->
     <div class="share-tip">
-      <div style="font-size:20px;line-height:1">🔸</div>
-      <div class="text-start flex-grow-1">
-        提醒：可以點下方「分享」傳送已經預約的門診日期與號碼，或複製文字到 Line 或 Messenger。
-      </div>
+      <div style="font-size:20px;line-height:1">🔶</div>
+      <div>提醒：可以點下方「分享」傳送已經預約的門診日期與號碼，或複製文字到 Line 或 Messenger。</div>
     </div>
 
     <div class="d-flex gap-2 justify-content-center mb-3">
