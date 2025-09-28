@@ -5,20 +5,215 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>預約成功</title>
 
-<!-- 與 index 相同的字體設定 -->
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;600;800;900&display=swap" rel="stylesheet">
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+<!-- 近似楷體備援（沒裝 woff2 也較一致） -->
+<link href="https://fonts.googleapis.com/css2?family=LXGW+WenKai+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
 <link rel="icon" type="image/png" href="favicon.png">
 
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/crypto-js@4.2.0/crypto-js.min.js"></script>
 
-<script>
-/* === 後端 API（與 index / query 一致） === */
-const API = "https://script.google.com/macros/s/AKfycbwexa8A6Qf8nTJFg9kPZA_k1K8uK0cD_cXg-UYFOcKESuets_H6wLKZJwGH5GTqjF19/exec";
+<style>
+:root{
+  /* Ponder 藍系主題（和 index 一樣） */
+  --classic-blue:#34558b;
+  --provence:#678fc9;
+  --baby-blue:#bfd2dd;
+  --ink:#1c2430;
+  --card:#ffffff;
+  --line:#e6ebf1;
 
-/* === AES（遮蔽） === */
+  /* 轉圈圈（灰藍） */
+  --spin-color:#7f93b1;
+  --spin-fade:1.2s;
+
+  /* 各診別色 */
+  --early-bg:#e7f2ea; --early-bd:#b7d9c6; --early-tx:#0b523a;
+  --noon-bg:#fff2df;  --noon-bd:#ffd79a; --noon-tx:#7a4d00;
+  --night-bg:#e7f0fb; --night-bd:#c8dcff; --night-tx:#1646a2;
+  --appt-bg:#f9e7ee;  --appt-bd:#f6b6dc; --appt-tx:#9b1f79;
+}
+
+/* === 本地楷體（請把 fonts/TW-Kai.woff2 與 fonts/CwTeXKai.woff2 放好） === */
+@font-face{
+  font-family:"TW-Kai";
+  src:url("./fonts/TW-Kai.woff2") format("woff2");
+  font-weight:400; font-style:normal; font-display:swap;
+}
+@font-face{
+  font-family:"CwTeXKai";
+  src:url("./fonts/CwTeXKai.woff2") format("woff2");
+  font-weight:400; font-style:normal; font-display:swap;
+}
+
+*{box-sizing:border-box}
+html,body{width:100%;max-width:100%}
+body{
+  margin:0;background:#f4f6f8;color:var(--ink);
+  /* 與 index 相同的字型順序 */
+  font-family:
+    "TW-Kai","CwTeXKai","LXGW WenKai TC",
+    "DFKai-SB","KaiTi","Kaiti TC","Kaiti SC","BiauKai",
+    "STFangsong","FangSong",
+    "PingFang TC","Microsoft JhengHei",serif;
+}
+
+/* 方角風格（和 index 一致） */
+button, .btn, .cardish, .slot-card, .modal-content{ border-radius:0 !important; }
+
+/* 容器 */
+.wrap{ max-width:min(880px,94vw); margin:40px auto; padding:0 12px; }
+.cardish{
+  background:var(--card); border:1px solid var(--line);
+  box-shadow:0 10px 24px rgba(52,85,139,.10);
+  padding:28px 20px 30px;
+}
+
+/* 標頭 */
+.title-row{ display:flex; align-items:center; justify-content:center; gap:12px; margin-bottom:4px; }
+.logo{ width:56px; height:56px; display:grid; place-items:center; background:var(--classic-blue); color:#fff; font-weight:700; font-size:32px; }
+.h1x{ margin:0; color:var(--classic-blue); font-weight:700; font-size:clamp(1.6rem,3vw,2rem); }
+
+/* 診別卡（方角） */
+.slot-card{
+  border:2px dashed; padding:16px 16px; text-align:center;
+  margin:12px auto 16px; max-width:720px; line-height:1.7;
+  border-color:#d7d9e3; background:#f7f7fb; color:#3a3f47;
+}
+.slot-early{ background:var(--early-bg); border-color:var(--early-bd); color:var(--early-tx); }
+.slot-noon { background:var(--noon-bg);  border-color:var(--noon-bd);  color:var(--noon-tx); }
+.slot-night{ background:var(--night-bg); border-color:var(--night-bd); color:var(--night-tx); }
+.slot-appt { background:var(--appt-bg);  border-color:var(--appt-bd);  color:var(--appt-tx); }
+
+.slot-main{ font-weight:700; font-size:1.1rem; }
+.slot-sub { font-weight:700; font-size:1.05rem; }
+.slot-note{ font-size:.95rem; margin-top:2px; }
+
+/* 分享提醒條（置中） */
+.share-tip{
+  background:#eef3fb; border:1px solid #dae5f6; color:#334155;
+  padding:10px 12px; display:flex; gap:10px;
+  align-items:center; justify-content:center; text-align:center;
+  margin:10px 0 16px; font-weight:700;
+}
+
+/* 按鈕（方角） */
+.btn-main{ background:var(--classic-blue); color:#fff; border:1px solid var(--classic-blue); font-weight:700; padding:.85rem 1.2rem; }
+.btn-main:hover{ background:#27426f; color:#fff; }
+.btn-ghost{ background:#fff; color:#3a3f47; border:1px solid #d7dbe5; font-weight:700; padding:.85rem 1.2rem; }
+.btn-ghost:hover{ background:#f2f6ff; }
+
+/* 轉圈圈：灰藍放射條狀（和 index 同款） */
+@keyframes bars-fade { 0%{opacity:1} 100%{opacity:0} }
+.spinner-bars{position:relative;display:inline-block;width:56px;height:56px}
+.spinner-bars i{
+  position:absolute;left:0;top:0;transform-origin:28px 28px;
+  animation:bars-fade var(--spin-fade) linear infinite;
+}
+.spinner-bars i::after{
+  content:""; position:absolute; top:3px; left:26px;
+  width:4px; height:14px; border-radius:2px; background:var(--spin-color);
+}
+.spinner-bars i:nth-child(1)  { transform:rotate(0deg);    animation-delay:-1.1s }
+.spinner-bars i:nth-child(2)  { transform:rotate(30deg);   animation-delay:-1.0s }
+.spinner-bars i:nth-child(3)  { transform:rotate(60deg);   animation-delay:-0.9s }
+.spinner-bars i:nth-child(4)  { transform:rotate(90deg);   animation-delay:-0.8s }
+.spinner-bars i:nth-child(5)  { transform:rotate(120deg);  animation-delay:-0.7s }
+.spinner-bars i:nth-child(6)  { transform:rotate(150deg);  animation-delay:-0.6s }
+.spinner-bars i:nth-child(7)  { transform:rotate(180deg);  animation-delay:-0.5s }
+.spinner-bars i:nth-child(8)  { transform:rotate(210deg);  animation-delay:-0.4s }
+.spinner-bars i:nth-child(9)  { transform:rotate(240deg);  animation-delay:-0.3s }
+.spinner-bars i:nth-child(10) { transform:rotate(270deg);  animation-delay:-0.2s }
+.spinner-bars i:nth-child(11) { transform:rotate(300deg);  animation-delay:-0.1s }
+.spinner-bars i:nth-child(12) { transform:rotate(330deg);  animation-delay: 0s  }
+
+/* 全頁遮罩 */
+#loading{
+  position:fixed; inset:0; background:rgba(255,255,255,.94);
+  display:flex; align-items:center; justify-content:center; flex-direction:column; gap:12px;
+  z-index:9999; color:#475569; font-weight:700;
+}
+</style>
+</head>
+<body>
+<!-- 轉圈圈遮罩 -->
+<div id="loading">
+  <span class="spinner-bars" aria-hidden="true">
+    <i></i><i></i><i></i><i></i><i></i><i></i>
+    <i></i><i></i><i></i><i></i><i></i><i></i>
+  </span>
+  <div class="loading-text">讀取中請稍等</div>
+</div>
+
+<div class="wrap">
+  <div class="cardish text-center">
+    <div class="title-row">
+      <div class="logo">＋</div>
+      <h1 class="h1x">預 約 成 功</h1>
+    </div>
+    <div class="text-secondary mb-2" style="font-weight:700">您的預約資訊：</div>
+
+    <div id="slotCard" class="slot-card">
+      <div id="slotMain" class="slot-main">—</div>
+      <div id="slotSub"  class="slot-sub">—</div>
+      <div id="slotNote" class="slot-note"></div>
+    </div>
+
+    <!-- 分享提醒條（已置中） -->
+    <div class="share-tip">
+      <div style="font-size:20px;line-height:1">🔶</div>
+      <div>提醒：可以點下方「分享」傳送已經預約的門診日期與號碼，或複製文字到 Line 或 Messenger。</div>
+    </div>
+
+    <div class="d-flex gap-2 justify-content-center mb-3">
+      <a class="btn btn-main flex-fill" href="index.html">返回預約首頁</a>
+      <a class="btn btn-ghost flex-fill" href="query.html">查詢/取消預約</a>
+      <button id="shareBtn" class="btn btn-ghost">分享</button>
+    </div>
+
+    <div id="filledAt" class="text-secondary small"></div>
+  </div>
+</div>
+
+<script>
+/* ===== 常數（正式模式會用到） ===== */
+const API = "https://script.google.com/macros/s/AKfycbwexa8A6Qf8nTJFg9kPZA_k1K8uK0cD_cXg-UYFOcKESuets_H6wLKZJwGH5GTqjF19/exec";
 const AES_KEY = "A2x5fT9qR7nC1vB8mK3pZ6sD4uH0yW2j";
+
+/* ===== 小工具 ===== */
+const qs = (k)=>new URL(location.href).searchParams.get(k);
+const pad2 = n => String(n).padStart(2,'0');
+function weekdayZh(ymd){ const d=new Date(ymd+'T09:00:00+08:00'); return ['日','一','二','三','四','五','六'][d.getDay()]||''; }
+function ymdNorm(input){
+  if(!input) return '';
+  if(/^\d{4}-\d{2}-\d{2}$/.test(input)) return input;
+  const d=new Date(input); if(isNaN(d)) return '';
+  return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;
+}
+function guessTime(slot){
+  if(!slot) return '';
+  if(slot.includes('早')) return '08:30~11:30';
+  if(slot.includes('午')) return '14:00~17:00';
+  if(slot.includes('晚')) return '18:00~20:30';
+  if(slot.includes('約')) return '09:00~12:00';
+  return '';
+}
+function slotClass(slot){
+  if(!slot) return '';
+  if(slot.includes('早')) return 'slot-early';
+  if(slot.includes('午')) return 'slot-noon';
+  if(slot.includes('晚')) return 'slot-night';
+  if(slot.includes('約')) return 'slot-appt';
+  return '';
+}
+function slotCheckinText(slot){
+  if(!slot) return '';
+  if(slot.includes('早')) return '早診請在 10:30 前報到';
+  if(slot.includes('午')) return '午診請在 16:00 前報到';
+  if(slot.includes('晚')) return '晚診請在 20:00 前報到';
+  if(slot.includes('約')) return '約診請於門診結束前一小時前報到';
+  return '';
+}
 function aesDec(v){
   const txt = CryptoJS.AES.decrypt(decodeURIComponent(v), AES_KEY).toString(CryptoJS.enc.Utf8);
   if(!txt) throw new Error("DECRYPT_FAIL");
@@ -27,244 +222,94 @@ function aesDec(v){
   return data;
 }
 
-/* 小工具 */
-const qs = (k)=>new URL(location.href).searchParams.get(k);
-const pad2=(n)=>String(n).padStart(2,'0');
-function weekdayZh(ymd){ const d=new Date(ymd+'T09:00:00+08:00'); return ['日','一','二','三','四','五','六'][d.getDay()]||''; }
-function fmtTsTW(input){ if(!input) return ''; const d=new Date(input); if(isNaN(d)) return ''; return `${d.getFullYear()}/${pad2(d.getMonth()+1)}/${pad2(d.getDate())} ${pad2(d.getHours())}:${pad2(d.getMinutes())}:${pad2(d.getSeconds())}`; }
-function toYMD(d){ const z=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate(),1,0,0)); return `${z.getUTCFullYear()}-${pad2(z.getUTCMonth()+1)}-${pad2(z.getUTCDate())}`; }
-function normalizeYMD(input){
-  if(!input) return '';
-  if(typeof input==='string'){ if(/^\d{4}-\d{2}-\d{2}$/.test(input)) return input; const d=new Date(input); return isNaN(d)?'':toYMD(d); }
-  const d=new Date(input); return isNaN(d)?'':toYMD(d);
-}
-
-/* 診別 → 卡片 class */
-function slotClass(slot){
-  if(!slot) return 'slot-plain';
-  if(slot.includes('早')) return 'slot-early';
-  if(slot.includes('午')) return 'slot-noon';
-  if(slot.includes('晚')) return 'slot-night';
-  if(slot.includes('約')) return 'slot-appt';
-  return 'slot-plain';
-}
-
-/* 依診別顯示報到時間 */
-function slotCheckinText(slot, meta) {
-  if (!slot) return "";
-  if (slot.includes("約")) {
-    if (meta && meta.checkinBy) return `約診請在 ${meta.checkinBy} 前報到`;
-    return "最晚報到時間為門診結束前一小時";
-  }
-  if (slot.includes("早")) return "早診請在 10:30 前報到";
-  if (slot.includes("午")) return "午診請在 16:00 前報到";
-  if (slot.includes("晚")) return "晚診請在 20:00 前報到";
-  return "";
-}
-</script>
-
-<style>
-  :root{
-    --purple:#643da8;
-    --purple-600:#4d2f82;
-    --lavender:#f6f2fc;
-    --lavender-200:#ede9fe;
-    --text-deep:#2a2341;
-    --text-muted:#7a6ea3;
-
-    --early-bg:#e7f7ee; --early-bd:#6bd3a0; --early-tx:#0f5132;
-    --noon-bg:#fff3df;  --noon-bd:#ffc772; --noon-tx:#7a4d00;
-    --night-bg:#e8f2ff; --night-bd:#88b4ff; --night-tx:#1d4ed8;
-    --appt-bg:#fde7ef;  --appt-bd:#e288c2; --appt-tx:#b51695;
-  }
-
-  body{
-    background:var(--lavender);
-    font-family:"Noto Sans TC","Microsoft JhengHei",system-ui,sans-serif;
-    color:var(--text-deep);
-  }
-  .wrap{ max-width:min(880px,94vw); margin:52px auto; padding:0 16px; }
-  .cardx{
-    background:#fff; border-radius:24px;
-    padding:36px clamp(24px,4vw,44px);
-    box-shadow:0 12px 28px rgba(100,61,168,.14);
-    border:1px solid #ebe6fb;
-  }
-
-  .title-row{ display:flex; align-items:center; justify-content:center; gap:14px; margin-bottom:6px; }
-  .title-row .check{ font-size:44px; line-height:1; }
-  .title-row .txt{ font-weight:900; font-size:36px; color:var(--text-deep); }
-  .muted{ color:var(--text-muted); }
-
-  .btn-main{
-    background:var(--purple); color:#fff; border:none; border-radius:14px;
-    padding:.9rem 1.25rem; font-weight:800;
-  }
-  .btn-main:hover{ background:var(--purple-600); color:#fff; }
-  .btn-ghost{
-    background:var(--lavender-200); color:var(--purple-600);
-    border:1px solid #e3ddff; border-radius:14px;
-    padding:.9rem 1.25rem; font-weight:800;
-  }
-  .btn-ghost:hover{ background:#e3ddff; color:#3c256a; }
-
-  /* 讀取遮罩：轉圈圈 + 文字 */
-  #loading{
-    position:fixed; inset:0; background:rgba(255,255,255,.9);
-    display:flex; align-items:center; justify-content:center;
-    flex-direction:column; gap:12px;
-    z-index:9999; font-size:18px; color:var(--purple-600);
-    backdrop-filter: blur(2px);
-  }
-  #loading .spinner-border{ width:2.25rem; height:2.25rem; }
-  #loading .loading-text{ font-weight:800; }
-
-  .slot-card{
-    border-radius:20px;
-    padding:18px 18px;
-    border:2px dashed;
-    display:block;
-    margin:0 auto 18px;
-    max-width:720px;
-    text-align:center;
-    font-weight:800;
-    line-height:1.7;
-    white-space:nowrap;
-  }
-  @media (max-width:768px){ .slot-card{ white-space:normal; } }
-
-  .slot-early{ background:var(--early-bg); border-color:var(--early-bd); color:var(--early-tx); }
-  .slot-noon { background:var(--noon-bg);  border-color:var(--noon-bd);  color:var(--noon-tx); }
-  .slot-night{ background:var(--night-bg); border-color:var(--night-bd); color:var(--night-tx); }
-  .slot-appt{  background:var(--appt-bg);  border-color:var(--appt-bd);  color:var(--appt-tx); }
-  .slot-plain{ background:#f7f7fb; border-color:#d7d9e3; color:#3a3f47; }
-
-  .slot-main{ font-size:1.1rem; }
-  .slot-sub { font-size:1.05rem; }
-  .slot-note{ font-size:.95rem; margin-top:2px; }
-  .notice-text{ font-size:.95rem; line-height:1.6; color:#5e5485; }
-  @media (max-width:400px){ .notice-text{ font-size:.88rem; } }
-
-  #shareBtn{
-    background:none; border:none;
-    color:var(--purple-600);
-    font-weight:700; text-decoration:underline;
-    padding:0; cursor:pointer;
-  }
-  #shareBtn:hover{ color:var(--purple); }
-</style>
-</head>
-<body>
-<!-- 改成轉圈圈 + 讀取中 -->
-<div id="loading">
-  <div class="spinner-border" role="status" aria-hidden="true"></div>
-  <div class="loading-text">讀取中請稍等</div>
-</div>
-
-<div class="wrap">
-  <div class="cardx text-center">
-    <div class="title-row">
-      <div class="check"> ✔️ </div>
-      <div class="txt"> 預 約 成 功 </div>
-    </div>
-    <div class="muted mb-3">您的預約資訊：</div>
-
-    <div id="slotCard" class="slot-card slot-plain">
-      <div id="slotMain" class="slot-main"></div>
-      <div id="slotSub"  class="slot-sub"></div>
-      <div id="slotNotice" class="slot-note"></div>
-    </div>
-
-    <div class="d-flex justify-content-center align-items-start gap-2 mb-4 notice-text">
-      <div style="font-size:20px;line-height:1.1;">🔸</div>
-      <div>最晚報到時間為門診時間結束前一小時，超過時間自動取消釋出給現場掛號。門診當天僅接受電話取消 ☎ (03)5152971。 </div>
-    </div>
-
-    <div class="d-flex justify-content-center gap-2 mb-3">
-      <a class="btn btn-main flex-fill" href="index.html">返回預約首頁</a>
-      <a class="btn btn-ghost flex-fill" href="query.html">查詢/取消預約</a>
-    </div>
-
-    <div class="text-center mb-2">
-      <button id="shareBtn">📤 分享</button>
-    </div>
-
-    <div id="filledAt" class="muted small"></div>
-  </div>
-</div>
-
-<script>
+/* ===== DOM ===== */
 const $loading  = document.getElementById('loading');
 const slotCard  = document.getElementById('slotCard');
 const slotMain  = document.getElementById('slotMain');
 const slotSub   = document.getElementById('slotSub');
-const slotNotice= document.getElementById('slotNotice');
+const slotNote  = document.getElementById('slotNote');
 const filledAt  = document.getElementById('filledAt');
 const shareBtn  = document.getElementById('shareBtn');
 
+/* ===== 主流程 ===== */
 (async function init(){
+  const isDemo = qs('demo') === '1';
+  const stay   = qs('stay') === '1';
+
   try{
-    // 1) 先拿 id / receipt（從 cipher 或 sessionStorage）
-    let id=null, receipt='';
-    const paramCipher = qs('cipher');
-    if(paramCipher){
-      try{
-        const obj = aesDec(paramCipher);
-        id = obj.id || obj.bookingId || null;
-        receipt = obj.receipt || obj.rcpt || '';
-        try{ sessionStorage.setItem('lastBookingId', String(id||'')); }catch(_){}
-        try{ if(receipt) sessionStorage.setItem('rcpt:'+String(id||''), String(receipt)); }catch(_){}
-      }catch(_){}
-      history.replaceState({}, "", location.pathname);
+    let ymd='', slot='', time='', doctor='', name='', num='';
+    if(isDemo){
+      // Demo：網址帶參數
+      ymd    = ymdNorm(qs('date')) || ymdNorm(new Date());
+      slot   = qs('slot') || '早診';
+      time   = qs('time') || guessTime(slot);
+      doctor = qs('doctor') || '陳萬龍醫師';
+      name   = qs('name') || '王小明';
+      num    = qs('num') || '12';
+    }else{
+      // 正式：由 cipher / sessionStorage 拿 id，再向 API 取資料
+      let id=null, receipt='';
+      const cipher = qs('cipher');
+      if(cipher){
+        try{
+          const obj = aesDec(cipher);
+          id = obj.id || obj.bookingId || null;
+          receipt = obj.receipt || obj.rcpt || '';
+        }catch(_){}
+        if(history.replaceState) history.replaceState({}, "", location.pathname);
+      }
+      if(!id) id = sessionStorage.getItem('lastBookingId') || null;
+      if(!receipt && id) receipt = sessionStorage.getItem('rcpt:'+id) || '';
+
+      if(!id){
+        if(stay){
+          throw new Error('NO_ID_BUT_STAY');
+        }else{
+          alert('連結無效或已過期，請回首頁重新操作。');
+          location.href = 'index.html';
+          return;
+        }
+      }
+
+      const r = await axios.get(API, { params:{ action:'detail', id, receipt } });
+      const d = r.data || {};
+      if(d.error){ throw new Error('DETAIL_FAIL'); }
+
+      ymd    = ymdNorm(d.date);
+      slot   = d.slot || '';
+      time   = d.time || '';
+      doctor = d.doctor || '';
+      name   = d.name || '';
+      num    = d.num || '';
+      if(!time){
+        try{
+          const s2 = await axios.get(API, { params:{ action:'getSlots', date: ymd } });
+          const arr = Array.isArray(s2.data) ? s2.data : (Array.isArray(s2.data?.slots) ? s2.data.slots : []);
+          const hit = arr.find(x => String(x.label) === String(slot));
+          time = hit?.time || '';
+          if(!doctor && hit?.doctor) doctor = String(hit.doctor);
+        }catch(_){}
+      }
+      if(!time) time = guessTime(slot);
     }
-    if(!id) id = sessionStorage.getItem('lastBookingId') || null;
-    if(!receipt && id) receipt = sessionStorage.getItem('rcpt:'+id) || '';
 
-    if(!id){
-      alert('連結無效或已過期，請回首頁重新操作。');
-      location.href='index.html'; return;
-    }
-
-    // 2) 用 id/receipt 叫 API 取詳細資料
-    const r = await axios.get(API, { params:{ action:'detail', id, receipt } });
-    const d = r.data || {};
-    if (d.error) { alert('無法取得預約資料，請回首頁。'); location.href='index.html'; return; }
-
-    const ymd = normalizeYMD(d.date);
-    const wk  = weekdayZh(ymd);
-
-    // 3) 盡量補上實際時段 / 醫師
-    let timeRange = '';
-    let doctor = (d.doctor || '').trim();
-    let slotMeta = null;
-    try{
-      const slotsResp = await axios.get(API, { params:{ action:'getSlots', date: ymd } });
-      const data = slotsResp.data;
-      const slots = Array.isArray(data) ? data : (Array.isArray(data?.slots) ? data.slots : []);
-      const hit = slots.find(x => String(x.label) === String(d.slot));
-      slotMeta  = hit || null;
-      timeRange = hit?.time || '';
-      if(!doctor && hit && hit.doctor) doctor = String(hit.doctor);
-    }catch(_){}
-
-    // 4) 套診別色卡 + 寫字
-    slotCard.className = 'slot-card ' + slotClass(d.slot||'');
+    // 畫面
+    const wk = weekdayZh(ymd);
+    slotCard.classList.add(slotClass(slot));
     const docTxt = doctor ? `【${doctor}】` : '';
-    slotMain.textContent = `${ymd} 星期${wk}（${d.slot||''}） ${timeRange||''} ${docTxt}`;
-    slotSub.textContent  = `姓名：${d.name||''}，號碼：${d.num||''} 號。`;
-    const noticeText = slotCheckinText(d.slot || "", slotMeta);
-    slotNotice.innerHTML = noticeText ? `⭐ ${noticeText}` : "";
+    slotMain.textContent = `${ymd} 星期${wk}（${slot}） ${time} ${docTxt}`;
+    slotSub.textContent  = `姓名：${name}，號碼：${num} 號。`;
+    const note = slotCheckinText(slot);
+    slotNote.innerHTML = note ? `✨ ${note}` : '';
 
-    filledAt.textContent = d.submittedAt ? fmtTsTW(d.submittedAt) : '';
-
-    // 5) 分享
+    // 分享
     const shareText =
-`✔️陳萬龍診所門診預約成功！
+`√ 陳萬龍診所門診預約成功
 
-${ymd} 星期${wk}（${d.slot||''}） ${timeRange||''} ${docTxt}
-姓名：${d.name||''}，號碼：${d.num||''} 號。
+${ymd} 星期${wk}（${slot}） ${time} ${docTxt}
+姓名：${name}，號碼：${num} 號
 
-🔺請留意最晚報到時間為門診結束前一小時。`;
+🔺請於門診結束前一小時前完成報到。`;
     shareBtn.onclick = async ()=>{
       try{
         if(navigator.share) await navigator.share({ text: shareText });
@@ -272,17 +317,23 @@ ${ymd} 星期${wk}（${d.slot||''}） ${timeRange||''} ${docTxt}
       }catch(_){}
     };
 
-  }catch(e){
-    console.error(e);
-    alert('系統忙碌或網路不穩，請回首頁再試一次。');
-    location.href='index.html';
+    // 顯示填單時間（若 API 有回）
+    if(typeof d!=='undefined' && d?.submittedAt){
+      const t=new Date(d.submittedAt);
+      filledAt.textContent = `${t.getFullYear()}/${pad2(t.getMonth()+1)}/${pad2(t.getDate())} ${pad2(t.getHours())}:${pad2(t.getMinutes())}:${pad2(t.getSeconds())}`;
+    }
+
+  }catch(err){
+    if(qs('stay')!=='1'){
+      console.error(err);
+      alert('系統忙碌或連線不穩，請回首頁再試一次。');
+      location.href='index.html';
+      return;
+    }
   }finally{
-    // 關閉轉圈圈遮罩
-    $loading.style.display='none';
+    document.getElementById('loading').style.display='none';
   }
 })();
 </script>
 </body>
 </html>
-
-
