@@ -578,14 +578,17 @@ function hydrateMonth(monthDate, dayMap){
   for(let i=0;i<pad;i++) html+=`<div></div>`;
   for(let d=1; d<=last.getDate(); d++){
     const cur=new Date(first.getFullYear(),first.getMonth(),d);
-    const key=ymd(cur); const meta=dayMap[key]||{};
+    const key=ymd(cur); 
+    const meta=dayMap[key]||{};
     const isToday=(key===TODAY_KEY);
 
     const inWindow = cur>=WINDOW_MIN && cur<=WINDOW_MAX;
     const isPast   = cur < TODAY_START;
     const preWindow= (cur>=TODAY_START && cur<WINDOW_MIN);
 
-    const visibleSlots=(meta.slots||[]).filter(s=>Number(s.cap)>0);
+    // 兩種集合：可預約(openSlots) 與 有排班(schedSlots)
+    const openSlots =(meta.slots||[]).filter(s=>Number(s.cap)>0);
+    const schedSlots=(meta.slots||[]).filter(s=>['early','noon','night','appt'].includes(s.slot));
 
     let cls='day';
     let inner=`<div class="d">${d}</div>`;
@@ -597,12 +600,11 @@ function hydrateMonth(monthDate, dayMap){
       cls+=' disabled';
       inner+=`<div class="meta"><span class="state">過期</span></div>`;
     } else if(preWindow){
-      // 今天~開放日前：若有診別就以同色系「灰掉」呈現，不可點
+      // 今天~開放日前：若有排班就顯示灰掉的同色 pill，不可點；沒排班才顯示未開放
       cls+=' disabled';
-      if(visibleSlots.length){
-        const pills=visibleSlots.map(s=>{
-          const tag=s.slot==='early'?'early':s.slot==='noon'?'noon':s.slot==='night'?'night':'appt';
-          const label=tag==='early'?'早診':tag==='noon'?'午診':tag==='night'?'晚診':'約診';
+      if(schedSlots.length){
+        const pills=schedSlots.map(s=>{
+          const tag=s.slot, label=tag==='early'?'早診':tag==='noon'?'午診':tag==='night'?'晚診':'約診';
           return `<span class="pill ${tag} dim"><span class="lbl">${label}</span></span>`;
         }).join('');
         inner+=`<div class="meta">${pills}</div>`;
@@ -612,14 +614,14 @@ function hydrateMonth(monthDate, dayMap){
     } else if(!inWindow){
       cls+=' disabled';
       inner+=`<div class="meta"><span class="state">未開放</span></div>`;
-    } else if(visibleSlots.length===0){
+    } else if(openSlots.length===0){
       cls+=' disabled';
       inner+=`<div class="meta"><span class="state">未開放</span></div>`;
     } else {
+      // 可預約視窗：顯示可預約 pill（含額滿）
       cls+=' clickable';
-      const pills=visibleSlots.map(s=>{
-        const tag=s.slot==='early'?'early':s.slot==='noon'?'noon':s.slot==='night'?'night':'appt';
-        const label=tag==='early'?'早診':tag==='noon'?'午診':tag==='night'?'晚診':'約診';
+      const pills=openSlots.map(s=>{
+        const tag=s.slot, label=tag==='early'?'早診':tag==='noon'?'午診':tag==='night'?'晚診':'約診';
         if(s.status==='full'){
           return `<span class="pill ${tag} full"><span class="lbl">${label}</span> <span class="remain">已額滿</span></span>`;
         }
