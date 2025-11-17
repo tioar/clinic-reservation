@@ -770,41 +770,56 @@ $('phone').addEventListener('input', e=>{
 });
 
 /* ★ 出生年月日：強制數字＋自動隱藏提示文字 */
+/* ★ 出生年月日：純數字輸入，blur 時解析民國/西元 → yyyy/mm/dd */
 (function setupBirthdayInput(){
   const input = $('birthday');
-  const hint = $('dateHint');
+  const hint  = $('dateHint');
 
-  if(!input) return;
+  if (!input) return;
 
+  // 保險起見再指定一次數字鍵盤
+  input.setAttribute('inputmode', 'numeric');
+
+  // 聚焦時：隱藏提示
   input.addEventListener('focus', () => {
-    if(hint) hint.style.display = 'none';
+    if (hint) hint.style.display = 'none';
   });
 
+  // 輸入中：只保留數字，最多 8 碼（YYYYMMDD 或 民國年+MMDD）
+  input.addEventListener('input', (e) => {
+    const el = e.target;
+    const pos = el.selectionStart;
+
+    const cleaned = onlyDigits(el.value).slice(0, 8);
+    el.value = cleaned;
+
+    // 游標盡量維持在原來位置
+    try {
+      const newPos = Math.min(pos, cleaned.length);
+      el.setSelectionRange(newPos, newPos);
+    } catch (_) {}
+
+    if (hint) hint.style.display = el.value ? 'none' : '';
+  });
+
+  // 失焦時：解析並轉成 yyyy/mm/dd（同時處理民國年）
   input.addEventListener('blur', () => {
     const raw = input.value.trim();
     if (!raw) {
-      if(hint) hint.style.display = '';
+      if (hint) hint.style.display = '';
       return;
     }
+
     const norm = normalizeBirthdayInput(raw);
     if (!norm) {
-      alert('請用純數字格式輸入，西元年例如 19900130、20101125；也可以用民國年月日，例如 720309、1021127。');
-      input.focus();
+      alert('出生年月日格式不正確，請以純數字輸入：西元年例如 19901120；或民國年例如 720309、1120101。');
+      // 不再自動 focus，避免一直跳出視窗
       return;
     }
-    input.value = norm.display; // 自動補成 yyyy/mm/dd
-    if(hint) hint.style.display = 'none';
-  });
 
-  input.addEventListener('input', (e) => {
-    const el = e.target;
-    const p = el.selectionStart;
-    const cleaned = el.value.replace(/[^\d/]/g, ''); // 保留數字與斜線
-    if (cleaned !== el.value) {
-      el.value = cleaned;
-      try{ el.setSelectionRange(p-1, p-1); }catch(_){}
-    }
-    if(hint) hint.style.display = el.value ? 'none' : '';
+    // 成功才格式化顯示
+    input.value = norm.display; // yyyy/mm/dd
+    if (hint) hint.style.display = 'none';
   });
 })();
 
@@ -916,6 +931,7 @@ async function bootMonth(m){
 </script>
 </body>
 </html>
+
 
 
 
