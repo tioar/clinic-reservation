@@ -279,7 +279,7 @@ input[type="date"]::-webkit-calendar-picker-indicator{padding:0 8px 0 0}
       </div>
 
       <div>
-        <div class="form-label-strong">出生年月日 *（格式：yyyy/mm/dd，可輸入民國年）</div>
+        <div class="form-label-strong">出生年月日 *（格式：yyyy/mm/dd）</div>
         <input id="birthday" type="text" class="form-input" inputmode="numeric" placeholder="1990/01/15" autocomplete="off" maxlength="10"/>
       </div>
 
@@ -338,7 +338,7 @@ input[type="date"]::-webkit-calendar-picker-indicator{padding:0 8px 0 0}
       </div>
       <div class="modal-body" style="text-align:left">
         <ol class="numlist">
-          <li>本院蒐集之個人資料（姓名、電話、身分證字號）僅用於掛號與醫療聯繫,另作他用。</li>
+          <li>本院蒐集之個人資料（姓名、電話、身分證字號）僅用於掛號與醫療聯繫，不另作他用。</li>
           <li>請於預約的門診結束前一小時到場報到（早診10:30前；午診16:00前；晚診20:00前），逾時視同放棄，會釋出名額給現場掛號。</li>
           <li>如需取消，請於前一日線上辦理；當日請以電話通知 (03) 515-2971。</li>
           <li>本院保留因醫療需求調整看診順序之權利。</li>
@@ -418,4 +418,9 @@ async function getRecaptchaToken(){
 function aesEnc(payload,ttlMs=10*60*1000){
   const obj={...payload}; if(ttlMs&&Number.isFinite(ttlMs)) obj.exp=Date.now()+ttlMs;
   const cipher=CryptoJS.AES.encrypt(JSON.stringify(obj),AES_KEY).toString();
-  return encodeURIComponent
+  return encodeURIComponent(cipher);
+}
+
+/* ====== 轉圈元件 ====== */
+function createSpinner(size="md"){
+  const root=document.createElement("span");
