@@ -281,7 +281,8 @@ input[type="date"]::-webkit-calendar-picker-indicator{padding:0 8px 0 0}
       <div>
         <div class="form-label-strong">出生年月日 *</div>
         <div class="date-wrap" id="dateWrap">
-          <input id="birthday" type="date" class="form-input" inputmode="numeric" autocomplete="off"/>
+          <!-- ★ 改成 text＋數字鍵盤，不用原生 date 轉盤 -->
+          <input id="birthday" type="text" class="form-input" inputmode="numeric" autocomplete="off"/>
           <span class="date-hint" id="dateHint"> 年/月/日</span>
         </div>
       </div>
@@ -369,6 +370,46 @@ const nonceStore = {}; // { 'YYYY-MM-DD': {nonce, sig, exp} }
 
 /* ====== 小工具 ====== */
 function onlyDigits(s){ return String(s||'').replace(/\D/g,''); }
+
+/* ★ 出生年月日字串 → 正規化（支援民國年），回傳 display / iso / date */
+function normalizeBirthdayInput(raw){
+  let s = String(raw || '').trim();
+  if(!s) return null;
+
+  // 只保留數字
+  const digits = s.replace(/\D/g, '');
+  if (digits.length < 5) return null; // 至少 y m d = 1+2+2
+
+  const len = digits.length;
+  const day = parseInt(digits.slice(-2), 10);
+  const month = parseInt(digits.slice(-4, -2), 10);
+  const yearPart = digits.slice(0, len - 4);
+  if (!yearPart) return null;
+  let year = parseInt(yearPart, 10);
+
+  if (!Number.isFinite(year) || !Number.isFinite(month) || !Number.isFinite(day)) return null;
+
+  // 民國年處理：任何 <1911 的年份視為民國年
+  if (year < 1911) {
+    year = year + 1911;
+  }
+
+  if (month < 1 || month > 12 || day < 1 || day > 31) return null;
+
+  const dt = new Date(year, month - 1, day);
+  if (isNaN(dt.getTime())) return null;
+  if (dt.getFullYear() !== year || dt.getMonth() + 1 !== month || dt.getDate() !== day) return null;
+
+  const yyyy = String(year);
+  const mm = String(month).padStart(2,'0');
+  const dd = String(day).padStart(2,'0');
+
+  return {
+    display: `${yyyy}/${mm}/${dd}`,   // 顯示用
+    iso: `${yyyy}-${mm}-${dd}`,       // 傳給後端用
+    date: dt
+  };
+}
 
 /* 身分證正規化 */
 function normalizeTaiwanId(raw){
@@ -715,20 +756,80 @@ $('phone').addEventListener('input', e=>{
   try{ const pos = Math.min(p, cleaned.length); e.target.setSelectionRange(pos, pos); }catch(_){}
 });
 
+/* ★ 出生年月日：強制數字＋自動隱藏提示文字 */
+(function setupBirthdayInput(){
+  const input = $('birthday');
+  const hint = $('dateHint');
+
+  if(!input) return;
+
+  input.addEventListener('focus', () => {
+    if(hint) hint.style.display = 'none';
+  });
+
+  input.addEventListener('blur', () => {
+    const raw = input.value.trim();
+    if (!raw) {
+      if(hint) hint.style.display = '';
+      return;
+    }
+    const norm = normalizeBirthdayInput(raw);
+    if (!norm) {
+      alert('請用「YYYY/MM/DD」或純數字格式輸入，可以用民國年，例如 72/03/09、720309、1120101。');
+      input.focus();
+      return;
+    }
+    input.value = norm.display; // 自動補成 yyyy/mm/dd
+    if(hint) hint.style.display = 'none';
+  });
+
+  input.addEventListener('input', (e) => {
+    const el = e.target;
+    const p = el.selectionStart;
+    const cleaned = el.value.replace(/[^\d/]/g, ''); // 保留數字與斜線
+    if (cleaned !== el.value) {
+      el.value = cleaned;
+      try{ el.setSelectionRange(p-1, p-1); }catch(_){}
+    }
+    if(hint) hint.style.display = el.value ? 'none' : '';
+  });
+})();
+
 /* 送出 */
 let submitting=false;
 $('submitBtn').addEventListener('click',async(e)=>{
   e.preventDefault(); if(submitting) return;
-  const d=($('date').value||'').trim(), s=($('slot').value||'').trim(),
-        n=($('name').value||'').trim(), b=($('birthday').value||'').trim(),
-        rawId=($('idnum').value||''), id = normalizeTaiwanId(rawId),
-        phRaw=($('phone').value||'').trim(), ag=$('agree').checked;
+  const d=($('date').value||'').trim(),
+        s=($('slot').value||'').trim(),
+        n=($('name').value||'').trim(),
+        rawBirthday=($('birthday').value||'').trim(),
+        rawId=($('idnum').value||''),
+        id = normalizeTaiwanId(rawId),
+        phRaw=($('phone').value||'').trim(),
+        ag=$('agree').checked;
 
   $('idnum').value = id;
 
-  if(!d||!s||!n||!b||!id||!phRaw||!ag){alert('資料未填寫完整，請檢查後重試');return;}
-  const age=Math.floor((Date.now()-new Date(b))/31536000000);
-  if(age<0||age>150){alert('出生年月日不合理，請檢查後重試');return;}
+  if(!d||!s||!n||!rawBirthday||!id||!phRaw||!ag){
+    alert('資料未填寫完整，請檢查後重試');
+    return;
+  }
+
+  // 解析生日（支援民國年），轉 iso yyyy-mm-dd
+  const bNorm = normalizeBirthdayInput(rawBirthday);
+  if (!bNorm) {
+    alert('出生年月日格式不正確，請以「YYYY/MM/DD」或民國年數字輸入，例如 1980/03/09、720309、1120101。');
+    $('birthday').focus();
+    return;
+  }
+  // 顯示欄位統一成 yyyy/mm/dd
+  $('birthday').value = bNorm.display;
+
+  const age=Math.floor((Date.now()-bNorm.date.getTime())/31536000000);
+  if(age<0||age>150){
+    alert('出生年月日不合理，請檢查後重試');
+    return;
+  }
 
   if(!validateTaiwanIdCore(id)){
     alert('身份證字號驗證錯誤，請檢查是否有全形數字或多餘空白'); 
@@ -742,8 +843,22 @@ $('submitBtn').addEventListener('click',async(e)=>{
     submitting=true; $('submitBtn').disabled=true; showMask('預約中，請稍候');
     const recaptchaToken=await getRecaptchaToken(); $('g-recaptcha-response').value=recaptchaToken;
 
-    const params={action:'submit',date:d,slot:s,name:n,birthday:b,id:id,phone:ph,recaptchaToken,t:Date.now()};
-    if (nonceStore[d]) { params.nonce = nonceStore[d].nonce; params.sig = nonceStore[d].sig; params.exp = nonceStore[d].exp; }
+    const params={
+      action:'submit',
+      date:d,
+      slot:s,
+      name:n,
+      birthday:bNorm.iso, // ★ 傳給後端用 yyyy-mm-dd
+      id:id,
+      phone:ph,
+      recaptchaToken,
+      t:Date.now()
+    };
+    if (nonceStore[d]) {
+      params.nonce = nonceStore[d].nonce;
+      params.sig   = nonceStore[d].sig;
+      params.exp   = nonceStore[d].exp;
+    }
 
     const r=await axios.get(API,{params});
     if(!r.data?.ok){ alert(r.data?.message||'送出失敗，請稍後再試一次'); return; }
@@ -788,4 +903,3 @@ async function bootMonth(m){
 </script>
 </body>
 </html>
-
