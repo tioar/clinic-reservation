@@ -831,7 +831,7 @@ $('submitBtn').addEventListener('click',async(e)=>{
   // 解析生日（支援民國年），轉 iso yyyy-mm-dd
   const bNorm = normalizeBirthdayInput(rawBirthday);
   if (!bNorm) {
-    alert('出生年月日格式不正確，請以西元年，例如 19901120；或民國年輸入，例如 720309、1120101。');
+    alert('出生年月日格式不正確，請以西元年，例如 19901120；或民國年輸入，例如 720309。');
     $('birthday').focus();
     return;
   }
