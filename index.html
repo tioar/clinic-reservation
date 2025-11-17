@@ -289,7 +289,7 @@ input[type="date"]::-webkit-calendar-picker-indicator{padding:0 8px 0 0}
 
   <!-- 第二行：藍色說明文字 -->
       <div class="form-label-note">
-    請以數字輸入，可以用「西元」年月日（例如 19901120）；或「民國」年（例如 470613）。
+    請以數字輸入，可以用「西元」年月日（例如 19901120）；或「民國」年月日（例如 470613）。
       </div>
 
       <div class="date-wrap" id="dateWrap">
@@ -788,7 +788,7 @@ $('phone').addEventListener('input', e=>{
     }
     const norm = normalizeBirthdayInput(raw);
     if (!norm) {
-      alert('請用純數字格式輸入，西元年例如 19900130、20101125；也可以用民國年，例如 720309、1021127。');
+      alert('請用純數字格式輸入，西元年例如 19900130、20101125；也可以用民國年月日，例如 720309、1021127。');
       input.focus();
       return;
     }
@@ -916,6 +916,7 @@ async function bootMonth(m){
 </script>
 </body>
 </html>
+
 
 
 
