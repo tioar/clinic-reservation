@@ -279,7 +279,7 @@ input[type="date"]::-webkit-calendar-picker-indicator{padding:0 8px 0 0}
       </div>
 
       <div>
-        <div class="form-label-strong">出生年月日 (請輸入純數字，西元年例如 1990/01/30、19900130；也可以用民國年，例如 72/03/09、720309。) *</div>
+        <div class="form-label-strong">出生年月日 請以西元年(例如 19901120)；或民國年輸入(例如 720309、1120101)  *</div>
         <div class="date-wrap" id="dateWrap">
           <!-- ★ 改成 text＋數字鍵盤，不用原生 date 轉盤 -->
           <input id="birthday" type="text" class="form-input" inputmode="numeric" autocomplete="off"/>
@@ -818,7 +818,7 @@ $('submitBtn').addEventListener('click',async(e)=>{
   // 解析生日（支援民國年），轉 iso yyyy-mm-dd
   const bNorm = normalizeBirthdayInput(rawBirthday);
   if (!bNorm) {
-    alert('出生年月日格式不正確，請以「YYYY/MM/DD」西元年例如 1990/01/30、2010/11/25；或民國年數字輸入，例如 1980/03/09、720309、1120101。');
+    alert('出生年月日格式不正確，請以西元年，例如 19901120；或民國年輸入，例如 720309、1120101。');
     $('birthday').focus();
     return;
   }
@@ -903,4 +903,5 @@ async function bootMonth(m){
 </script>
 </body>
 </html>
+
 
