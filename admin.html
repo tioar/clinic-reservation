@@ -541,8 +541,20 @@
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 <script>
 /* ===== API 與共用 ===== */
-const API = "https://script.google.com/macros/s/AKfycbwexa8A6Qf8nTJFg9kPZA_k1K8uK0cD_cXg-UYFOcKESuets_H6wLKZJwGH5GTqjF19/exec";
+const API = "https://script.google.com/macros/s/AKfycbzUEvxJ0QD1_xsyqjF1ZmaLrYa_TxuHP7HazbziT2uNPLbdUTgqFI8A12DfBbbyo6YS/exec";
 let ADMIN_TOKEN = sessionStorage.getItem('ADMIN_TOKEN')||"";
+
+function getClientId(){
+  const k='clientId';
+  let v=localStorage.getItem(k);
+  if(!v){
+    v=(window.crypto && crypto.randomUUID)?crypto.randomUUID():('cid-'+Math.random().toString(16).slice(2)+Date.now().toString(16));
+    localStorage.setItem(k,v);
+  }
+  return v;
+}
+function getUA(){ return navigator.userAgent || ''; }
+function withClient(params){ return Object.assign({ clientId:getClientId(), ua:getUA() }, params||{}); }
 
 // 第二支 GAS（叫號控制）
 const QUEUE_API = "https://script.google.com/macros/s/AKfycbzdtqy4EU7MVDWqPGzNEGoP06PzAvsCRuRgh08YBui1mkFlGfiFcZu5vFpW7JNIkBrO/exec";
@@ -569,17 +581,17 @@ function loadCred(){ return { acc: sessionStorage.getItem('ADMIN_ACC')||'', pw: 
 async function reloginWithSaved(){
   const {acc, pw} = loadCred(); if(!acc || !pw) return false;
   try{
-    const r = await axios.get(API,{params:{action:'adminLogin',acc,pw}});
+    const r = await axios.get(API,{params:withClient({action:'adminLogin',acc,pw})});
     if(r.data?.ok){ ADMIN_TOKEN = r.data.token; sessionStorage.setItem('ADMIN_TOKEN', ADMIN_TOKEN); return true; }
   }catch(_){}
   return false;
 }
 async function adminCall(action, params={}){
   if(!ADMIN_TOKEN || tokenExpired(ADMIN_TOKEN, 60)){ await reloginWithSaved(); }
-  let r = await axios.get(API,{params:{action, token:ADMIN_TOKEN, ...params}});
+  let r = await axios.get(API,{params:withClient({action, token:ADMIN_TOKEN, ...params})});
   if(r?.data && r.data.ok===false && r.data.error==='unauthorized'){
     const ok = await reloginWithSaved();
-    if(ok){ r = await axios.get(API,{params:{action, token:ADMIN_TOKEN, ...params}}); }
+    if(ok){ r = await axios.get(API,{params:withClient({action, token:ADMIN_TOKEN, ...params})}); }
     else{
       sessionStorage.removeItem('ADMIN_TOKEN'); ADMIN_TOKEN=""; alert('登入已失效，請重新登入'); showLogin(); throw new Error('unauthorized');
     }
@@ -1048,7 +1060,7 @@ logoutBtn.onclick=()=>{
 btnLoginPW.onclick=async()=>{
   try{
     const a=acc.value.trim(), p=pw.value.trim();
-    const r=await axios.get(API,{params:{action:'adminLogin',acc:a,pw:p}});
+    const r=await axios.get(API,{params:withClient({action:'adminLogin',acc:a,pw:p})});
     if(r.data?.ok){
       ADMIN_TOKEN=r.data.token;
       sessionStorage.setItem('ADMIN_TOKEN',ADMIN_TOKEN);
