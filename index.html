@@ -374,9 +374,21 @@ input[type="date"]::-webkit-calendar-picker-indicator{padding:0 8px 0 0}
 
 <script>
 /* ====== 基本設定 ====== */
-const API="https://script.google.com/macros/s/AKfycbwexa8A6Qf8nTJFg9kPZA_k1K8uK0cD_cXg-UYFOcKESuets_H6wLKZJwGH5GTqjF19/exec";
+const API="https://script.google.com/macros/s/AKfycbzUEvxJ0QD1_xsyqjF1ZmaLrYa_TxuHP7HazbziT2uNPLbdUTgqFI8A12DfBbbyo6YS/exec";
 const RECAPTCHA_SITE_KEY="6LdqprArAAAAACpuAXemZUH3KNER1t1iw07YjGHu";
 const AES_KEY="A2x5fT9qR7nC1vB8mK3pZ6sD4uH0yW2j";
+
+function getClientId(){
+  const k='clientId';
+  let v=localStorage.getItem(k);
+  if(!v){
+    v=(window.crypto && crypto.randomUUID)?crypto.randomUUID():('cid-'+Math.random().toString(16).slice(2)+Date.now().toString(16));
+    localStorage.setItem(k,v);
+  }
+  return v;
+}
+function getUA(){ return navigator.userAgent || ''; }
+function withClient(params){ return Object.assign({ clientId:getClientId(), ua:getUA() }, params||{}); }
 
 /* 一次性簽章暫存 */
 const nonceStore = {}; // { 'YYYY-MM-DD': {nonce, sig, exp} }
@@ -572,7 +584,7 @@ function toggleSkeleton(on){
 /* 可預約視窗 */
 async function getWindow(){
   try{
-    const r=await axios.get(API,{params:{action:'getWindow',t:Date.now()}});
+    const r=await axios.get(API,{params:withClient({action:'getWindow',t:Date.now()})});
     const data=r.data||{};
     const min=data?.startDate?new Date(data.startDate):new Date(NOW.getFullYear(),NOW.getMonth(),NOW.getDate()+Number(data?.start??2));
     const max=data?.endDate?new Date(data.endDate):new Date(NOW.getFullYear(),NOW.getMonth(),NOW.getDate()+Number(data?.end??14));
@@ -612,7 +624,7 @@ async function fetchMonthDays(monthDate){
         const params = {action:'getSlots',date:key,t:Date.now()};
         if (preWindow) params.peek = 1; // 讓 d~d+2 能拿到排班
 
-        const r=await axios.get(API,{params});
+        const r=await axios.get(API,{params:withClient(params)});
         const data=r.data||{};
         if (!Array.isArray(data) && data && data.nonce && data.sig && data.exp) {
           nonceStore[key] = {nonce:String(data.nonce), sig:String(data.sig), exp:Number(data.exp)};
@@ -888,7 +900,7 @@ $('submitBtn').addEventListener('click',async(e)=>{
       params.exp   = nonceStore[d].exp;
     }
 
-    const r=await axios.get(API,{params});
+    const r=await axios.get(API,{params:withClient(params)});
     if(!r.data?.ok){ alert(r.data?.message||'送出失敗，請稍後再試一次'); return; }
     const idFromApi=r?.data?.id||r?.data?.Id||r?.data?.bookingId||r?.data?.data?.id;
     const receipt=r?.data?.receipt||r?.data?.rcpt||'';
