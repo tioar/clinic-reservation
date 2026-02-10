@@ -188,8 +188,20 @@ body{
 
 <script>
 /* ====== 基本設定 ====== */
-const API="https://script.google.com/macros/s/AKfycbwexa8A6Qf8nTJFg9kPZA_k1K8uK0cD_cXg-UYFOcKESuets_H6wLKZJwGH5GTqjF19/exec";
+const API="https://script.google.com/macros/s/AKfycbzUEvxJ0QD1_xsyqjF1ZmaLrYa_TxuHP7HazbziT2uNPLbdUTgqFI8A12DfBbbyo6YS/exec";
 const RECAPTCHA_SITE_KEY="6LdqprArAAAAACpuAXemZUH3KNER1t1iw07YjGHu";
+
+function getClientId(){
+  const k='clientId';
+  let v=localStorage.getItem(k);
+  if(!v){
+    v=(window.crypto && crypto.randomUUID)?crypto.randomUUID():('cid-'+Math.random().toString(16).slice(2)+Date.now().toString(16));
+    localStorage.setItem(k,v);
+  }
+  return v;
+}
+function getUA(){ return navigator.userAgent || ''; }
+function withClient(params){ return Object.assign({ clientId:getClientId(), ua:getUA() }, params||{}); }
 
 /* ====== 小工具 ====== */
 function normalizeTaiwanId(raw){
